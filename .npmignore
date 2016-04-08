@@ -1,0 +1,17 @@
+# source
+/src
+
+# dependencies
+/node_modules
+
+# misc
+.git
+.babelrc
+.eslint
+*.DS_Store
+gulpfile.babel.js
+/examples
+
+# logs
+/log
+npm-debug.log
