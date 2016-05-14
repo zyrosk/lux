@@ -1,76 +1,128 @@
 import Promise from 'bluebird';
-import { singularize, underscore, dasherize } from 'inflection';
 
 import Base from '../base';
 
+import formatInclude from './utils/format-include';
 import createPageLinks from './utils/create-page-links';
 
-import memoize from '../../decorators/memoize';
 import action from './decorators/action';
 
 class Controller extends Base {
+  store;
+  model;
+  domain;
+  modelName;
+  middleware;
+  attributes;
+  serializer;
+  serializers;
+
   sort = [];
-
   filter = [];
-
   params = [];
-
   beforeAction = [];
+  defaultPerPage = 25;
 
-  @memoize
-  get modelName() {
-    const { name } = this.constructor;
+  constructor({ model, serializer, parentController, ...props }) {
+    let attributes = [];
 
-    return dasherize(
-      underscore(
-        singularize(
-          name.substr(0, name.length - 10)
-        )
-      )
-    );
-  }
+    super();
 
-  @memoize
-  get middleware() {
-    const parent = this.parentController;
-    let middleware = this.beforeAction;
+    if (model) {
+      props = {
+        ...props,
+        model,
+        modelName: model.modelName
+      };
 
-    if (parent) {
-      middleware = [
-        ...parent.beforeAction,
-        ...middleware
-      ];
+      attributes = model.attributeNames;
+
+      if (!this.sort.length) {
+        props.sort = attributes;
+      }
+
+      if (!this.filter.length) {
+        props.filter = attributes;
+      }
     }
-
-    return middleware;
-  }
-
-  @memoize
-  get serializedAttributes() {
-    const { serializer } = this;
 
     if (serializer) {
-      return [
-        'id',
-        ...serializer.attributes.map(str => underscore(str)),
-        ...serializer.hasOne.map(str => `${underscore(str)}_id`)
-      ];
+      props = {
+        ...props,
+        serializer,
+
+        attributes: ['id', ...serializer.attributes]
+          .filter(attr => {
+            return attributes.indexOf(attr) >= 0;
+          }),
+
+        relationships: [
+          ...serializer.hasOne,
+          ...serializer.hasMany
+        ]
+      };
     }
+
+    if (parentController) {
+      props = {
+        ...props,
+        parentController,
+
+        middleware: [
+          ...parentController.middleware,
+          ...this.beforeAction
+        ]
+      };
+    } else {
+      props = {
+        ...props,
+        middleware: this.beforeAction
+      };
+    }
+
+    this.setProps(props);
+
+    return this;
   }
 
   @action
   async index(req) {
     const { url, params } = req;
-    const { store, domain, modelName } = this;
-    let only = params.fields[modelName];
+    const { model, domain, relationships } = this;
 
-    if (!only) {
-      only = this.serializedAttributes;
+    let {
+      page,
+      limit,
+      include = [],
+      sort: order,
+      filter: where,
+      fields: {
+        [model.modelName]: select,
+        ...includedFields
+      }
+    } = params;
+
+    if (!limit) {
+      limit = this.defaultPerPage;
     }
 
-    const [data, count] = await Promise.all([
-      store.query(modelName, params, { only }),
-      store.count(modelName, params)
+    if (!select) {
+      select = this.attributes;
+    }
+
+    include = formatInclude(model, include, includedFields, relationships);
+
+    const [count, data] = await Promise.all([
+      model.count(where),
+
+      model.findAll({
+        page,
+        limit,
+        where,
+        order,
+        select,
+        include
+      })
     ]);
 
     return {
@@ -78,7 +130,7 @@ class Controller extends Base {
 
       links: {
         self: domain + url.path,
-        ...createPageLinks(domain, url.pathname, params, count)
+        ...createPageLinks(domain, url.pathname, { ...params, limit }, count)
       }
     };
   }
@@ -100,30 +152,54 @@ class Controller extends Base {
 
   @action
   async create(req) {
-    const { url, params } = req;
-    const data = await this.store.createRecord(
-      this.modelName,
-      params.data.attributes
-    );
+    const { domain, model } = this;
+
+    const {
+      url: {
+        pathname
+      },
+
+      params: {
+        data: {
+          attributes,
+          // relationships
+        }
+      }
+    } = req;
 
     return {
-      data,
+      data: await model.create(attributes),
 
       links: {
-        self: this.domain + url.pathname
+        self: domain + pathname
       }
     };
   }
 
   @action
   async update(req) {
-    const { url, params } = req;
+    const { domain } = this;
+
+    const {
+      record: data,
+
+      url: {
+        pathname
+      },
+
+      params: {
+        data: {
+          attributes,
+          // relationships
+        }
+      }
+    } = req;
+
     let links;
-    let data = req.record;
 
     if (data) {
-      links = { self: this.domain + url.pathname };
-      data = await data.update(params.data.attributes);
+      links = { self: domain + pathname };
+      await data.update(attributes);
     }
 
     return {
@@ -134,11 +210,12 @@ class Controller extends Base {
 
   @action
   async destroy(req) {
-    const { url, record: data } = req;
+    const { domain } = this;
+    const { url: { pathname }, record: data } = req;
     let links;
 
     if (data) {
-      links = { self: this.domain + url.pathname };
+      links = { self: domain + pathname };
       await data.destroy();
     }
 
@@ -157,5 +234,4 @@ class Controller extends Base {
 }
 
 export action from './decorators/action';
-
 export default Controller;

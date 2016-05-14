@@ -1,55 +1,39 @@
 import Base from '../base';
 
-import memoize from '../../decorators/memoize';
+import getStaticPath from './utils/get-static-path';
+import getDynamicSegments from './utils/get-dynamic-segments';
 
 class Route extends Base {
-  constructor(props) {
-    let { method } = props;
+  path;
+  method;
+  action;
+  resource;
+  controller;
+  staticPath;
+  dynamicSegments;
 
-    method = (method || 'GET').toUpperCase();
+  constructor({ path, action, controllers, method = 'GET', ...props }) {
+    const resource = path.replace(/^(.+)\/.+$/ig, '$1');
+    const controller = controllers.get(resource);
+    const dynamicSegments = getDynamicSegments(path);
 
-    super({
+    if (action && controller) {
+      props = {
+        ...props,
+        handlers: controller[action]()
+      };
+    }
+
+    return super({
       ...props,
-      method
+      path,
+      action,
+      resource,
+      controller,
+      dynamicSegments,
+      method: method.toUpperCase(),
+      staticPath: getStaticPath(path, dynamicSegments)
     });
-  }
-
-  @memoize
-  get handlers() {
-    const { controller, action } = this;
-
-    if (controller) {
-      return controller[action]();
-    }
-  }
-
-  @memoize
-  get resource() {
-    return this.path.replace(/^(.+)\/.+$/ig, '$1');
-  }
-
-  @memoize
-  get controller() {
-    return this.controllers.get(this.resource);
-  }
-
-  @memoize
-  get staticPath() {
-    const { path, dynamicSegments } = this;
-    let staticPath = path;
-
-    if (dynamicSegments.length) {
-      const pattern = new RegExp(`(${dynamicSegments.join('|')})`, 'g');
-
-      staticPath = path.replace(pattern, 'dynamic');
-    }
-
-    return staticPath;
-  }
-
-  @memoize
-  get dynamicSegments() {
-    return (this.path.match(/(:\w+)/g) || []).map(part => part.substr(1));
   }
 }
 

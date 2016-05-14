@@ -1,183 +1,135 @@
-import Promise, { promisifyAll } from 'bluebird';
-import orm from 'orm';
-import { underscore } from 'inflection';
+import Promise from 'bluebird';
+import cluster from 'cluster';
 
-import Base from '../base';
+import {
+  ModelMissingError,
+  MigrationsPendingError
+} from './errors';
 
-import normalizePage from './utils/normalize-page';
+import { initialize } from './model';
 
-const ormKey = Symbol('connection');
+import connect from './utils/connect';
+import createMigrations from './utils/create-migrations';
+import pendingMigrations from './utils/pending-migrations';
 
-class Database extends Base {
-  constructor(config = {}) {
-    super();
+import bound from '../../decorators/bound';
+import readonly from '../../decorators/readonly';
+import nonenumerable from '../../decorators/nonenumerable';
+import nonconfigurable from '../../decorators/nonconfigurable';
 
-    config = config[this.environment] || {};
+const { defineProperties } = Object;
+const { worker, isMaster } = cluster;
+const { env: { PWD, NODE_ENV: environment = 'development' } } = process;
 
-    orm.settings.set('connection.pool', true);
-    orm.settings.set('instance.cache', false);
+class Database {
+  path;
+  debug;
+  logger;
+  config;
+  connection;
 
-    this.setProps({
+  @readonly
+  @nonenumerable
+  @nonconfigurable
+  models = new Map();
+
+  constructor({ path = PWD, logger, config: { [environment]: config } }) {
+    const { debug = environment === 'development' } = config;
+
+    defineProperties(this, {
+      path: {
+        value: path,
+        writable: false,
+        enumerable: false,
+        configurable: false
+      },
+
+      debug: {
+        value: debug,
+        writable: false,
+        enumerable: false,
+        configurable: false
+      },
+
+      logger: {
+        value: logger,
+        writable: false,
+        enumerable: false,
+        configurable: false
+      },
+
       config: {
-        host: '127.0.0.1',
-        port: '3306',
-        protocol: 'mysql',
-        username: 'root',
-        ...config
+        value: config,
+        writable: false,
+        enumerable: true,
+        configurable: false
+      },
+
+      connection: {
+        value: connect(path, config),
+        writable: false,
+        enumerable: false,
+        configurable: false
       }
     });
 
     return this;
   }
 
-  define(name, model) {
-    const connection = this[ormKey];
-    const [attrs, options, classMethods] = model;
+  @bound
+  schema() {
+    const {
+      connection: {
+        schema
+      }
+    } = this;
 
-    model = connection.define(
-      underscore(name).toLowerCase(),
-      attrs,
-      options
+    return schema;
+  }
+
+  modelFor(type) {
+    const model = this.models.get(type);
+
+    if (!model) {
+      throw new ModelMissingError(type);
+    }
+
+    return model;
+  }
+
+  async define(models) {
+    const { path, connection, schema } = this;
+
+    if (isMaster || worker && worker.id === 1) {
+      await createMigrations(schema);
+
+      const pending = await pendingMigrations(path, () => {
+        return connection('migrations');
+      });
+
+      if (pending.length) {
+        throw new MigrationsPendingError(pending);
+      }
+    }
+
+    models.forEach((model, name) => {
+      this.models.set(name, model);
+    });
+
+    return await Promise.all(
+      [...models.values()]
+        .map(model => {
+          return initialize(this, model, () => {
+            return connection(model.tableName);
+          });
+        })
     );
-
-    promisifyAll(model);
-
-    for (let key in classMethods) {
-      if (classMethods.hasOwnProperty(key)) {
-        model[key] = classMethods[key];
-      }
-    }
-
-    return this;
-  }
-
-  associate(type, relationshipType, key, relatedModelType, options) {
-    const model = this.modelFor(type);
-    const relatedModel = this.modelFor(relatedModelType);
-
-    if (!model) {
-      throw new Error();
-    }
-
-    if (!relatedModel) {
-      throw new Error();
-    }
-
-    model[relationshipType].call(model, key, relatedModel, options);
-
-    promisifyAll(model);
-    promisifyAll(relatedModel);
-
-    return this;
-  }
-
-  sync() {
-    const connection = this[ormKey];
-
-    return new Promise((resolve, reject) => {
-      connection.sync(err => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(this);
-        }
-      });
-    });
-  }
-
-  connect() {
-    return new Promise((resolve, reject) => {
-      orm.connect(this.config, (err, connection) => {
-        if (err) {
-          reject(err);
-        } else {
-          this[ormKey] = connection;
-
-          resolve(this);
-        }
-      });
-    });
-  }
-
-  modelFor(type = '') {
-    const connection = this[ormKey];
-
-    return connection.models[type.replace(/-/g, '_')];
-  }
-
-  query(type, query = {}, options = {}) {
-    const model = this.modelFor(type);
-    let order = ['createdAt', 'A'];
-    let limit = 25;
-    let offset = 0;
-
-    if (!model) {
-      throw new Error();
-    }
-
-    if (query.sort) {
-      order = query.sort;
-      if (order.charAt(0) === '-') {
-        order = [order.substr(1), 'Z'];
-      } else {
-        order = [order, 'A'];
-      }
-    }
-
-    if (query.limit) {
-      limit = parseInt(query.limit, 10);
-    }
-
-    if (query.page) {
-      offset = limit * normalizePage(query.page);
-    }
-
-    return model.findAsync(query.filter, { ...options, offset }, limit, order);
-  }
-
-  count(type, query = {}) {
-    const model = this.modelFor(type);
-
-    if (!model) {
-      throw new Error();
-    }
-
-    return model.countAsync(query.filter);
-  }
-
-  findRecord(type, id, options = {}) {
-    const model = this.modelFor(type);
-
-    if (!model) {
-      throw new Error();
-    }
-
-    return model.oneAsync({ id }, options);
-  }
-
-  queryRecord(type, query = {}, options = {}) {
-    const model = this.modelFor(type);
-
-    if (!model) {
-      throw new Error();
-    }
-
-    return model.oneAsync(query.filter, options);
-  }
-
-  createRecord(type, params) {
-    const model = this.modelFor(type);
-
-    if (!model) {
-      throw new Error();
-    }
-
-    return model.createAsync({
-      ...params,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
   }
 }
 
+export connect from './utils/connect';
+export createMigrations from './utils/create-migrations';
+export pendingMigrations from './utils/pending-migrations';
+
+export Model from './model';
 export default Database;

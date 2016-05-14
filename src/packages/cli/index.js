@@ -1,25 +1,43 @@
 import cli from 'commander';
 
-import test from './commands/test';
-import serve from './commands/serve';
-import create from './commands/create';
-import destroy from './commands/destroy';
-import generate from './commands/generate';
+import { VALID_DATABASES } from './constants';
+
+import {
+  test,
+  serve,
+  create,
+  destroy,
+  generate,
+  dbCreate,
+  dbDrop,
+  dbSeed,
+  dbMigrate,
+  dbRollback
+} from './commands';
 
 import tryCatch from '../../utils/try-catch';
+import { version as VERSION } from '../../../package.json';
 
-cli.version('0.0.1-beta.7');
+const { argv, exit, env: { PWD } } = process;
+
+cli.version(VERSION);
 
 cli
   .command('n <name>')
   .alias('new')
   .description('Create a new application')
-  .action(async name => {
+  .option('-db, --database [database]', '(Default: sqlite)')
+  .action(async (name, { database = 'sqlite' } = {}) => {
     await tryCatch(async () => {
-      await create(name);
+      if (VALID_DATABASES.indexOf(database) < 0) {
+        database = 'sqlite';
+      }
+
+      await create(name, database);
+      exit(0);
     }, err => {
       console.error(err);
-      process.exit(1);
+      exit(1);
     });
   });
 
@@ -30,9 +48,10 @@ cli
   .action(async (...args) => {
     await tryCatch(async () => {
       await test();
+      exit(0);
     }, err => {
       console.error(err);
-      process.exit(1);
+      exit(1);
     });
   });
 
@@ -40,24 +59,15 @@ cli
   .command('s')
   .alias('serve')
   .description('Serve your application')
-  .option('-e, --environment', '(Default: development)')
-  .option('-p, --port', '(Default: 4000)')
-  .action(async (...args) => {
+  .option('-e, --environment [env]', '(Default: development)')
+  .option('-p, --port [port]', '(Default: 4000)')
+  .action(async ({ environment = 'development', port = 4000 } = {}) => {
     await tryCatch(async () => {
-      let port = 4000;
-
-      args.forEach(arg => {
-        if (/^\d+$/ig.test(arg)) {
-          port = parseInt(arg, 10);
-        } else if (/^\w+$/ig.test(arg)) {
-          process.env.NODE_ENV = arg;
-        }
-      });
-
+      process.env.NODE_ENV = environment;
       await serve(port);
     }, err => {
       console.error(err);
-      process.exit(1);
+      exit(1);
     });
   });
 
@@ -67,16 +77,18 @@ cli
   .description('Example: lux generate model user')
   .option('type')
   .option('name')
-  .action(async (type, name) => {
+  .action(async (type, name, ...args) => {
     await tryCatch(async () => {
       if (typeof type === 'string' && typeof name === 'string') {
-        await generate(type, name);
+        args = args.filter(a => typeof a === 'string');
+        await generate(type, name, PWD, args);
+        exit(0);
       } else {
         throw new TypeError('Invalid arguements for type or name');
       }
     }, err => {
       console.error(err);
-      process.exit(1);
+      exit(1);
     });
   });
 
@@ -90,13 +102,93 @@ cli
     await tryCatch(async () => {
       if (typeof type === 'string' && typeof name === 'string') {
         await destroy(type, name);
+        exit(0);
       } else {
         throw new TypeError('Invalid arguements for type or name');
       }
     }, err => {
       console.error(err);
-      process.exit(1);
+      exit(1);
     });
   });
 
-cli.parse(process.argv);
+cli
+  .command('db:create')
+  .description('Create your database schema')
+  .action(async () => {
+    await tryCatch(async () => {
+      await dbCreate();
+      exit(0);
+    }, err => {
+      console.error(err);
+      exit(1);
+    });
+  });
+
+cli
+  .command('db:drop')
+  .description('Drop your database schema')
+  .action(async () => {
+    await tryCatch(async () => {
+      await dbDrop();
+      exit(0);
+    }, err => {
+      console.error(err);
+      exit(1);
+    });
+  });
+
+cli
+  .command('db:reset')
+  .description('Drop your database schema and create a new schema')
+  .action(async () => {
+    await tryCatch(async () => {
+      await dbDrop();
+      await dbCreate();
+      exit(0);
+    }, err => {
+      console.error(err);
+      exit(1);
+    });
+  });
+
+cli
+  .command('db:migrate')
+  .description('Run database migrations')
+  .action(async () => {
+    await tryCatch(async () => {
+      await dbMigrate();
+      exit(0);
+    }, err => {
+      console.error(err);
+      exit(1);
+    });
+  });
+
+cli
+  .command('db:rollback')
+  .description('Rollback the last database migration')
+  .action(async () => {
+    await tryCatch(async () => {
+      await dbRollback();
+      exit(0);
+    }, err => {
+      console.error(err);
+      exit(1);
+    });
+  });
+
+cli
+  .command('db:seed')
+  .description('Add fixtures to your db from the seed function')
+  .action(async () => {
+    await tryCatch(async () => {
+      await dbSeed();
+      exit(0);
+    }, err => {
+      console.error(err);
+      exit(1);
+    });
+  });
+
+cli.parse(argv);

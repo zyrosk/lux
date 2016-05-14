@@ -18,10 +18,10 @@ class Task extends Model {
     }
   };
 
-  static hasOne = {
+  static belongsTo = {
     list: {
       model: 'task-list',
-      reverse: 'tasks'
+      inverse: 'tasks'
     }
   };
 }

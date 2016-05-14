@@ -7,6 +7,13 @@ class TaskList extends Model {
       defaultValue: 'To Do'
     }
   };
+
+  static hasMany = {
+    tasks: {
+      model: 'task',
+      inverse: 'lists'
+    }
+  };
 }
 
 export default TaskList;

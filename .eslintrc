@@ -7,10 +7,12 @@
   },
   "globals": {
     "Map": true,
+    "Set": true,
     "Promise": true,
     "Symbol": true,
     "WeakMap": true,
     "before": true,
+    "after": true,
     "describe": true,
     "it": true
   },

@@ -1,9 +1,10 @@
 import Ora from 'ora';
-import Promise from 'bluebird';
 import { green } from 'colors/safe';
 
 import fs from '../../fs';
+
 import exec from '../utils/exec';
+import driverFor from '../utils/driver-for';
 
 import generate from './generate';
 
@@ -12,13 +13,15 @@ import appBinaryTemplate from '../templates/app-binary';
 import configTemplate from '../templates/config';
 import routesTemplate from '../templates/routes';
 import dbTemplate from '../templates/database';
+import seedTemplate from '../templates/seed';
 import pkgJSONTemplate from '../templates/package-json';
 import babelRcTemplate from '../templates/babel-rc';
 import readmeTemplate from '../templates/readme';
 import licenseTemplate from '../templates/license';
 import gitignoreTemplate from '../templates/gitignore';
 
-export default async function create(name) {
+export default async function create(name, database) {
+  const driver = driverFor(database);
   const project = `${process.env.PWD}/${name}`;
 
   await fs.mkdirAsync(project);
@@ -26,14 +29,16 @@ export default async function create(name) {
   await Promise.all([
     fs.mkdirAsync(`${project}/app`),
     fs.mkdirAsync(`${project}/bin`),
-    fs.mkdirAsync(`${project}/config`)
+    fs.mkdirAsync(`${project}/config`),
+    fs.mkdirAsync(`${project}/db`)
   ]);
 
   await Promise.all([
     fs.mkdirAsync(`${project}/app/models`),
     fs.mkdirAsync(`${project}/app/serializers`),
     fs.mkdirAsync(`${project}/app/controllers`),
-    fs.mkdirAsync(`${project}/config/environments`)
+    fs.mkdirAsync(`${project}/config/environments`),
+    fs.mkdirAsync(`${project}/db/migrate`)
   ]);
 
   await Promise.all([
@@ -75,7 +80,13 @@ export default async function create(name) {
 
     fs.writeFileAsync(
       `${project}/config/database.js`,
-      dbTemplate(name),
+      dbTemplate(name, driver),
+      'utf8'
+    ),
+
+    fs.writeFileAsync(
+      `${project}/db/seed.js`,
+      seedTemplate(),
       'utf8'
     ),
 
@@ -93,7 +104,7 @@ export default async function create(name) {
 
     fs.writeFileAsync(
       `${project}/package.json`,
-      pkgJSONTemplate(name),
+      pkgJSONTemplate(name, database),
       'utf8'
     ),
 
@@ -118,6 +129,8 @@ ${green('create')} config/environments/development.js
 ${green('create')} config/environments/test.js
 ${green('create')} config/environments/production.js
 ${green('create')} config/database.js
+${green('create')} db/migrate
+${green('create')} db/seed.js
 ${green('create')} README.md
 ${green('create')} LICENSE
 ${green('create')} package.json
@@ -144,6 +157,10 @@ ${green('create')} .gitignore
   spinner.start();
 
   await exec('npm install', {
+    cwd: project
+  });
+
+  await exec(`npm install --save --save-exact ${driver}`, {
     cwd: project
   });
 

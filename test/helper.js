@@ -1,43 +1,49 @@
-import os from 'os';
 import path from 'path';
-import { spawn } from 'child_process';
 
-import Promise from 'bluebird';
+import Logger from '../dist/packages/logger';
 
-let app;
+import exec from '../dist/packages/cli/utils/exec';
+import tryCatch from '../dist/utils/try-catch';
+
+const { assign } = Object;
+
+const {
+  env: {
+    TRAVIS = false,
+    NODE_ENV = 'development'
+  }
+} = process;
 
 before(done => {
-  const testApp = path.join(__dirname, 'test-app');
+  process.once('ready', done);
 
-  app = spawn('lux', ['serve'], {
-    cwd: testApp,
-    env: {
-      ...process.env,
-      PWD: testApp
+  tryCatch(async () => {
+    const appPath = path.join(__dirname, 'test-app');
+    const options = { cwd: appPath };
+
+    if (!TRAVIS) {
+      await exec('lux db:reset', options);
     }
-  });
 
-  app.once('error', done);
+    await exec('lux db:migrate', options);
+    await exec('lux db:seed', options);
 
-  app.stdout.setEncoding('utf8');
-  app.stderr.setEncoding('utf8');
+    const TestApp = require(`${appPath}/bin/app`);
 
-  app.stdout.on('data', data => {
-    const isListening = /^.+listening\son\sport\s\d+\n$/g.test(data);
+    const {
+      default: config
+    } = require(`./test-app/config/environments/${NODE_ENV}`);
 
-    if (isListening) {
-      done();
-    }
-  });
+    assign(config, {
+      port: 4000,
+      path: appPath,
 
-  app.stderr.once('data', err => {
-    err = new Error(err);
-    done(err);
-  });
-});
+      logger: await Logger.create({
+        appPath,
+        enabled: config.log
+      })
+    });
 
-after(() => {
-  if (app) {
-    app.kill();
-  }
+    await new TestApp(config).boot();
+  }, done);
 });

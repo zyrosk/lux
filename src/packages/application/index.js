@@ -1,20 +1,26 @@
 import Promise from 'bluebird';
+import cluster from 'cluster';
+import { singularize } from 'inflection';
 
 import Base from '../base';
-import Model, { adapter } from '../model';
 import Server from '../server';
 import Router from '../router';
 import Database from '../database';
 
 import loader from '../loader';
 
-const { keys } = Object;
+const { isMaster } = cluster;
 
 class Application extends Base {
+  path;
+
   router = Router.create();
 
-  constructor(props) {
-    super(props);
+  constructor({ path = process.env.PWD, ...props }) {
+    super({
+      ...props,
+      path
+    });
 
     this.setProps({
       server: Server.create({
@@ -28,12 +34,13 @@ class Application extends Base {
   }
 
   async boot() {
-    const { root, router, domain, server, port } = this;
-    const store = Database.create(
-      require(`${root}/config/database`).default
-    );
+    const { router, logger, domain, server, port, path } = this;
 
-    await store.connect();
+    const store = new Database({
+      path,
+      logger,
+      config: require(`${path}/config/database`).default
+    });
 
     let [
       routes,
@@ -41,100 +48,71 @@ class Application extends Base {
       controllers,
       serializers
     ] = await Promise.all([
-      loader('routes'),
-      loader('models'),
-      loader('controllers'),
-      loader('serializers')
+      loader(path, 'routes'),
+      loader(path, 'models'),
+      loader(path, 'controllers'),
+      loader(path, 'serializers')
     ]);
 
-    for (let model of models.values()) {
-      let [attributes, options, classMethods] = adapter(model);
+    await store.define(models);
 
-      store.define(model.name, [
-        {
-          ...Model.attributes,
-          ...attributes
-        },
+    serializers.forEach((serializer, name) => {
+      const model = models.get(singularize(name));
 
-        options,
-        classMethods
-      ]);
-    }
-
-    for (let [key, model] of models) {
-      let [ , , , hasOne, hasMany] = adapter(model);
-
-      for (let relatedKey in hasOne) {
-        if (hasOne.hasOwnProperty(relatedKey)) {
-          let relationship = hasOne[relatedKey];
-
-          store.associate(key, 'hasOne', ...relationship);
-        }
-      }
-
-      for (let relatedKey in hasMany) {
-        if (hasMany.hasOwnProperty(relatedKey)) {
-          let relationship = hasMany[relatedKey];
-
-          store.associate(key, 'hasMany', ...relationship);
-        }
-      }
-    }
-
-    await store.sync();
-
-    for (let [key, serializer] of serializers) {
       serializer = serializer.create({
+        model,
         domain
       });
 
-      serializers.set(key, serializer);
-    }
+      if (model) {
+        model.serializer = serializer;
+      }
 
-    for (let serializer of serializers.values()) {
+      serializers.set(name, serializer);
+    });
+
+    serializers.forEach(serializer => {
       serializer.serializers = serializers;
-    }
+    });
 
     const appController = controllers.get('application').create({
       store,
+      domain,
       serializers,
       serializer: serializers.get('application')
     });
 
     controllers.set('application', appController);
 
-    for (let [key, controller] of controllers) {
-      if (key === 'application') {
-        continue;
+    controllers.forEach((controller, key) => {
+      if (key !== 'application') {
+        const model = store.modelFor(singularize(key));
+
+        controller = controller.create({
+          store,
+          model,
+          domain,
+          serializers,
+          serializer: serializers.get(key),
+          parentController: appController
+        });
+
+        controllers.set(key, controller);
       }
-
-      controller = controller.create({
-        store,
-        domain,
-        serializers,
-        serializer: serializers.get(key),
-        parentController: appController
-      });
-
-      let model = store.modelFor(controller.modelName);
-
-      if (model && !controller.sort.length) {
-        controller.sort = keys(model.properties);
-      }
-
-      if (model && !controller.filter.length) {
-        controller.filter = keys(model.properties);
-      }
-
-      controllers.set(key, controller);
-    }
+    });
 
     router.controllers = controllers;
 
     routes.get('routes').call(null, router.route, router.resource);
 
-    server.instance.once('listening', () => process.send('ready'));
     server.listen(port);
+    server.instance.once('listening', () => {
+      if (isMaster) {
+        process.emit('ready');
+      } else {
+        process.send('ready');
+      }
+    });
 
     return this;
   }
