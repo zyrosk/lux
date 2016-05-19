@@ -1,30 +1,27 @@
 import { Model } from 'lux-framework';
 
+import track from '../utils/track';
+
 class Comment extends Model {
-  static attributes = {
-    edited: {
-      type: 'boolean',
-      defaultValue: false
+  static belongsTo = {
+    post: {
+      inverse: 'comments'
     },
 
-    message: {
-      type: 'text'
-    },
-
-    commentableId: {
-      type: 'integer',
-      size: 4
-    },
-
-    commentableType: {
-      type: 'text'
+    user: {
+      inverse: 'comments'
     }
   };
 
-  static hasOne = {
-    user: {
-      model: 'user',
-      reverse: 'comments'
+  static hasMany = {
+    reactions: {
+      inverse: 'comment'
+    }
+  };
+
+  static hooks = {
+    async afterCreate(comment) {
+      await track(comment);
     }
   };
 }

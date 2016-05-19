@@ -1,5 +1,7 @@
 import { Controller, action } from 'lux-framework';
 
+import User from '../models/user';
+
 class UsersController extends Controller {
   params = [
     'name',
@@ -9,22 +11,39 @@ class UsersController extends Controller {
 
   @action
   async login(req, res) {
-    const { store } = this;
-    const { params, session } = req;
-    const { email, password } = params;
-    const user = await store.modelFor('user').authenticate(email, password);
+    const {
+      session,
+
+      params: {
+        data: {
+          attributes: {
+            email,
+            password
+          }
+        }
+      }
+    } = req;
+
+    const user = await User.authenticate(email, password);
 
     if (user) {
       session.set('currentUserId', user.id);
     }
 
-    return user;
+    return {
+      data: user
+    };
   }
 
   @action
   logout(req, res) {
-    const { session } = req;
-    const { isAuthenticated } = session;
+    const {
+      session,
+
+      session: {
+        isAuthenticated
+      }
+    } = req;
 
     if (isAuthenticated) {
       session.delete('currentUserId');

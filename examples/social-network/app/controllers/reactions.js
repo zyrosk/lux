@@ -2,10 +2,9 @@ import { Controller } from 'lux-framework';
 
 import setUser from '../middleware/set-user';
 
-class LikesController extends Controller {
+class ReactionsController extends Controller {
   params = [
-    'likeableId',
-    'likeableType'
+    'type'
   ];
 
   beforeAction = [
@@ -13,4 +12,4 @@ class LikesController extends Controller {
   ];
 }
 
-export default LikesController;
+export default ReactionsController;

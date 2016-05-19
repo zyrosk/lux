@@ -5,8 +5,7 @@ import setUser from '../middleware/set-user';
 class CommentsController extends Controller {
   params = [
     'message',
-    'commentableId',
-    'commentableType'
+    'edited'
   ];
 
   beforeAction = [

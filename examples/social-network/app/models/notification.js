@@ -1,22 +1,10 @@
 import { Model } from 'lux-framework';
 
 class Notification extends Model {
-  static attributes = {
-    unread: {
-      type: 'boolean',
-      defaultValue: false
-    }
-  };
-
-  static hasOne = {
-    action: {
-      model: 'action',
-      reverse: 'notification'
-    },
-
-    user: {
+  static belongsTo = {
+    recipient: {
       model: 'user',
-      reverse: 'notifications'
+      inverse: 'notifications'
     }
   };
 }

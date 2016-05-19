@@ -1,16 +1,23 @@
+import User from '../models/user';
+
 export default async function setUser(req, res) {
   const { method } = req;
 
   if (/^(PUT|POST)$/g.test(method)) {
-    const { session } = req;
-    const { attributes } = req.params.data;
+    const {
+      session,
+
+      params: {
+        data: {
+          attributes
+        }
+      }
+    } = req;
 
     if (attributes) {
-      const userId = session.get('currentUserId');
-
       req.params.data.attributes = {
         ...attributes,
-        user: await this.store.findRecord('user', userId)
+        user: await User.find(session.get('currentUserId'))
       };
     }
   }

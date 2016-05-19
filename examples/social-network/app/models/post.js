@@ -1,21 +1,27 @@
 import { Model } from 'lux-framework';
 
-class Post extends Model {
-  static attributes = {
-    body: {
-      type: 'text'
-    },
+import track from '../utils/track';
 
-    isPublic: {
-      type: 'boolean',
-      defaultValue: false
+class Post extends Model {
+  static belongsTo = {
+    user: {
+      inverse: 'posts'
     }
   };
 
-  static hasOne = {
-    user: {
-      model: 'user',
-      reverse: 'posts'
+  static hasMany = {
+    comments: {
+      inverse: 'post'
+    },
+
+    reactions: {
+      inverse: 'post'
+    }
+  };
+
+  static hooks = {
+    async afterCreate(post) {
+      await track(post);
     }
   };
 }

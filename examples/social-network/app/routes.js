@@ -1,14 +1,8 @@
 export default (route, resource) => {
   resource('comments');
-
   resource('friendships');
-
-  resource('likes');
-
   resource('posts');
-
-  resource('likes');
-
+  resource('reactions');
   resource('users');
 
   route('users/login', {
@@ -39,10 +33,5 @@ export default (route, resource) => {
   route('notifications/:id', {
     method: 'GET',
     action: 'show'
-  });
-
-  route('notifications', {
-    method: 'DELETE',
-    action: 'destroy'
   });
 };
