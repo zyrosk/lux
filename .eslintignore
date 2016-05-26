@@ -1,0 +1,13 @@
+# compiled output
+dist/*
+
+# tests
+test/*
+
+# dependencies
+node_modules/*
+
+# misc
+decl/*
+examples/*
+src/**/decl.js
