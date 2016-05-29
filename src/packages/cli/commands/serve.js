@@ -1,25 +1,16 @@
-import os from 'os';
-import path from 'path';
-import cluster from 'cluster';
-
 import { cyan } from 'chalk';
 
 import Logger from '../../logger';
+import loader from '../../loader';
+import { createCluster } from '../../pm';
 
-const {
-  env: {
-    PWD,
-    NODE_ENV = 'development'
-  }
-} = process;
+import type Cluster from '../../pm/cluster';
+
+const { env: { PWD } } = process;
 
 export default async function serve(port = 4000) {
-  const dist = path.join(PWD, 'dist');
-  const Application = external(path.join(dist, 'app', 'index')).default;
-
-  const config = external(
-    path.join(dist, 'config', 'environments', NODE_ENV)
-  ).default;
+  const Application = loader(PWD, 'application');
+  const config = loader(PWD, 'config');
 
   const logger = await Logger.create({
     enabled: config.log,
@@ -30,28 +21,28 @@ export default async function serve(port = 4000) {
     port = config.port;
   }
 
-  if (cluster.isMaster) {
-    const total = os.cpus().length;
-    let current = 0;
+  createCluster({
+    logger,
 
-    logger.log(`Starting Lux Server with ${cyan(`${total}`)} worker processes`);
+    setupMaster(master: Cluster) {
+      const { maxWorkers: total }: { maxWorkers: number } = master;
 
-    for (let i = 0; i < total; i++) {
-      cluster.fork({ NODE_ENV }).once('message', msg => {
-        if (msg === 'ready') {
-          current++;
-          if (current === total) {
-            logger.log(`Lux Server listening on port ${cyan(`${port}`)}`);
-          }
-        }
+      logger.log(
+        `Starting Lux Server with ${cyan(`${total}`)} worker processes`
+      );
+
+      master.once('ready', () => {
+        logger.log(`Lux Server listening on port: ${cyan(`${port}`)}`);
+      });
+    },
+
+    async setupWorker(worker: Object) {
+      await new Application({
+        ...config,
+        port,
+        logger,
+        path: PWD
       });
     }
-  } else {
-    await new Application({
-      ...config,
-      port,
-      logger,
-      path: PWD
-    }).boot();
-  }
+  });
 }
