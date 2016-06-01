@@ -1,7 +1,12 @@
 import cli from 'commander';
-import cluster from 'cluster';
 
 import { VALID_DATABASES } from './constants';
+import { version as VERSION } from '../../../package.json';
+
+import Watcher from '../watcher';
+import { compile } from '../compiler';
+
+import tryCatch from '../../utils/try-catch';
 
 import {
   test,
@@ -14,17 +19,26 @@ import {
   dbSeed,
   dbMigrate,
   dbRollback
-} from './commands';
-
-import tryCatch from '../../utils/try-catch';
-import { createCompiler, displayStats } from '../compiler';
-
-import { version as VERSION } from '../../../package.json';
-
-const { isMaster } = cluster;
+} from './commands/index';
 
 export default function CLI() {
-  const { argv, exit, env: { PWD, NODE_ENV = 'development' } } = process;
+  const {
+    argv,
+    exit,
+
+    env: {
+      PWD,
+      NODE_ENV = 'development'
+    }
+  } = process;
+
+  /**
+   * @private
+   */
+  function rescue(err) {
+    console.error(err);
+    exit(1);
+  }
 
   cli.version(VERSION);
 
@@ -33,32 +47,25 @@ export default function CLI() {
     .alias('new')
     .description('Create a new application')
     .option('--database [database]', '(Default: sqlite)')
-    .action(async (name, { database = 'sqlite' } = {}) => {
-      await tryCatch(async () => {
+    .action((name, { database = 'sqlite' } = {}) => {
+      return tryCatch(async () => {
         if (VALID_DATABASES.indexOf(database) < 0) {
           database = 'sqlite';
         }
-
         await create(name, database);
         exit(0);
-      }, err => {
-        console.error(err);
-        exit(1);
-      });
+      }, rescue);
     });
 
   cli
     .command('t')
     .alias('test')
     .description('Run your app\'s tests')
-    .action(async (...args) => {
-      await tryCatch(async () => {
+    .action((...args) => {
+      return tryCatch(async () => {
         await test();
         exit(0);
-      }, err => {
-        console.error(err);
-        exit(1);
-      });
+      }, rescue);
     });
 
   cli
@@ -67,44 +74,27 @@ export default function CLI() {
     .description('Serve your application')
     .option('-e, --environment [env]', '(Default: development)')
     .option('-p, --port [port]', '(Default: 4000)')
-    .action(async ({ environment = 'development', port = 4000 } = {}) => {
-      process.env.NODE_ENV = environment;
+    .option('-h, --hot', 'Reload when a file change is detected')
+    .action(({
+      environment = NODE_ENV,
+      port = 4000,
+      hot = (environment === 'development')
+    } = {}) => {
+      return tryCatch(async () => {
+        process.env.NODE_ENV = environment;
 
-      if (isMaster) {
-        const rescue = (err) => {
-          console.error(err);
-          exit(1);
-        };
+        if (hot) {
+          const watcher = new Watcher(PWD);
 
-        await tryCatch(async () => {
-          const compiler = await createCompiler(PWD, environment);
-          let isRunning = false;
-
-          compiler.watch({
-            poll: false,
-            aggregateTimeout: 300
-          }, async (err, stats) => {
-            if (err) {
-              return rescue(err);
-            }
-
-            if (isMaster) {
-              displayStats(stats, isRunning);
-
-              if (isRunning) {
-                process.emit('update');
-              }
-            }
-
-            if (!isRunning) {
-              await serve(port);
-              isRunning = true;
-            }
+          watcher.on('change', async (type, file) => {
+            await compile(PWD, environment);
+            process.emit('update');
           });
-        }, rescue);
-      } else {
+        }
+
+        await compile(PWD, environment);
         await serve(port);
-      }
+      }, rescue);
     });
 
   cli
@@ -113,8 +103,8 @@ export default function CLI() {
     .description('Example: lux generate model user')
     .option('type')
     .option('name')
-    .action(async (type, name, ...args) => {
-      await tryCatch(async () => {
+    .action((type, name, ...args) => {
+      return tryCatch(async () => {
         if (typeof type === 'string' && typeof name === 'string') {
           args = args.filter(a => typeof a === 'string');
           await generate(type, name, PWD, args);
@@ -122,10 +112,7 @@ export default function CLI() {
         } else {
           throw new TypeError('Invalid arguements for type or name');
         }
-      }, err => {
-        console.error(err);
-        exit(1);
-      });
+      }, rescue);
     });
 
   cli
@@ -134,158 +121,81 @@ export default function CLI() {
     .description('Example: lux destroy model user')
     .option('type')
     .option('name')
-    .action(async (type, name) => {
-      await tryCatch(async () => {
+    .action((type, name) => {
+      return tryCatch(async () => {
         if (typeof type === 'string' && typeof name === 'string') {
           await destroy(type, name);
           exit(0);
         } else {
           throw new TypeError('Invalid arguements for type or name');
         }
-      }, err => {
-        console.error(err);
-        exit(1);
-      });
+      }, rescue);
     });
 
   cli
     .command('db:create')
     .description('Create your database schema')
-    .action(async () => {
-      const rescue = (err) => {
-        console.error(err);
-        exit(1);
-      };
-
-      await tryCatch(async () => {
-        const compiler = await createCompiler(PWD, NODE_ENV);
-
-        compiler.run(async (err) => {
-          tryCatch(async () => {
-            if (err) {
-              rescue(err);
-            } else {
-              await dbCreate();
-              exit(0);
-            }
-          }, rescue);
-        });
+    .action(() => {
+      return tryCatch(async () => {
+        await compile(PWD, NODE_ENV);
+        await dbCreate();
+        exit(0);
       }, rescue);
     });
 
   cli
     .command('db:drop')
     .description('Drop your database schema')
-    .action(async () => {
-      const rescue = (err) => {
-        console.error(err);
-        exit(1);
-      };
-
-      await tryCatch(async () => {
-        const compiler = await createCompiler(PWD, NODE_ENV);
-
-        compiler.run(async (err) => {
-          if (err) {
-            rescue(err);
-          } else {
-            await dbDrop();
-            exit(0);
-          }
-        });
+    .action(() => {
+      return tryCatch(async () => {
+        await compile(PWD, NODE_ENV);
+        await dbDrop();
+        exit(0);
       }, rescue);
     });
 
   cli
     .command('db:reset')
     .description('Drop your database schema and create a new schema')
-    .action(async () => {
-      const rescue = (err) => {
-        console.error(err);
-        exit(1);
-      };
-
-      await tryCatch(async () => {
-        const compiler = await createCompiler(PWD, NODE_ENV);
-
-        compiler.run(async (err) => {
-          if (err) {
-            rescue(err);
-          } else {
-            await dbDrop();
-            await dbCreate();
-            exit(0);
-          }
-        });
+    .action(() => {
+      return tryCatch(async () => {
+        await compile(PWD, NODE_ENV);
+        await dbDrop();
+        await dbCreate();
+        exit(0);
       }, rescue);
     });
 
   cli
     .command('db:migrate')
     .description('Run database migrations')
-    .action(async () => {
-      const rescue = (err) => {
-        console.error(err);
-        exit(1);
-      };
-
-      await tryCatch(async () => {
-        const compiler = await createCompiler(PWD, NODE_ENV);
-
-        compiler.run(async (err) => {
-          if (err) {
-            rescue(err);
-          } else {
-            await dbMigrate();
-            exit(0);
-          }
-        });
+    .action(() => {
+      return tryCatch(async () => {
+        await compile(PWD, NODE_ENV);
+        await dbMigrate();
+        exit(0);
       }, rescue);
     });
 
   cli
     .command('db:rollback')
     .description('Rollback the last database migration')
-    .action(async () => {
-      const rescue = (err) => {
-        console.error(err);
-        exit(1);
-      };
-
-      await tryCatch(async () => {
-        const compiler = await createCompiler(PWD, NODE_ENV);
-
-        compiler.run(async (err) => {
-          if (err) {
-            rescue(err);
-          } else {
-            await dbRollback();
-            exit(0);
-          }
-        });
+    .action(() => {
+      return tryCatch(async () => {
+        await compile(PWD, NODE_ENV);
+        await dbRollback();
+        exit(0);
       }, rescue);
     });
 
   cli
     .command('db:seed')
     .description('Add fixtures to your db from the seed function')
-    .action(async () => {
-      const rescue = (err) => {
-        console.error(err);
-        exit(1);
-      };
-
-      await tryCatch(async () => {
-        const compiler = await createCompiler(PWD, NODE_ENV);
-
-        compiler.run(async (err) => {
-          if (err) {
-            rescue(err);
-          } else {
-            await dbSeed();
-            exit(0);
-          }
-        });
+    .action(() => {
+      return tryCatch(async () => {
+        await compile(PWD, NODE_ENV);
+        await dbSeed();
+        exit(0);
       }, rescue);
     });
 

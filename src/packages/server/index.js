@@ -1,3 +1,4 @@
+// @flow
 import http from 'http';
 import { parse as parseURL } from 'url';
 
@@ -7,22 +8,35 @@ import { line } from '../logger';
 
 import formatParams from './utils/format-params';
 
-const { defineProperties } = Object;
+import type {
+  Server as HTTPServer,
+  IncomingMessage,
+  ServerResponse
+} from 'http';
+
+import type Logger from '../logger';
+import type Router from '../router';
 
 /**
  * @private
  */
 class Server {
-  router;
-  logger;
-  instance;
+  router: Router;
+  logger: Logger;
+  instance: HTTPServer;
 
-  constructor({ logger, router } = {}) {
+  constructor({
+    logger,
+    router
+  }: {
+    logger: Logger,
+    router: Router
+  } = {}): Server {
     const instance = http.createServer((req, res) => {
       this.receiveRequest(req, res);
     });
 
-    defineProperties(this, {
+    Object.defineProperties(this, {
       router: {
         value: router,
         writable: false,
@@ -48,11 +62,14 @@ class Server {
     return this;
   }
 
-  listen(port) {
+  listen(port: number): void {
     this.instance.listen(port);
   }
 
-  async receiveRequest(req, res) {
+  async receiveRequest(
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<void> {
     const { headers } = req;
     const methodOverride = headers['X-HTTP-Method-Override'];
 
@@ -71,7 +88,7 @@ class Server {
     this.router.resolve(req, res);
   }
 
-  logRequest(req, res) {
+  logRequest(req: IncomingMessage, res: ServerResponse): void {
     const startTime = new Date();
 
     res.once('finish', () => {
