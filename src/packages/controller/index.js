@@ -4,8 +4,6 @@ import omit from '../../utils/omit';
 import getRecord from './utils/get-record';
 import formatInclude from './utils/format-include';
 
-import action from './decorators/action';
-
 import type { IncomingMessage, ServerResponse } from 'http';
 
 import type Database, { Collection } from '../database';
@@ -329,9 +327,12 @@ class Controller {
     }
   }
 
-  @action
   /**
+   * Returns a list of `Model` instances that the Controller instance
+   * represents.
    *
+   * This method supports filtering, sorting, pagination, including
+   * relationships, and sparse fieldsets via query parameters.
    */
   async index(req: IncomingMessage, res: ServerResponse): Promise<Collection> {
     const { model, modelName, relationships } = this;
@@ -371,17 +372,19 @@ class Controller {
     }, true);
   }
 
-  @action
   /**
+   * Returns a single `Model` instance that the Controller instance represents.
    *
+   * This method supports including relationships, and sparse fieldsets via
+   * query parameters.
    */
   show(req: IncomingMessage, res: ServerResponse): Promise<?Model> {
     return getRecord(this, req, res);
   }
 
-  @action
   /**
-   *
+   * Create and return a single `Model` instance that the Controller instance
+   * represents.
    */
   async create(req: IncomingMessage, res: ServerResponse): Promise<Model> {
     const {
@@ -395,9 +398,9 @@ class Controller {
     return await this.model.create(attributes);
   }
 
-  @action
   /**
-   *
+   * Update and return a single `Model` instance that the Controller instance
+   * represents.
    */
   async update(req: IncomingMessage, res: ServerResponse): Promise<?Model> {
     const record = await getRecord(this, req, res);
@@ -417,9 +420,8 @@ class Controller {
     return record;
   }
 
-  @action
   /**
-   *
+   * Destroy a single `Model` instance that the Controller instance represents.
    */
   async destroy(req: IncomingMessage, res: ServerResponse): Promise<?Model> {
     const record = await getRecord(this, req, res);
@@ -431,14 +433,14 @@ class Controller {
     return record;
   }
 
-  @action
   /**
+   * An action handler used for responding to HEAD or OPTIONS requests.
    *
+   * @private
    */
   preflight(req: IncomingMessage, res: ServerResponse): boolean {
     return true;
   }
 }
 
-export { default as action } from './decorators/action';
 export default Controller;
