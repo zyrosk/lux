@@ -145,6 +145,6 @@ export { default as createMigrations } from './utils/create-migrations';
 export { default as pendingMigrations } from './utils/pending-migrations';
 
 export { default as Model } from './model';
+export { default as Query } from './query';
 export { default as Migration } from './migration';
-export { default as Collection } from './collection';
 export default Database;

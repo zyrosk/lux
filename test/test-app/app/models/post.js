@@ -6,6 +6,20 @@ class Post extends Model {
       inverse: 'posts'
     }
   };
+
+  static scopes = {
+    drafts() {
+      return this.where({
+        isPublic: false
+      });
+    },
+
+    isPublic() {
+      return this.where({
+        isPublic: true
+      });
+    }
+  };
 }
 
 export default Post;

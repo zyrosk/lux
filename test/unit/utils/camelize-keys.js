@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 
-import camelizeKeys from '../../../src/utils/camelize-keys';
+import { camelizeKeys } from '../../../src/utils/transform-keys';
 
 describe('Unit: util camelizeKeys', () => {
   const subject = {

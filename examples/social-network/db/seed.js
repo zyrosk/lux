@@ -4,6 +4,7 @@ import Comment from '../app/models/comment';
 import Post from '../app/models/post';
 import Reaction from '../app/models/reaction';
 import User from '../app/models/user';
+import Friendship from '../app/models/friendship';
 
 import range from '../app/utils/range';
 
@@ -18,13 +19,22 @@ const {
   }
 } = faker;
 
-export default async () => {
+export default async function seed() {
   await Promise.all(
     [...range(1, 100)].map(() => {
       return User.create({
         name: `${name.firstName()} ${name.lastName()}`,
         email: internet.email(),
         password: internet.password(randomize([...range(8, 127)]))
+      });
+    })
+  );
+
+  await Promise.all(
+    [...range(1, 100)].map(() => {
+      return Friendship.create({
+        userId: randomize([...range(1, 100)]),
+        friendId: randomize([...range(1, 100)])
       });
     })
   );

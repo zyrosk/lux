@@ -1,12 +1,10 @@
 import Model from '../database/model';
 
-import omit from '../../utils/omit';
-import getRecord from './utils/get-record';
-import formatInclude from './utils/format-include';
+import insert from '../../utils/insert';
 
 import type { IncomingMessage, ServerResponse } from 'http';
 
-import type Database, { Collection } from '../database';
+import type Database from '../database';
 import type Serializer from '../serializer';
 
 /**
@@ -19,41 +17,6 @@ import type Serializer from '../serializer';
  * and returns data relative to what the client has request.
  */
 class Controller {
-  /**
-   * Whitelisted parameter keys to allow in incoming PATCH and POST requests.
-   *
-   * For security reasons, parameters passed to controller actions from an
-   * incoming request must have their key whitelisted.
-   *
-   * @example
-   * class UsersController extends Controller {
-   *   // Do not allow incoming PATCH or POST requests to modify User#isAdmin.
-   *   params = [
-   *     'name',
-   *     'email',
-   *     'password',
-   *     // 'isAdmin'
-   *   ];
-   * }
-   *
-   * @property params
-   * @memberof Controller
-   * @instance
-   */
-  params: Array<string> = [];
-
-  /**
-   * Middleware functions to execute on each request handled by a `Controller`.
-   *
-   * Middleware functions declared in beforeAction on an `ApplicationController`
-   * will be executed before ALL route handlers.
-   *
-   * @property beforeAction
-   * @memberof Controller
-   * @instance
-   */
-  beforeAction: Array<Function> = [];
-
   /**
    * The number of records to return for the #index action when a `?limit`
    * parameter is not specified.
@@ -81,15 +44,6 @@ class Controller {
    * @private
    */
   model: typeof Model;
-
-  /**
-   * @property domain
-   * @memberof Controller
-   * @instance
-   * @readonly
-   * @private
-   */
-  domain: string;
 
   /**
    * @property modelName
@@ -145,35 +99,15 @@ class Controller {
    */
   parentController: ?Controller;
 
-  /**
-   * @property _sort
-   * @memberof Controller
-   * @instance
-   * @readonly
-   * @private
-   */
-  _sort: Array<string> = [];
-
-  /**
-   * @property _filter
-   * @memberof Controller
-   * @instance
-   * @readonly
-   * @private
-   */
-  _filter: Array<string> = [];
-
   constructor({
     store,
     model,
-    domain,
     serializer,
     serializers = new Map(),
     parentController
   }: {
     store: Database,
     model: ?Model<T>,
-    domain: string,
     serializer: Serializer,
     serializers: Map<string, Serializer>,
     parentController: ?Controller
@@ -197,6 +131,9 @@ class Controller {
       relationships = relationshipNames.filter(relationship => {
         return serializedRelationships.indexOf(relationship) >= 0;
       });
+
+      Object.freeze(attributes);
+      Object.freeze(relationships);
     }
 
     Object.defineProperties(this, {
@@ -216,13 +153,6 @@ class Controller {
 
       store: {
         value: store,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      },
-
-      domain: {
-        value: domain,
         writable: false,
         enumerable: false,
         configurable: false
@@ -268,6 +198,75 @@ class Controller {
   }
 
   /**
+   * Whitelisted parameter keys to allow in incoming PATCH and POST requests.
+   *
+   * For security reasons, parameters passed to controller actions from an
+   * incoming request must have their key whitelisted.
+   *
+   * @example
+   * class UsersController extends Controller {
+   *   // Do not allow incoming PATCH or POST requests to modify User#isAdmin.
+   *   params = [
+   *     'name',
+   *     'email',
+   *     'password',
+   *     // 'isAdmin'
+   *   ];
+   * }
+   *
+   * @property params
+   * @memberof Controller
+   * @instance
+   */
+  get params(): Array<string> {
+    return Object.freeze([]);
+  }
+
+  set params(value: Array<string>): void {
+    if (value && value.length) {
+      const params = new Array(value.length);
+
+      insert(params, value);
+
+      Object.defineProperty(this, 'params', {
+        value: Object.freeze(params),
+        writable: false,
+        enumerable: true,
+        configurable: false
+      });
+    }
+  }
+
+  /**
+   * Middleware functions to execute on each request handled by a `Controller`.
+   *
+   * Middleware functions declared in beforeAction on an `ApplicationController`
+   * will be executed before ALL route handlers.
+   *
+   * @property beforeAction
+   * @memberof Controller
+   * @instance
+   */
+  get beforeAction(): Array<Function> {
+    return Object.freeze([]);
+  }
+
+  set beforeAction(value: Array<Function>): void {
+    if (value && value.length) {
+      const beforeAction = new Array(value.length);
+
+      insert(beforeAction, value);
+
+      Object.defineProperty(this, 'beforeAction', {
+        value: Object.freeze(beforeAction),
+        writable: false,
+        enumerable: true,
+        configurable: false
+      });
+    }
+  }
+
+  /**
    * Whitelisted `?sort` parameter values.
    *
    * If you do not override this property all of the attributes of the Model
@@ -278,13 +277,22 @@ class Controller {
    * @instance
    */
   get sort(): Array<string> {
-    const { attributes, _sort: sort } = this;
-
-    return sort.length ? sort : attributes;
+    return this.attributes;
   }
 
   set sort(value: Array<string>): void {
-    this._sort = value;
+    if (value && value.length) {
+      const sort = new Array(sort.length);
+
+      insert(sort, value);
+
+      Object.defineProperty(this, 'sort', {
+        value: Object.freeze(sort),
+        writable: false,
+        enumerable: true,
+        configurable: false
+      });
+    }
   }
 
   /**
@@ -298,13 +306,22 @@ class Controller {
    * @instance
    */
   get filter(): Array<string> {
-    const { attributes, _filter: filter } = this;
-
-    return filter.length ? filter : attributes;
+    return this.attributes;
   }
 
   set filter(value: Array<string>): void {
-    this._filter = value;
+    if (value && value.length) {
+      const filter = new Array(filter.length);
+
+      insert(filter, value);
+
+      Object.defineProperty(this, 'filter', {
+        value: Object.freeze(filter),
+        writable: false,
+        enumerable: true,
+        configurable: false
+      });
+    }
   }
 
   /**
@@ -316,15 +333,24 @@ class Controller {
    */
   get middleware(): Array<Function> {
     const { beforeAction, parentController } = this;
+    let middleware;
 
     if (parentController) {
-      return [
+      const length = beforeAction.length + parentController.beforeAction.length;
+
+      middleware = new Array(length);
+
+      insert(middleware, [
         ...parentController.middleware,
         ...beforeAction
-      ];
+      ]);
     } else {
-      return beforeAction;
+      middleware = new Array(beforeAction.length);
+
+      insert(middleware, beforeAction);
     }
+
+    return middleware;
   }
 
   /**
@@ -334,42 +360,24 @@ class Controller {
    * This method supports filtering, sorting, pagination, including
    * relationships, and sparse fieldsets via query parameters.
    */
-  async index(req: IncomingMessage, res: ServerResponse): Promise<Collection> {
-    const { model, modelName, relationships } = this;
-
-    let {
+  index(req: IncomingMessage, res: ServerResponse): Promise<Array<Model>> {
+    const {
       params: {
+        sort,
         page,
         limit,
+        filter,
         fields,
-        include = [],
-        sort: order,
-        filter: where
+        include
       }
     } = req;
 
-    let select = fields[modelName];
-    let includedFields = omit(fields, modelName);
-
-    if (!limit) {
-      limit = this.defaultPerPage;
-      req.params.limit = limit;
-    }
-
-    if (!select) {
-      select = this.attributes;
-    }
-
-    include = formatInclude(model, include, includedFields, relationships);
-
-    return await model.findAll({
-      page,
-      limit,
-      where,
-      order,
-      select,
-      include
-    }, true);
+    return this.model.select(...fields)
+      .include(include)
+      .limit(limit)
+      .page(page)
+      .where(filter)
+      .order(...sort);
   }
 
   /**
@@ -379,14 +387,24 @@ class Controller {
    * query parameters.
    */
   show(req: IncomingMessage, res: ServerResponse): Promise<?Model> {
-    return getRecord(this, req, res);
+    const {
+      params: {
+        id,
+        fields,
+        include
+      }
+    } = req;
+
+    return this.model.find(id)
+      .select(...fields)
+      .include(include);
   }
 
   /**
    * Create and return a single `Model` instance that the Controller instance
    * represents.
    */
-  async create(req: IncomingMessage, res: ServerResponse): Promise<Model> {
+  create(req: IncomingMessage, res: ServerResponse): Promise<Model> {
     const {
       params: {
         data: {
@@ -395,7 +413,7 @@ class Controller {
       }
     } = req;
 
-    return await this.model.create(attributes);
+    return this.model.create(attributes);
   }
 
   /**
@@ -403,15 +421,19 @@ class Controller {
    * represents.
    */
   async update(req: IncomingMessage, res: ServerResponse): Promise<?Model> {
-    const record = await getRecord(this, req, res);
+    let record;
 
     const {
       params: {
+        id,
+
         data: {
           attributes
         }
       }
     } = req;
+
+    record = await this.model.find(id);
 
     if (record) {
       await record.update(attributes);
@@ -424,7 +446,7 @@ class Controller {
    * Destroy a single `Model` instance that the Controller instance represents.
    */
   async destroy(req: IncomingMessage, res: ServerResponse): Promise<?Model> {
-    const record = await getRecord(this, req, res);
+    const record = await this.model.find(req.params.id);
 
     if (record) {
       await record.destroy();

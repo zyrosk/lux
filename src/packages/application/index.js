@@ -5,6 +5,9 @@ import type Database from '../database';
 import type Logger from '../logger';
 import type Router from '../router';
 import type Server from '../server';
+import type Controller from '../controller';
+import type Serializer from '../serializer';
+import typeof { Model } from '../database';
 
 /**
  * The `Application` class is responsible for constructing an application and
@@ -46,15 +49,14 @@ class Application {
   store: Database;
 
   /**
-   * The public domain where the `Application` instance is located. This is
-   * primarily used for creating `links` resource objects.
+   * A map containing each `Model` class in an application instance.
    *
-   * @property domain
+   * @property models
    * @memberof Application
    * @instance
    * @readonly
    */
-  domain: string;
+  models: Map<string, Model>;
 
   /**
    * A reference to the instance of `Logger`.
@@ -65,6 +67,26 @@ class Application {
    * @readonly
    */
   logger: Logger;
+
+  /**
+   * A map containing each `Controller` class in an application instance.
+   *
+   * @property controllers
+   * @memberof Application
+   * @instance
+   * @readonly
+   */
+  controllers: Map<string, Controller>;
+
+  /**
+   * A map containing each `Serializer` class in an application instance.
+   *
+   * @property serializers
+   * @memberof Application
+   * @instance
+   * @readonly
+   */
+  serializers: Map<string, Serializer>;
 
   /**
    * A reference to the instance of `Router`.
@@ -98,20 +120,17 @@ class Application {
     log = true,
     path,
     port,
-    domain = 'http://localhost',
     database
   }: {
     log: boolean,
     path: string,
     port: number,
-    domain: string,
     database: {}
   } = {}): Promise<Application> {
     return initialize(this, {
       log,
       path,
       port,
-      domain,
       database
     });
   }

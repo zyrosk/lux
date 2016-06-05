@@ -487,18 +487,19 @@ describe('Integration: class Controller', () => {
   });
 
   describe('Regression: #createPageLinks (https://github.com/postlight/lux/issues/102)', () => {
-    let subject, payload;
+    let url, subject, payload;
 
     before(async () => {
-      subject = await fetch(`${host}/tags`);
+      url = `${host}/tags`;
+      subject = await fetch(url);
       payload = await subject.json();
     });
 
     it('has the expected `links` value', () => {
       expect(payload.links).to.deep.equal({
-        self: `${host}/tags`,
-        first: `${host}/tags?page=1`,
-        last: `${host}/tags?page=1`,
+        self: url,
+        first: url,
+        last: url,
         prev: null,
         next: null
       });

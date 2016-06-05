@@ -21,13 +21,11 @@ export default async function initialize(app: Application, {
   log,
   path,
   port,
-  domain,
   database
 }: {
   log: boolean,
   path: string,
   port: number,
-  domain: string,
   database: {}
 } = {}): Promise<Application> {
   const routes = loader(path, 'routes');
@@ -75,13 +73,6 @@ export default async function initialize(app: Application, {
       configurable: false
     },
 
-    domain: {
-      value: domain,
-      writable: false,
-      enumerable: true,
-      configurable: false
-    },
-
     logger: {
       value: logger,
       writable: false,
@@ -106,6 +97,14 @@ export default async function initialize(app: Application, {
 
   await store.define(models);
 
+  Object.freeze(store);
+
+  Object.assign(app, {
+    models,
+    controllers,
+    serializers
+  });
+
   models.forEach((model, name) => {
     const resource = pluralize(name);
 
@@ -123,12 +122,16 @@ export default async function initialize(app: Application, {
 
     serializer = new serializer({
       model,
-      domain,
       serializers
     });
 
     if (model) {
-      model.serializer = serializer;
+      Object.defineProperty(model, 'serializer', {
+        value: serializer,
+        writable: false,
+        enumerable: false,
+        configurable: false
+      });
     }
 
     serializers.set(name, serializer);
@@ -137,7 +140,6 @@ export default async function initialize(app: Application, {
   let appController = controllers.get('application');
   appController = new appController({
     store,
-    domain,
     serializers,
     serializer: serializers.get('application')
   });
@@ -151,7 +153,6 @@ export default async function initialize(app: Application, {
       controller = new controller({
         store,
         model,
-        domain,
         serializers,
         serializer: serializers.get(key),
         parentController: appController
@@ -173,6 +174,15 @@ export default async function initialize(app: Application, {
       process.emit('ready');
     }
   });
+
+  Object.freeze(app);
+  Object.freeze(logger);
+  Object.freeze(router);
+  Object.freeze(server);
+
+  models.forEach(Object.freeze);
+  controllers.forEach(Object.freeze);
+  serializers.forEach(Object.freeze);
 
   return app;
 }

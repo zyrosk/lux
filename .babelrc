@@ -5,8 +5,6 @@
   "plugins": [
     "syntax-flow",
     "syntax-trailing-function-commas",
-    "transform-decorators-legacy",
-    "transform-flow-strip-types",
-    "transform-decorators"
+    "transform-flow-strip-types"
   ]
 }

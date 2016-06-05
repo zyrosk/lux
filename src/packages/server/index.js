@@ -6,6 +6,7 @@ import chalk, { cyan } from 'chalk';
 
 import { line } from '../logger';
 
+import entries from '../../utils/entries';
 import formatParams from './utils/format-params';
 
 import type {
@@ -84,6 +85,7 @@ class Server {
 
     req.url = parseURL(req.url, true);
     req.params = await formatParams(req);
+    req.headers = new Map(entries(headers));
 
     this.router.resolve(req, res);
   }

@@ -1,19 +1,9 @@
-export default (route, resource) => {
+export default function routes(route, resource) {
   resource('comments');
   resource('friendships');
   resource('posts');
   resource('reactions');
   resource('users');
-
-  route('users/login', {
-    method: 'POST',
-    action: 'login'
-  });
-
-  route('users/logout', {
-    method: 'DELETE',
-    action: 'logout'
-  });
 
   route('actions', {
     method: 'GET',
@@ -34,4 +24,4 @@ export default (route, resource) => {
     method: 'GET',
     action: 'show'
   });
-};
+}

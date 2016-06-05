@@ -4,7 +4,7 @@ import { camelize } from 'inflection';
 import bodyParser from './body-parser';
 
 import entries from '../../../utils/entries';
-import camelizeKeys from '../../../utils/camelize-keys';
+import { camelizeKeys } from '../../../utils/transform-keys';
 
 const int = /^\d+$/g;
 const bool = /^(true|false)$/i;

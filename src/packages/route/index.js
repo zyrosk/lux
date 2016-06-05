@@ -5,6 +5,8 @@ import getDynamicSegments from './utils/get-dynamic-segments';
 
 import type { Controller } from '../controller';
 
+const resourcePattern = /^((?!\/)[a-z\-]+)/ig;
+
 /**
  * @private
  */
@@ -36,7 +38,7 @@ class Route {
     controllers: Map<string, Controller>,
     method: string
   }) {
-    const resource = path.replace(/^(.+)\/.+$/ig, '$1');
+    const [resource] = path.match(resourcePattern) || [path];
     const controller: ?Controller = controllers.get(resource);
     const dynamicSegments = getDynamicSegments(path);
     let handlers;

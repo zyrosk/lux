@@ -1,8 +1,13 @@
 // @flow
-import { Collection, Model } from '../../database';
+import { Model, Query } from '../../database';
 
-import sanitizeParams from '../../controller/middleware/sanitize-params';
-import createPageLinks from '../../controller/utils/create-page-links';
+import sanitizeParams from '../middleware/sanitize-params';
+import setInclude from '../middleware/set-include';
+import setFields from '../middleware/set-fields';
+import setLimit from '../middleware/set-limit';
+
+import insert from '../../../utils/insert';
+import createPageLinks from './create-page-links';
 
 import type Controller from '../../controller';
 import type { IncomingMessage, ServerResponse } from 'http';
@@ -14,42 +19,95 @@ export default function createAction(
   controller: Controller,
   action: () => Promise
 ): Array<Function> {
-  return [
+  const { middleware } = controller;
+
+  const builtIns = [
     sanitizeParams,
-    ...controller.middleware,
+    setInclude,
+    setFields,
+    setLimit
+  ];
 
-    async function (req: IncomingMessage, res: ServerResponse) {
-      const { domain } = controller;
-      const { url: { pathname } } = req;
+  const handlers = new Array(builtIns.length + middleware.length + 1);
+
+  insert(handlers, [
+    ...builtIns,
+    ...middleware,
+
+    async function actionHandler(
+      req: IncomingMessage,
+      res: ServerResponse
+    ): mixed {
+      const { defaultPerPage } = controller;
+
+      const {
+        route,
+        headers,
+
+        url: {
+          path,
+          query,
+          pathname
+        },
+
+        params: {
+          page,
+          limit,
+          include
+        }
+      } = req;
+
+      const domain = `http://${headers.get('host')}`;
+
+      let total;
+      let { params: { fields } } = req;
+      let data = action.call(controller, req, res);
       let links = { self: domain + pathname };
-      let data = await action.call(controller, req, res);
 
-      if (typeof data === 'object') {
-        const {
-          params,
+      if (route && route.action === 'index') {
+        [data, total] = await Promise.all([
+          data,
+          Query.from(data).count()
+        ]);
 
-          params: {
+        if (Array.isArray(data)) {
+          links = {
+            self: domain + path,
+
+            ...createPageLinks({
+              page,
+              limit,
+              total,
+              query,
+              domain,
+              pathname,
+              defaultPerPage
+            })
+          };
+
+          return controller.serializer.stream({
+            data,
+            links,
+            domain,
             fields,
             include
-          },
+          });
+        }
+      } else {
+        data = await data;
 
-          url: {
-            path
-          }
-        } = req;
-
-        if (data instanceof Collection || data instanceof Model) {
-          if (data instanceof Collection) {
-            links = {
-              self: domain + path,
-              ...createPageLinks(domain, pathname, params, data.total)
-            };
+        if (data instanceof Model) {
+          if (!fields.length) {
+            fields = controller.attributes;
           }
 
-          data = controller.serializer.stream({
+          return controller.serializer.stream({
             data,
-            links
-          }, include, fields);
+            links,
+            domain,
+            fields,
+            include
+          });
         }
       }
 
@@ -59,5 +117,9 @@ export default function createAction(
     return (req: IncomingMessage, res: ServerResponse) => {
       return handler.call(controller, req, res);
     };
-  });
+  }));
+
+  Object.freeze(handlers);
+
+  return handlers;
 }

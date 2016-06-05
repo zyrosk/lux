@@ -139,6 +139,7 @@ class Router {
         }
       }
 
+      req.route = route;
       this.visit(req, res, route);
     } else {
       this.notFound(req, res);
@@ -194,20 +195,24 @@ class Router {
     if (message.indexOf('Validation failed') === 0) {
       res.statusCode = 403;
       this.serializer.stream({
-        errors: [{
-          title: 'Forbidden',
-          status: 403,
-          detail: message
-        }]
+        data: {
+          errors: [{
+            title: 'Forbidden',
+            status: 403,
+            detail: message
+          }]
+        }
       }).pipe(res);
     } else {
       res.statusCode = 500;
       this.serializer.stream({
-        errors: [{
-          title: 'Internal Server Error',
-          status: 500,
-          detail: message
-        }]
+        data: {
+          errors: [{
+            title: 'Internal Server Error',
+            status: 500,
+            detail: message
+          }]
+        }
       }).pipe(res);
     }
   }
@@ -215,20 +220,24 @@ class Router {
   unauthorized(req, res) {
     res.statusCode = 401;
     this.serializer.stream({
-      errors: [{
-        title: 'Unauthorized',
-        status: 401
-      }]
+      data: {
+        errors: [{
+          title: 'Unauthorized',
+          status: 401
+        }]
+      }
     }).pipe(res);
   }
 
   notFound(req, res) {
     res.statusCode = 404;
     this.serializer.stream({
-      errors: [{
-        title: 'Not Found',
-        status: 404
-      }]
+      data: {
+        errors: [{
+          title: 'Not Found',
+          status: 404
+        }]
+      }
     }).pipe(res);
   }
 

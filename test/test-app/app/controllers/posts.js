@@ -12,6 +12,10 @@ class PostsController extends Controller {
       res.setHeader('X-Controller', 'Posts');
     }
   ];
+
+  index(req, res) {
+    return super.index(req, res).isPublic();
+  }
 }
 
 export default PostsController;
