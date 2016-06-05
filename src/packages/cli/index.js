@@ -84,14 +84,17 @@ export default function CLI() {
       hot = (environment === 'development')
     } = {}) => {
       return tryCatch(async () => {
+        port = parseInt(port, 10);
+
+        process.env.PORT = port;
         process.env.NODE_ENV = environment;
 
         if (hot) {
-          const watcher = new Watcher(PWD);
+          const watcher = await new Watcher(PWD);
 
-          watcher.on('change', async (type, file) => {
+          watcher.on('change', async (changed) => {
             await compile(PWD, environment);
-            process.emit('update');
+            process.emit('update', changed);
           });
         }
 
