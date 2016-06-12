@@ -12,7 +12,8 @@ class PostsSerializer extends Serializer {
 
   hasMany = [
     'comments',
-    'reactions'
+    'reactions',
+    'tags'
   ];
 }
 

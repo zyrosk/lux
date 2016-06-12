@@ -1,8 +1,8 @@
 export default function routes(route, resource) {
   resource('comments');
-  resource('friendships');
   resource('posts');
   resource('reactions');
+  resource('tags');
   resource('users');
 
   route('actions', {
