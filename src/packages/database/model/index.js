@@ -1,57 +1,54 @@
 import { dasherize, pluralize } from 'inflection';
 
-import Collection from '../collection';
+import Query from '../query';
 import { sql } from '../../logger';
 
+import initializeClass from './initialize-class';
+
 import validate from './utils/validate';
-import getOffset from './utils/get-offset';
-import formatSelect from './utils/format-select';
-import fetchHasMany from './utils/fetch-has-many';
 
 import pick from '../../../utils/pick';
 import omit from '../../../utils/omit';
+import entries from '../../../utils/entries';
 import underscore from '../../../utils/underscore';
 
-import readonly from '../../../decorators/readonly';
-import nonenumerable from '../../../decorators/nonenumerable';
-import nonconfigurable from '../../../decorators/nonconfigurable';
-
-const { isArray } = Array;
-const { isFinite } = Number;
-const { assign, entries, keys } = Object;
-
 class Model {
+  /**
+   * @private
+   */
   static table;
+
+  /**
+   * @private
+   */
   static store;
+
+  /**
+   *
+   */
   static logger;
+
+  /**
+   * @private
+   */
   static serializer;
-  static attributes;
-  static belongsTo;
-  static hasOne;
-  static hasMany;
 
-  static _tableName;
+  /**
+   * @private
+   */
+  static attributes: Object;
 
-  static hooks = {};
-  static validates = {};
-  static primaryKey = 'id';
-  static defaultPerPage = 25;
+  /**
+   *
+   */
+  static primaryKey: string = 'id';
 
-  @nonenumerable
-  @nonconfigurable
-  initialized = false;
+  /**
+   * @private
+   */
+  static initialized: boolean;
 
-  @readonly
-  @nonenumerable
-  @nonconfigurable
-  initialValues = new Map();
-
-  @readonly
-  @nonenumerable
-  @nonconfigurable
-  dirtyAttributes = new Set();
-
-  constructor(props = {}, initialize = true) {
+  constructor(attrs: {} = {}, initialize: boolean = true): Model {
     const {
       constructor: {
         attributeNames,
@@ -59,38 +56,166 @@ class Model {
       }
     } = this;
 
-    assign(
-      this,
-      pick(props, ...attributeNames, ...relationshipNames)
-    );
+    Object.defineProperties(this, {
+      initialized: {
+        value: initialize,
+        writable: !initialize,
+        enumerable: false,
+        configurable: !initialize
+      },
 
-    this.initialized = initialize;
+      rawColumnData: {
+        value: attrs,
+        writable: false,
+        enumerable: false,
+        configurable: false
+      },
+
+      initialValues: {
+        value: new Map(),
+        writable: false,
+        enumerable: false,
+        configurable: false
+      },
+
+      dirtyAttributes: {
+        value: new Set(),
+        writable: false,
+        enumerable: false,
+        configurable: false
+      }
+    });
+
+    if (initialize) {
+      Object.freeze(this);
+    }
+
+    Object.assign(
+      this,
+      pick(attrs, ...attributeNames, ...relationshipNames)
+    );
 
     return this;
   }
 
-  get isDirty() {
+  get isDirty(): boolean {
     return Boolean(this.dirtyAttributes.size);
   }
 
-  get modelName() {
+  get modelName(): string {
     return this.constructor.modelName;
   }
 
-  static get modelName() {
+  static get hasOne(): Object {
+    return Object.freeze({});
+  }
+
+  static set hasOne(value: Object): void {
+    if (value && Object.keys(value).length) {
+      Object.defineProperty(this, 'hasOne', {
+        value,
+        writable: true,
+        enumerable: false,
+        configurable: true
+      });
+    }
+  }
+
+  static get hasMany(): Object {
+    return Object.freeze({});
+  }
+
+  static set hasMany(value: Object): void {
+    if (value && Object.keys(value).length) {
+      Object.defineProperty(this, 'hasMany', {
+        value,
+        writable: true,
+        enumerable: false,
+        configurable: true
+      });
+    }
+  }
+
+  static get belongsTo(): Object {
+    return Object.freeze({});
+  }
+
+  static set belongsTo(value: Object): void {
+    if (value && Object.keys(value).length) {
+      Object.defineProperty(this, 'belongsTo', {
+        value,
+        writable: true,
+        enumerable: false,
+        configurable: true
+      });
+    }
+  }
+
+  static get hooks(): Object {
+    return Object.freeze({});
+  }
+
+  static set hooks(value: Object): void {
+    if (value && Object.keys(value).length) {
+      Object.defineProperty(this, 'hooks', {
+        value,
+        writable: true,
+        enumerable: false,
+        configurable: true
+      });
+    }
+  }
+
+  static get scopes(): Object {
+    return Object.freeze({});
+  }
+
+  static set scopes(value: Object): void {
+    if (value && Object.keys(value).length) {
+      Object.defineProperty(this, 'scopes', {
+        value,
+        writable: true,
+        enumerable: false,
+        configurable: true
+      });
+    }
+  }
+
+  static get validates(): Object {
+    return Object.freeze({});
+  }
+
+  static set validates(value: Object): void {
+    if (value && Object.keys(value).length) {
+      Object.defineProperty(this, 'validates', {
+        value,
+        writable: true,
+        enumerable: false,
+        configurable: true
+      });
+    }
+  }
+
+  static get modelName(): string {
     return dasherize(underscore(this.name));
   }
 
-  static get tableName() {
-    return this._tableName ?
-      this._tableName : pluralize(underscore(this.name));
+  static get tableName(): string {
+    return pluralize(underscore(this.name));
   }
 
-  static set tableName(value) {
-    this._tableName = value;
+  static set tableName(value: string): void {
+    if (value && value.length) {
+      Object.defineProperty(this, 'tableName', {
+        value,
+        writable: false,
+        enumerable: false,
+        configurable: false
+      });
+    }
   }
 
-  static get relationships() {
+  static get relationships(): Object {
     const {
       belongsTo,
       hasOne,
@@ -104,15 +229,15 @@ class Model {
     };
   }
 
-  static get attributeNames() {
-    return keys(this.attributes);
+  static get attributeNames(): Array<string> {
+    return Object.keys(this.attributes);
   }
 
-  static get relationshipNames() {
-    return keys(this.relationships);
+  static get relationshipNames(): Array<string> {
+    return Object.keys(this.relationships);
   }
 
-  async update(props = {}) {
+  async update(attributes: Object = {}): Model {
     const {
       constructor: {
         primaryKey,
@@ -133,17 +258,26 @@ class Model {
       }
     } = this;
 
-    assign(this, props);
+    Object.assign(this, attributes);
 
     if (this.isDirty) {
-      await beforeValidation(this);
+      if (typeof beforeValidation === 'function') {
+        await beforeValidation(this);
+      }
 
       validate(this);
 
-      await afterValidation(this);
-      await beforeUpdate(this);
-      await beforeSave(this);
+      if (typeof afterValidation === 'function') {
+        await afterValidation(this);
+      }
 
+      if (typeof beforeUpdate === 'function') {
+        await beforeUpdate(this);
+      }
+
+      if (typeof beforeSave === 'function') {
+        await beforeSave(this);
+      }
 
       this.updatedAt = new Date();
 
@@ -155,7 +289,7 @@ class Model {
         const { constructor: { logger } } = this;
 
         query.on('query', () => {
-          setImmediate(() => logger.log(sql`${query.toString()}`));
+          setImmediate(() => logger.info(sql`${query.toString()}`));
         });
       }
 
@@ -163,14 +297,19 @@ class Model {
 
       this.dirtyAttributes.clear();
 
-      await afterUpdate(this);
-      await afterSave(this);
+      if (typeof afterUpdate === 'function') {
+        await afterUpdate(this);
+      }
+
+      if (typeof afterSave === 'function') {
+        await afterSave(this);
+      }
     }
 
     return this;
   }
 
-  async destroy() {
+  async destroy(): Model {
     const {
       constructor: {
         primaryKey,
@@ -187,7 +326,9 @@ class Model {
       }
     } = this;
 
-    await beforeDestroy(this);
+    if (typeof beforeDestroy === 'function') {
+      await beforeDestroy(this);
+    }
 
     const query = table()
       .where({ [primaryKey]: this[primaryKey] })
@@ -201,18 +342,20 @@ class Model {
       } = this;
 
       query.on('query', () => {
-        setImmediate(() => logger.log(sql`${query.toString()}`));
+        setImmediate(() => logger.info(sql`${query.toString()}`));
       });
     }
 
     await query;
 
-    await afterDestroy(this);
+    if (typeof afterDestroy === 'function') {
+      await afterDestroy(this);
+    }
 
     return this;
   }
 
-  format(dest, ...only) {
+  format(dest: string, ...only: Array<string>): {} {
     const {
       constructor: {
         attributes
@@ -240,7 +383,19 @@ class Model {
     }
   }
 
-  static async create(props = {}) {
+  static initialize(store, table): Promise<typeof Model> {
+    if (this.initialized) {
+      return this;
+    } else {
+      return initializeClass({
+        store,
+        table,
+        model: this
+      });
+    }
+  }
+
+  static async create(props = {}): Model {
     const {
       primaryKey,
       table,
@@ -266,13 +421,23 @@ class Model {
       updatedAt: datetime
     }, false);
 
-    await beforeValidation(instance);
+    if (typeof beforeValidation === 'function') {
+      await beforeValidation(instance);
+    }
 
     validate(instance);
 
-    await afterValidation(instance);
-    await beforeCreate(instance);
-    await beforeSave(instance);
+    if (typeof afterValidation === 'function') {
+      await afterValidation(instance);
+    }
+
+    if (typeof beforeCreate === 'function') {
+      await beforeCreate(instance);
+    }
+
+    if (typeof beforeSave === 'function') {
+      await beforeSave(instance);
+    }
 
     const query = table()
       .returning(primaryKey)
@@ -282,184 +447,87 @@ class Model {
       const { logger } = this;
 
       query.on('query', () => {
-        setImmediate(() => logger.log(sql`${query.toString()}`));
+        setImmediate(() => logger.info(sql`${query.toString()}`));
       });
     }
 
-    assign(instance, {
+    Object.assign(instance, {
       [primaryKey]: (await query)[0]
     });
 
-    instance.initialized = true;
+    Object.defineProperty(instance, 'initialized', {
+      value: true,
+      writable: false,
+      enumerable: false,
+      configurable: false
+    });
 
-    await afterCreate(instance);
-    await afterSave(instance);
+    Object.freeze(instance);
+
+    if (typeof afterCreate === 'function') {
+      await afterCreate(instance);
+    }
+
+    if (typeof afterSave === 'function') {
+      await afterSave(instance);
+    }
 
     return instance;
   }
 
-  static async count(where = {}) {
-    const { table, store: { debug } } = this;
-    const query = table().count('* AS count').where(where);
-
-    if (debug) {
-      const { logger } = this;
-
-      query.on('query', () => {
-        setImmediate(() => logger.log(sql`${query.toString()}`));
-      });
-    }
-
-    let [{ count }] = await query;
-    count = parseInt(count, 10);
-
-    return isFinite(count) ? count : 0;
+  static all(): Query {
+    return new Query(this).all();
   }
 
-  static async find(pk, options = {}) {
-    const { primaryKey, tableName } = this;
-
-    return await this.findOne({
-      ...options,
-      where: {
-        [`${tableName}.${primaryKey}`]: pk
-      }
-    });
+  static find(primaryKey: string | number): Query {
+    return new Query(this).find(primaryKey);
   }
 
-  static async findAll(options = {}) {
-    const {
-      table,
-      tableName,
-      primaryKey,
-
-      store: {
-        debug
-      }
-    } = this;
-
-    let {
-      page,
-      order,
-      limit,
-      where,
-      select,
-      include = []
-    } = options;
-
-    if (!limit) {
-      limit = this.defaultPerPage;
-    }
-
-    select = formatSelect(this, select);
-
-    include = include
-      .map(included => {
-        let name, attrs;
-
-        if (typeof included === 'string') {
-          name = included;
-        } else if (typeof included === 'object') {
-          [[name, attrs]] = entries(included);
-        }
-
-        included = this.getRelationship(name);
-
-        if (!included) {
-          return null;
-        }
-
-        if (!attrs) {
-          attrs = included.model.attributeNames;
-        }
-
-        return {
-          name,
-          attrs,
-          relationship: included
-        };
-      })
-      .filter(included => included);
-
-    let related = include.filter(({ relationship: { type } }) => {
-      return type === 'hasMany';
-    });
-
-    let records = table()
-      .select(select)
-      .where(where)
-      .limit(limit)
-      .offset(getOffset(page, limit));
-
-    if (order) {
-      if (typeof order === 'string') {
-        const direction = order.charAt(0) === '-' ? 'desc' : 'asc';
-
-        records = records.orderBy(
-          `${tableName}.` + this.getColumnName(
-            direction === 'desc' ? order.substr(1) : order
-          ) || 'created_at',
-          direction
-        );
-      } else if (isArray(order)) {
-        records = records.orderBy(order[0], order[1]);
-      }
-    }
-
-    include
-      .filter(({ relationship: { type } }) => type !== 'hasMany')
-      .forEach(({ name, attrs, relationship: { type, model, foreignKey } }) => {
-        records = records.select(
-          ...formatSelect(model, attrs, `${name}.`)
-        );
-
-        if (type === 'belongsTo') {
-          records = records.leftOuterJoin(
-            model.tableName,
-            `${tableName}.${foreignKey}`,
-            '=',
-            `${model.tableName}.${model.primaryKey}`
-          );
-        } else if (type === 'hasOne') {
-          records = records.leftOuterJoin(
-            model.tableName,
-            `${tableName}.${primaryKey}`,
-            '=',
-            `${model.tableName}.${foreignKey}`
-          );
-        }
-      });
-
-    if (debug) {
-      const { logger } = this;
-
-      records.on('query', () => {
-        setImmediate(() => logger.log(sql`${records.toString()}`));
-      });
-    }
-
-    records = await records;
-    related = await fetchHasMany(this, related, records);
-
-    return new Collection({
-      records,
-      related,
-      model: this
-    });
+  static page(num: number): Query {
+    return new Query(this).page(num);
   }
 
-  static async findOne(options = {}) {
-    const [record] = await this.findAll({
-      ...options,
-      limit: 1
-    });
-
-    return record ? record : null;
+  static limit(amount: number): Query {
+    return new Query(this).limit(amount);
   }
 
-  @readonly
-  @nonconfigurable
-  static getColumn(key) {
+  static offset(amount: number): Query {
+    return new Query(this).offset(amount);
+  }
+
+  static count(): Query {
+    return new Query(this).count();
+  }
+
+  static order(attr: string, direction?: string): Query {
+    return new Query(this).order(attr, direction);
+  }
+
+  static where(conditions: Object): Query {
+    return new Query(this).where(conditions);
+  }
+
+  static not(conditions: Object): Query {
+    return new Query(this).not(conditions);
+  }
+
+  static select(...params: Array<string>): Query {
+    return new Query(this).select(...params);
+  }
+
+  static include(...relationships: Array<Object|string>): Query {
+    return new Query(this).include(...relationships);
+  }
+
+  static unscope(...scopes: Array<string>): Query {
+    return new Query(this).unscope(...scopes);
+  }
+
+  static hasScope(name: string): boolean {
+    return Boolean(this.scopes[name]);
+  }
+
+  static columnFor(key): Object {
     const {
       attributes: {
         [key]: column
@@ -469,19 +537,15 @@ class Model {
     return column;
   }
 
-  @readonly
-  @nonconfigurable
-  static getColumnName(key) {
-    const column = this.getColumn(key);
+  static columnNameFor(key): string {
+    const column = this.columnFor(key);
 
     if (column) {
       return column.columnName;
     }
   }
 
-  @readonly
-  @nonconfigurable
-  static getRelationship(key) {
+  static relationshipFor(key): Object {
     const {
       relationships: {
         [key]: relationship
@@ -492,5 +556,4 @@ class Model {
   }
 }
 
-export initialize from './utils/initialize';
 export default Model;

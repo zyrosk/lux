@@ -16,7 +16,7 @@ const {
   }
 } = faker;
 
-export default async () => {
+export default async function seed() {
   await Promise.all(
     [...range(1, 4)].map(() => {
       return List.create({
@@ -35,4 +35,4 @@ export default async () => {
       })
     })
   );
-};
+}

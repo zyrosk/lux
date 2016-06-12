@@ -16,6 +16,11 @@ class Post extends Model {
 
     reactions: {
       inverse: 'post'
+    },
+
+    tags: {
+      inverse: 'posts',
+      through: 'categorization'
     }
   };
 

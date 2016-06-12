@@ -2,7 +2,7 @@
   "name": "todo",
   "version": "0.0.1",
   "description": "",
-  "main": "bin/app.js",
+  "main": "app/index.js",
   "scripts": {
     "start": "lux serve",
     "test": "lux test"
@@ -10,16 +10,13 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "babel-core": "6.9.0",
-    "babel-eslint": "6.0.4",
-    "babel-plugin-transform-decorators-legacy": "1.3.4",
-    "babel-plugin-transform-runtime": "6.9.0",
-    "babel-preset-es2015": "6.9.0",
-    "babel-preset-stage-1": "6.5.0",
-    "babel-runtime": "6.9.0",
-    "faker": "3.1.0",
-    "knex": "0.11.4",
-    "lux-framework": "0.0.1-beta.10",
+    "babel-core": "6.9.1",
+    "babel-preset-lux": "1.0.0",
+    "knex": "0.11.5",
+    "lux-framework": "0.0.1-beta.11",
     "sqlite3": "3.1.4"
+  },
+  "devDependencies": {
+    "faker": "3.1.0"
   }
 }

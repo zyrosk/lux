@@ -1,19 +1,15 @@
-import { randomBytes } from 'crypto';
+// @flow
+import template from '../../template';
 
-export default (name, env) => {
+/**
+ * @private
+ */
+export default (name: string, env: string): string => {
   const isProdENV = env === 'production';
-  let keyPrefix = `${name}`;
 
-  if (!isProdENV) {
-    keyPrefix += `::${env}`;
-  }
-
-  return `
-export default {
-  log: ${!isProdENV},
-  domain: 'http://localhost:4000',
-  sessionKey: '${keyPrefix}::session',
-  sessionSecret: '${randomBytes(32).toString('hex')}'
-};
-  `.substr(1).trim();
+  return template`
+    export default {
+      log: ${!isProdENV}
+    };
+  `;
 };

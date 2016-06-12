@@ -1,0 +1,125 @@
+// @flow
+import { Model, Query } from '../../database';
+
+import sanitizeParams from '../middleware/sanitize-params';
+import setInclude from '../middleware/set-include';
+import setFields from '../middleware/set-fields';
+import setLimit from '../middleware/set-limit';
+
+import insert from '../../../utils/insert';
+import createPageLinks from './create-page-links';
+
+import type Controller from '../../controller';
+import type { IncomingMessage, ServerResponse } from 'http';
+
+/**
+ * @private
+ */
+export default function createAction(
+  controller: Controller,
+  action: () => Promise
+): Array<Function> {
+  const { middleware } = controller;
+
+  const builtIns = [
+    sanitizeParams,
+    setInclude,
+    setFields,
+    setLimit
+  ];
+
+  const handlers = new Array(builtIns.length + middleware.length + 1);
+
+  insert(handlers, [
+    ...builtIns,
+    ...middleware,
+
+    async function actionHandler(
+      req: IncomingMessage,
+      res: ServerResponse
+    ): mixed {
+      const { defaultPerPage } = controller;
+
+      const {
+        route,
+        headers,
+
+        url: {
+          path,
+          query,
+          pathname
+        },
+
+        params: {
+          page,
+          limit,
+          include
+        }
+      } = req;
+
+      const domain = `http://${headers.get('host')}`;
+
+      let total;
+      let { params: { fields } } = req;
+      let data = action.call(controller, req, res);
+      let links = { self: domain + pathname };
+
+      if (route && route.action === 'index') {
+        [data, total] = await Promise.all([
+          data,
+          Query.from(data).count()
+        ]);
+
+        if (Array.isArray(data)) {
+          links = {
+            self: domain + path,
+
+            ...createPageLinks({
+              page,
+              limit,
+              total,
+              query,
+              domain,
+              pathname,
+              defaultPerPage
+            })
+          };
+
+          return controller.serializer.stream({
+            data,
+            links,
+            domain,
+            fields,
+            include
+          });
+        }
+      } else {
+        data = await data;
+
+        if (data instanceof Model) {
+          if (!fields.length) {
+            fields = controller.attributes;
+          }
+
+          return controller.serializer.stream({
+            data,
+            links,
+            domain,
+            fields,
+            include
+          });
+        }
+      }
+
+      return data;
+    }
+  ].map((handler: Function): Function => {
+    return (req: IncomingMessage, res: ServerResponse) => {
+      return handler.call(controller, req, res);
+    };
+  }));
+
+  Object.freeze(handlers);
+
+  return handlers;
+}

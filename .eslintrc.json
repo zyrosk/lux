@@ -6,11 +6,15 @@
 		"node": true
 	},
 	"globals": {
+    "T": true,
 		"Map": true,
 		"Set": true,
 		"Promise": true,
+    "Proxy": true,
 		"Symbol": true,
 		"WeakMap": true,
+    "Iterable": true,
+    "Module": true,
 		"before": true,
 		"after": true,
 		"describe": true,

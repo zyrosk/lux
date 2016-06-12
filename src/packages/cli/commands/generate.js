@@ -1,4 +1,3 @@
-import Promise from 'bluebird';
 import moment from 'moment';
 import { red, green, yellow } from 'chalk';
 import { pluralize } from 'inflection';
@@ -14,12 +13,15 @@ import modelMigrationTemplate from '../templates/model-migration';
 
 import indent from '../utils/indent';
 
-const { stdin, stdout, env: { PWD } } = process;
+const { env: { PWD } } = process;
 
+/**
+ * @private
+ */
 export async function generateType(type, name, pwd, attrs = []) {
   const rl = createInterface({
-    input: stdin,
-    output: stdout
+    input: process.stdin,
+    output: process.stdout
   });
 
   rl.setPrompt('');
@@ -102,33 +104,38 @@ export async function generateType(type, name, pwd, attrs = []) {
           console.log(`${red('remove')} ${oldPath}`);
         }
 
-        await fs.writeFileAsync(`${pwd}/${path}`, `${data}\n`, 'utf8');
+        await fs.writeFileAsync(`${pwd}/${path}`, data, 'utf8');
         console.log(`${green('create')} ${path}`);
       } else {
-        await fs.writeFileAsync(`${pwd}/${path}`, `${data}\n`, 'utf8');
+        await fs.writeFileAsync(`${pwd}/${path}`, data, 'utf8');
         console.log(`${yellow('overwrite')} ${path}`);
       }
     } else {
       console.log(`${yellow('skip')} ${path}`);
     }
   } else {
-    await fs.writeFileAsync(`${pwd}/${path}`, `${data}\n`, 'utf8');
+    await fs.writeFileAsync(`${pwd}/${path}`, data, 'utf8');
     console.log(`${green('create')} ${path}`);
   }
 
   rl.close();
 }
 
+/**
+ * @private
+ */
 export default async function generate(type, name, pwd = PWD, attrs = []) {
   if (type === 'resource') {
     const routes = (await fs.readFileAsync(`${pwd}/app/routes.js`, 'utf8'))
       .split('\n')
       .reduce((str, line, index, array) => {
-        const closeIndex = array.lastIndexOf('};');
+        const closeIndex = array.lastIndexOf('}');
 
-        if (index <= closeIndex) {
+        if (line.length && index <= closeIndex) {
           str += `${line}\n`;
-        } if (index + 1 === closeIndex) {
+        }
+
+        if (index + 1 === closeIndex) {
           str += `${indent(2)}resource('${pluralize(name)}');\n`;
         }
 

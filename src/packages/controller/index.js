@@ -1,45 +1,124 @@
-import Promise from 'bluebird';
+import Model from '../database/model';
 
-import formatInclude from './utils/format-include';
-import createPageLinks from './utils/create-page-links';
+import insert from '../../utils/insert';
 
-import action from './decorators/action';
+import type { IncomingMessage, ServerResponse } from 'http';
 
-const { isArray } = Array;
-const { defineProperties } = Object;
+import type Database from '../database';
+import type Serializer from '../serializer';
 
+/**
+ * The `Controller` class is responsible for taking in requests from the outside
+ * world and returning the appropriate response.
+ *
+ * You can think of a `Controller` like a waiter or waitress at a restaurant.
+ * A client makes a request to an application, that request is routed to the
+ * appropriate `Controller` and then the `Controller` interprets the request
+ * and returns data relative to what the client has request.
+ */
 class Controller {
-  store;
-  model;
-  domain;
-  modelName;
-  middleware;
-  attributes;
-  serializer;
-  serializers;
-  parentController;
+  /**
+   * The number of records to return for the #index action when a `?limit`
+   * parameter is not specified.
+   *
+   * @property defaultPerPage
+   * @memberof Controller
+   * @instance
+   */
+  defaultPerPage: number = 25;
 
-  params = [];
-  beforeAction = [];
-  defaultPerPage = 25;
+  /**
+   * @property store
+   * @memberof Controller
+   * @instance
+   * @readonly
+   * @private
+   */
+  store: Database;
 
-  _sort = [];
-  _filter = [];
+  /**
+   * @property model
+   * @memberof Controller
+   * @instance
+   * @readonly
+   * @private
+   */
+  model: typeof Model;
+
+  /**
+   * @property modelName
+   * @memberof Controller
+   * @instance
+   * @readonly
+   * @private
+   */
+  modelName: string;
+
+  /**
+   * @property attributes
+   * @memberof Controller
+   * @instance
+   * @readonly
+   * @private
+   */
+  attributes: Array<string>;
+
+  /**
+   * @property relationships
+   * @memberof Controller
+   * @instance
+   * @readonly
+   * @private
+   */
+  relationships: Array<string>;
+
+  /**
+   * @property serializer
+   * @memberof Controller
+   * @instance
+   * @readonly
+   * @private
+   */
+  serializer: Serializer;
+
+  /**
+   * @property serializers
+   * @memberof Controller
+   * @instance
+   * @readonly
+   * @private
+   */
+  serializers: Map<string, Serializer>;
+
+  /**
+   * @property parentController
+   * @memberof Controller
+   * @instance
+   * @readonly
+   * @private
+   */
+  parentController: ?Controller;
 
   constructor({
     store,
     model,
-    domain,
     serializer,
     serializers = new Map(),
     parentController
-  }) {
+  }: {
+    store: Database,
+    model: ?Model<T>,
+    serializer: Serializer,
+    serializers: Map<string, Serializer>,
+    parentController: ?Controller
+  }): Controller {
     let attributes = [];
     let relationships = [];
 
     if (model && serializer) {
       const { primaryKey, attributeNames, relationshipNames } = model;
       const { attributes: serializedAttributes } = serializer;
+
       const serializedRelationships = [
         ...serializer.hasOne,
         ...serializer.hasMany
@@ -52,9 +131,12 @@ class Controller {
       relationships = relationshipNames.filter(relationship => {
         return serializedRelationships.indexOf(relationship) >= 0;
       });
+
+      Object.freeze(attributes);
+      Object.freeze(relationships);
     }
 
-    defineProperties(this, {
+    Object.defineProperties(this, {
       model: {
         value: model,
         writable: false,
@@ -71,13 +153,6 @@ class Controller {
 
       store: {
         value: store,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      },
-
-      domain: {
-        value: domain,
         writable: false,
         enumerable: false,
         configurable: false
@@ -122,190 +197,272 @@ class Controller {
     return this;
   }
 
-  get sort() {
-    const { attributes, _sort: sort } = this;
-
-    return sort.length ? sort : attributes;
+  /**
+   * Whitelisted parameter keys to allow in incoming PATCH and POST requests.
+   *
+   * For security reasons, parameters passed to controller actions from an
+   * incoming request must have their key whitelisted.
+   *
+   * @example
+   * class UsersController extends Controller {
+   *   // Do not allow incoming PATCH or POST requests to modify User#isAdmin.
+   *   params = [
+   *     'name',
+   *     'email',
+   *     'password',
+   *     // 'isAdmin'
+   *   ];
+   * }
+   *
+   * @property params
+   * @memberof Controller
+   * @instance
+   */
+  get params(): Array<string> {
+    return Object.freeze([]);
   }
 
-  set sort(value = []) {
-    if (isArray(value)) {
-      this._sort = value;
+  set params(value: Array<string>): void {
+    if (value && value.length) {
+      const params = new Array(value.length);
+
+      insert(params, value);
+
+      Object.defineProperty(this, 'params', {
+        value: Object.freeze(params),
+        writable: false,
+        enumerable: true,
+        configurable: false
+      });
     }
   }
 
-  get filter() {
-    const { attributes, _filter: filter } = this;
-
-    return filter.length ? filter : attributes;
+  /**
+   * Middleware functions to execute on each request handled by a `Controller`.
+   *
+   * Middleware functions declared in beforeAction on an `ApplicationController`
+   * will be executed before ALL route handlers.
+   *
+   * @property beforeAction
+   * @memberof Controller
+   * @instance
+   */
+  get beforeAction(): Array<Function> {
+    return Object.freeze([]);
   }
 
-  set filter(value = []) {
-    if (isArray(value)) {
-      this._filter = value;
+  set beforeAction(value: Array<Function>): void {
+    if (value && value.length) {
+      const beforeAction = new Array(value.length);
+
+      insert(beforeAction, value);
+
+      Object.defineProperty(this, 'beforeAction', {
+        value: Object.freeze(beforeAction),
+        writable: false,
+        enumerable: true,
+        configurable: false
+      });
     }
   }
 
-  get middleware() {
+  /**
+   * Whitelisted `?sort` parameter values.
+   *
+   * If you do not override this property all of the attributes of the Model
+   * that this Controller represents will be valid.
+   *
+   * @property sort
+   * @memberof Controller
+   * @instance
+   */
+  get sort(): Array<string> {
+    return this.attributes;
+  }
+
+  set sort(value: Array<string>): void {
+    if (value && value.length) {
+      const sort = new Array(sort.length);
+
+      insert(sort, value);
+
+      Object.defineProperty(this, 'sort', {
+        value: Object.freeze(sort),
+        writable: false,
+        enumerable: true,
+        configurable: false
+      });
+    }
+  }
+
+  /**
+   * Whitelisted `?filter[{key}]` parameter keys.
+   *
+   * If you do not override this property all of the attributes of the Model
+   * that this Controller represents will be valid.
+   *
+   * @property filter
+   * @memberof Controller
+   * @instance
+   */
+  get filter(): Array<string> {
+    return this.attributes;
+  }
+
+  set filter(value: Array<string>): void {
+    if (value && value.length) {
+      const filter = new Array(filter.length);
+
+      insert(filter, value);
+
+      Object.defineProperty(this, 'filter', {
+        value: Object.freeze(filter),
+        writable: false,
+        enumerable: true,
+        configurable: false
+      });
+    }
+  }
+
+  /**
+   * @property middleware
+   * @memberof Controller
+   * @instance
+   * @readonly
+   * @private
+   */
+  get middleware(): Array<Function> {
     const { beforeAction, parentController } = this;
+    let middleware;
 
     if (parentController) {
-      return [
+      const length = beforeAction.length + parentController.beforeAction.length;
+
+      middleware = new Array(length);
+
+      insert(middleware, [
         ...parentController.middleware,
         ...beforeAction
-      ];
+      ]);
     } else {
-      return beforeAction;
+      middleware = new Array(beforeAction.length);
+
+      insert(middleware, beforeAction);
     }
+
+    return middleware;
   }
 
-  @action
-  async index(req) {
-    const { url, params } = req;
-    const { model, domain, relationships } = this;
-
-    let {
-      page,
-      limit,
-      include = [],
-      sort: order,
-      filter: where,
-      fields: {
-        [model.modelName]: select,
-        ...includedFields
-      }
-    } = params;
-
-    if (!limit) {
-      limit = this.defaultPerPage;
-    }
-
-    if (!select) {
-      select = this.attributes;
-    }
-
-    include = formatInclude(model, include, includedFields, relationships);
-
-    const [count, data] = await Promise.all([
-      model.count(where),
-
-      model.findAll({
+  /**
+   * Returns a list of `Model` instances that the Controller instance
+   * represents.
+   *
+   * This method supports filtering, sorting, pagination, including
+   * relationships, and sparse fieldsets via query parameters.
+   */
+  index(req: IncomingMessage, res: ServerResponse): Promise<Array<Model>> {
+    const {
+      params: {
+        sort,
         page,
         limit,
-        where,
-        order,
-        select,
+        filter,
+        fields,
         include
-      })
-    ]);
-
-    return {
-      data,
-
-      links: {
-        self: domain + url.path,
-        ...createPageLinks(domain, url.pathname, { ...params, limit }, count)
       }
-    };
+    } = req;
+
+    return this.model.select(...fields)
+      .include(include)
+      .limit(limit)
+      .page(page)
+      .where(filter)
+      .order(...sort);
   }
 
-  @action
-  show(req) {
-    let { url, record: data } = req;
-    let links;
-
-    if (data) {
-      links = { self: this.domain + url.path };
-    }
-
-    return {
-      data,
-      links
-    };
-  }
-
-  @action
-  async create(req) {
-    const { domain, model } = this;
-
+  /**
+   * Returns a single `Model` instance that the Controller instance represents.
+   *
+   * This method supports including relationships, and sparse fieldsets via
+   * query parameters.
+   */
+  show(req: IncomingMessage, res: ServerResponse): Promise<?Model> {
     const {
-      url: {
-        pathname
-      },
+      params: {
+        id,
+        fields,
+        include
+      }
+    } = req;
 
+    return this.model.find(id)
+      .select(...fields)
+      .include(include);
+  }
+
+  /**
+   * Create and return a single `Model` instance that the Controller instance
+   * represents.
+   */
+  create(req: IncomingMessage, res: ServerResponse): Promise<Model> {
+    const {
       params: {
         data: {
-          attributes,
-          // relationships
+          attributes
         }
       }
     } = req;
 
-    return {
-      data: await model.create(attributes),
-
-      links: {
-        self: domain + pathname
-      }
-    };
+    return this.model.create(attributes);
   }
 
-  @action
-  async update(req) {
-    const { domain } = this;
+  /**
+   * Update and return a single `Model` instance that the Controller instance
+   * represents.
+   */
+  async update(req: IncomingMessage, res: ServerResponse): Promise<?Model> {
+    let record;
 
     const {
-      record: data,
-
-      url: {
-        pathname
-      },
-
       params: {
+        id,
+
         data: {
-          attributes,
-          // relationships
+          attributes
         }
       }
     } = req;
 
-    let links;
+    record = await this.model.find(id);
 
-    if (data) {
-      links = { self: domain + pathname };
-      await data.update(attributes);
+    if (record) {
+      await record.update(attributes);
     }
 
-    return {
-      data,
-      links
-    };
+    return record;
   }
 
-  @action
-  async destroy(req) {
-    const { domain } = this;
-    const { url: { pathname }, record: data } = req;
-    let links;
+  /**
+   * Destroy a single `Model` instance that the Controller instance represents.
+   */
+  async destroy(req: IncomingMessage, res: ServerResponse): Promise<?Model> {
+    const record = await this.model.find(req.params.id);
 
-    if (data) {
-      links = { self: domain + pathname };
-      await data.destroy();
+    if (record) {
+      await record.destroy();
     }
 
-    return {
-      data,
-      links
-    };
+    return record;
   }
 
-  @action
-  preflight() {
-    return {
-      data: true
-    };
+  /**
+   * An action handler used for responding to HEAD or OPTIONS requests.
+   *
+   * @private
+   */
+  preflight(req: IncomingMessage, res: ServerResponse): boolean {
+    return true;
   }
 }
 
-export action from './decorators/action';
 export default Controller;

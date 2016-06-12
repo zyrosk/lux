@@ -1,94 +1,53 @@
-import Promise from 'bluebird';
-import cluster from 'cluster';
+// @flow
+import { ModelMissingError } from './errors';
 
-import {
-  ModelMissingError,
-  MigrationsPendingError
-} from './errors';
+import Logger from '../logger';
+import Model from './model';
 
-import { initialize } from './model';
+import initialize from './initialize';
 
-import connect from './utils/connect';
-import createMigrations from './utils/create-migrations';
-import pendingMigrations from './utils/pending-migrations';
-
-import bound from '../../decorators/bound';
-import readonly from '../../decorators/readonly';
-import nonenumerable from '../../decorators/nonenumerable';
-import nonconfigurable from '../../decorators/nonconfigurable';
-
-const { defineProperties } = Object;
-const { worker, isMaster } = cluster;
-const { env: { PWD, NODE_ENV: environment = 'development' } } = process;
-
+/**
+ * @private
+ */
 class Database {
-  path;
-  debug;
-  logger;
-  config;
-  connection;
+  path: string;
 
-  @readonly
-  @nonenumerable
-  @nonconfigurable
-  models = new Map();
+  debug: boolean;
 
-  constructor({ path = PWD, logger, config: { [environment]: config } }) {
-    const { debug = environment === 'development' } = config;
+  logger: Logger;
 
-    defineProperties(this, {
-      path: {
-        value: path,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      },
+  config: Object;
 
-      debug: {
-        value: debug,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      },
+  schema: Function;
 
-      logger: {
-        value: logger,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      },
+  connection: any;
 
-      config: {
-        value: config,
-        writable: false,
-        enumerable: true,
-        configurable: false
-      },
+  models: Map<string, typeof Model>;
 
-      connection: {
-        value: connect(path, config),
-        writable: false,
-        enumerable: false,
-        configurable: false
-      }
+  constructor({
+    path,
+    models,
+    config,
+    logger,
+    checkMigrations
+  }: {
+    path: string,
+    models: Map<string, typeof Model>,
+    config: Object,
+    logger: Logger,
+    checkMigrations: boolean
+  } = {}): Promise<Database> {
+    return initialize(this, {
+      path,
+      models,
+      config,
+      logger,
+      checkMigrations
     });
-
-    return this;
   }
 
-  @bound
-  schema() {
-    const {
-      connection: {
-        schema
-      }
-    } = this;
-
-    return schema;
-  }
-
-  modelFor(type) {
-    const model = this.models.get(type);
+  modelFor(type: string): typeof Model  {
+    const model: typeof Model = this.models.get(type);
 
     if (!model) {
       throw new ModelMissingError(type);
@@ -96,40 +55,13 @@ class Database {
 
     return model;
   }
-
-  async define(models) {
-    const { path, connection, schema } = this;
-
-    if (isMaster || worker && worker.id === 1) {
-      await createMigrations(schema);
-
-      const pending = await pendingMigrations(path, () => {
-        return connection('migrations');
-      });
-
-      if (pending.length) {
-        throw new MigrationsPendingError(pending);
-      }
-    }
-
-    models.forEach((model, name) => {
-      this.models.set(name, model);
-    });
-
-    return await Promise.all(
-      [...models.values()]
-        .map(model => {
-          return initialize(this, model, () => {
-            return connection(model.tableName);
-          });
-        })
-    );
-  }
 }
 
-export connect from './utils/connect';
-export createMigrations from './utils/create-migrations';
-export pendingMigrations from './utils/pending-migrations';
+export { default as connect } from './utils/connect';
+export { default as createMigrations } from './utils/create-migrations';
+export { default as pendingMigrations } from './utils/pending-migrations';
 
-export Model from './model';
+export { default as Model } from './model';
+export { default as Query } from './query';
+export { default as Migration } from './migration';
 export default Database;

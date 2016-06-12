@@ -1,38 +1,51 @@
-import Promise from 'bluebird';
-
-import Database, { createMigrations, pendingMigrations } from '../../database';
+import Database, { pendingMigrations } from '../../database';
 import Logger, { sql } from '../../logger';
+import loader from '../../loader';
 
 const { env: { PWD } } = process;
 
+/**
+ * @private
+ */
 export default async function dbMigrate() {
-  external(`${PWD}/node_modules/babel-core/register`);
+  const { database: config } = loader(PWD, 'config');
+  const models = loader(PWD, 'models');
+  const migrations = loader(PWD, 'migrations');
 
-  const { connection, schema } = new Database({
+  const { connection, schema } = await new Database({
+    config,
+    models,
     path: PWD,
-    config: external(`${PWD}/config/database`).default,
+    checkMigrations: false,
 
-    logger: await Logger.create({
-      appPath: PWD,
+    logger: await new Logger({
+      path: PWD,
       enabled: false
     })
   });
 
-  await createMigrations(schema);
   const pending = await pendingMigrations(PWD, () => connection('migrations'));
 
   if (pending.length) {
     await Promise.all(
       pending.map(async (migration) => {
         const version = migration.replace(/^(\d{16})-.+$/g, '$1');
-        let { up } = external(`${PWD}/db/migrate/${migration}`);
+        migration = migration.replace(new RegExp(`${version}-(.+)\.js`), '$1');
+        migration = migrations.get(`${migration}-up`);
 
-        up = up(schema());
+        if (migration) {
+          const query = migration.run(schema());
 
-        up.on('query', () => console.log(sql`${up.toString()}`));
-        await up;
+          await query.on('query', () => {
+            process.stdout.write(sql`${query.toString()}\n`);
+          });
 
-        await connection('migrations').insert({ version });
+          await connection('migrations').insert({
+            version
+          });
+        }
+
+        return migration;
       })
     );
   }

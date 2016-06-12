@@ -1,6 +1,6 @@
-import Lux from 'lux-framework';
+import { Application } from 'lux-framework';
 
-class SocialNetwork extends Lux {
+class SocialNetwork extends Application {
 
 }
 

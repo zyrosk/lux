@@ -14,7 +14,7 @@ class Reaction extends Model {
     },
 
     post: {
-      inverse: 'reaction'
+      inverse: 'reactions'
     },
 
     user: {

@@ -1,194 +1,138 @@
-import Promise from 'bluebird';
-import cluster from 'cluster';
-import { pluralize, singularize } from 'inflection';
+// @flow
+import initialize from './initialize';
 
-import Server from '../server';
-import Router from '../router';
-import Database from '../database';
+import type Database from '../database';
+import type Logger from '../logger';
+import type Router from '../router';
+import type Server from '../server';
+import type Controller from '../controller';
+import type Serializer from '../serializer';
+import typeof { Model } from '../database';
 
-import loader from '../loader';
-
-import {
-  ControllerMissingError,
-  SerializerMissingError
-} from './errors';
-
-const { defineProperties } = Object;
-
-const { env: { PWD, PORT } } = process;
-const { isMaster } = cluster;
-
+/**
+ * The `Application` class is responsible for constructing an application and
+ * putting all the moving parts (`Model`, `Controller`, `Serializer`) together.
+ */
 class Application {
-  path;
-  port;
-  store;
-  domain;
-  logger;
-  router;
+  /**
+   * An absolute path to the root directory of the `Application` instance.
+   *
+   * @example
+   * '/projects/my-app'
+   *
+   * @property path
+   * @memberof Application
+   * @instance
+   * @readonly
+   */
+  path: string;
 
+  /**
+   * The port that the `Application` instance will listen for connections.
+   *
+   * @property port
+   * @memberof Application
+   * @instance
+   * @readonly
+   */
+  port: number;
+
+  /**
+   * A reference to the instance of `Database`.
+   *
+   * @property store
+   * @memberof Application
+   * @instance
+   * @readonly
+   * @private
+   */
+  store: Database;
+
+  /**
+   * A map containing each `Model` class in an application instance.
+   *
+   * @property models
+   * @memberof Application
+   * @instance
+   * @readonly
+   */
+  models: Map<string, Model>;
+
+  /**
+   * A reference to the instance of `Logger`.
+   *
+   * @property logger
+   * @memberof Application
+   * @instance
+   * @readonly
+   */
+  logger: Logger;
+
+  /**
+   * A map containing each `Controller` class in an application instance.
+   *
+   * @property controllers
+   * @memberof Application
+   * @instance
+   * @readonly
+   */
+  controllers: Map<string, Controller>;
+
+  /**
+   * A map containing each `Serializer` class in an application instance.
+   *
+   * @property serializers
+   * @memberof Application
+   * @instance
+   * @readonly
+   */
+  serializers: Map<string, Serializer>;
+
+  /**
+   * A reference to the instance of `Router`.
+   *
+   * @property logger
+   * @memberof Application
+   * @instance
+   * @readonly
+   * @private
+   */
+  router: Router;
+
+  /**
+   * A reference to the instance of `Server`.
+   *
+   * @property server
+   * @memberof Application
+   * @instance
+   * @readonly
+   * @private
+   */
+  server: Server;
+
+  /**
+   * Create an instance of `Application`.
+   *
+   * WARNING:
+   * It is highly reccomended that you do not override this method.
+   */
   constructor({
-    path = PWD,
-    port = PORT || 4000,
-    domain = 'http://localhost',
-    logger,
-    sessionKey,
-    sessionSecret
-  } = {}) {
-    const router = new Router();
-
-    const server = new Server({
-      router,
-      logger,
-      sessionKey,
-      sessionSecret
-    });
-
-    const store = new Database({
+    log = true,
+    path,
+    port,
+    database
+  }: {
+    log: boolean,
+    path: string,
+    port: number,
+    database: {}
+  } = {}): Promise<Application> {
+    return initialize(this, {
+      log,
       path,
-      logger,
-      config: external(`${path}/config/database`).default
+      port,
+      database
     });
-
-    defineProperties(this, {
-      path: {
-        value: path,
-        writable: false,
-        enumerable: true,
-        configurable: false
-      },
-
-      port: {
-        value: port,
-        writable: false,
-        enumerable: true,
-        configurable: false
-      },
-
-      store: {
-        value: store,
-        writable: false,
-        enumerable: true,
-        configurable: false
-      },
-
-      domain: {
-        value: domain,
-        writable: false,
-        enumerable: true,
-        configurable: false
-      },
-
-      router: {
-        value: router,
-        writable: false,
-        enumerable: true,
-        configurable: false
-      },
-
-      logger: {
-        value: logger,
-        writable: false,
-        enumerable: true,
-        configurable: false
-      },
-
-      server: {
-        value: server,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      }
-    });
-
-    return this;
-  }
-
-  async boot() {
-    const { router, domain, server, port, path, store } = this;
-
-    let [
-      routes,
-      models,
-      controllers,
-      serializers
-    ] = await Promise.all([
-      loader(path, 'routes'),
-      loader(path, 'models'),
-      loader(path, 'controllers'),
-      loader(path, 'serializers')
-    ]);
-
-    await store.define(models);
-
-    models.forEach((model, name) => {
-      const resource = pluralize(name);
-
-      if (!controllers.get(resource)) {
-        throw new ControllerMissingError(resource);
-      }
-
-      if (!serializers.get(resource)) {
-        throw new SerializerMissingError(resource);
-      }
-    });
-
-    serializers.forEach((serializer, name) => {
-      const model = models.get(singularize(name));
-
-      serializer = new serializer({
-        model,
-        domain,
-        serializers
-      });
-
-      if (model) {
-        model.serializer = serializer;
-      }
-
-      serializers.set(name, serializer);
-    });
-
-    let appController = controllers.get('application');
-    appController = new appController({
-      store,
-      domain,
-      serializers,
-      serializer: serializers.get('application')
-    });
-
-    controllers.set('application', appController);
-
-    controllers.forEach((controller, key) => {
-      if (key !== 'application') {
-        const model = store.modelFor(singularize(key));
-
-        controller = new controller({
-          store,
-          model,
-          domain,
-          serializers,
-          serializer: serializers.get(key),
-          parentController: appController
-        });
-
-        controllers.set(key, controller);
-      }
-    });
-
-    router.controllers = controllers;
-
-    routes.get('routes').call(null, router.route, router.resource);
-
-    server.listen(port);
-    server.instance.once('listening', () => {
-      if (isMaster) {
-        process.emit('ready');
-      } else {
-        process.send('ready');
-      }
-    });
-
-    return this;
   }
 }
 

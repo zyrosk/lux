@@ -1,6 +1,6 @@
-import Lux from 'lux-framework';
+import { Application } from 'lux-framework';
 
-class Todo extends Lux {
+class Todo extends Application {
 
 }
 

@@ -1,20 +1,22 @@
 import { connect } from '../../database';
 import { rmrf } from '../../fs';
+import loader from '../../loader';
 
 const { env: { PWD, NODE_ENV = 'development' } } = process;
 
+/**
+ * @private
+ */
 export default async function dbDrop() {
-  external(`${PWD}/node_modules/babel-core/register`);
-
   const {
-    default: {
+    database: {
       [NODE_ENV]: {
         driver,
         database,
         ...config
       }
     }
-  } = external(`${PWD}/config/database`);
+  } = loader(PWD, 'config');
 
   if (driver === 'sqlite3') {
     await rmrf(`${PWD}/db/${database}_${NODE_ENV}.sqlite`);

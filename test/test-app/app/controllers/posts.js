@@ -1,4 +1,4 @@
-import { Controller } from '../../../../dist';
+import { Controller } from 'LUX_LOCAL';
 
 class PostsController extends Controller {
   params = [
@@ -12,6 +12,10 @@ class PostsController extends Controller {
       res.setHeader('X-Controller', 'Posts');
     }
   ];
+
+  index(req, res) {
+    return super.index(req, res).isPublic();
+  }
 }
 
 export default PostsController;

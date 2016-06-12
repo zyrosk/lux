@@ -22,6 +22,18 @@ class User extends Model {
       inverse: 'user'
     },
 
+    followees: {
+      model: 'user',
+      inverse: 'followers',
+      through: 'friendship'
+    },
+
+    followers: {
+      model: 'user',
+      inverse: 'followees',
+      through: 'friendship'
+    },
+
     reactions: {
       inverse: 'user'
     }

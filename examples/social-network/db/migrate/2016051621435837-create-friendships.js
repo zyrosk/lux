@@ -3,19 +3,19 @@ export function up(schema) {
     table.increments('id');
 
     table
-      .integer('user_id')
+      .integer('followee_id')
       .notNullable();
 
     table
-      .integer('friend_id')
+      .integer('follower_id')
       .notNullable();
 
     table.timestamps();
 
     table.index([
       'id',
-      'user_id',
-      'friend_id',
+      'followee_id',
+      'follower_id',
       'created_at',
       'updated_at'
     ]);

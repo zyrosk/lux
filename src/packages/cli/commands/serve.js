@@ -1,52 +1,43 @@
-import os from 'os';
-import cluster from 'cluster';
-
+// @flow
 import { cyan } from 'chalk';
 
 import Logger from '../../logger';
+import { createCluster } from '../../pm';
 
-const {
-  env: {
-    PWD,
-    NODE_ENV = 'development'
+const { env: { PWD, PORT } } = process;
+
+/**
+ * @private
+ */
+export default async function serve(
+  port: ?number | ?string = PORT
+): Promise<void> {
+  let path = PWD;
+
+  if (typeof path !== 'string') {
+    path = __dirname;
   }
-} = process;
 
-export default async function serve(port = 4000) {
-  const Application = external(`${PWD}/bin/app`);
-  const config = external(`${PWD}/config/environments/${NODE_ENV}`).default;
+  if (typeof port !== 'number') {
+    port = 4000;
+  }
 
-  const logger = await Logger.create({
-    enabled: config.log,
-    appPath: PWD
+  const logger = await new Logger({
+    path,
+    enabled: true
   });
 
-  if (config.port) {
-    port = config.port;
-  }
+  const cluster = createCluster({
+    path,
+    port,
+    logger
+  });
 
-  if (cluster.isMaster) {
-    const total = os.cpus().length;
-    let current = 0;
+  const { maxWorkers: count } = cluster;
 
-    logger.log(`Starting Lux Server with ${cyan(`${total}`)} worker processes`);
+  logger.info(`Starting Lux Server with ${cyan(`${count}`)} worker processes`);
 
-    for (let i = 0; i < total; i++) {
-      cluster.fork({ NODE_ENV }).once('message', msg => {
-        if (msg === 'ready') {
-          current++;
-          if (current === total) {
-            logger.log(`Lux Server listening on port ${cyan(`${port}`)}`);
-          }
-        }
-      });
-    }
-  } else {
-    await new Application({
-      ...config,
-      port,
-      logger,
-      path: PWD
-    }).boot();
-  }
+  cluster.once('ready', () => {
+    logger.info(`Lux Server listening on port: ${cyan(`${port}`)}`);
+  });
 }

@@ -1,48 +1,50 @@
+// @flow
 import http from 'http';
 import { parse as parseURL } from 'url';
 
 import chalk, { cyan } from 'chalk';
 
-import Session from '../session';
 import { line } from '../logger';
 
+import entries from '../../utils/entries';
 import formatParams from './utils/format-params';
 
-const { defineProperties } = Object;
+import type {
+  Server as HTTPServer,
+  IncomingMessage,
+  ServerResponse
+} from 'http';
 
+import type Logger from '../logger';
+import type Router from '../router';
+
+/**
+ * @private
+ */
 class Server {
-  logger;
-  instance;
+  router: Router;
+  logger: Logger;
+  instance: HTTPServer;
 
-  constructor({ logger, router, sessionKey, sessionSecret } = {}) {
-    const resolver = router.createResolver();
-    const instance = http.createServer(async (req, res) => {
-      const { headers } = req;
-      const methodOverride = headers['X-HTTP-Method-Override'];
-
-      this.logRequest(req, res);
-
-      req.setEncoding('utf8');
-
-      res.setHeader('Content-Type', 'application/vnd.api+json');
-
-      if (methodOverride) {
-        req.method = methodOverride;
-      }
-
-      req.url = parseURL(req.url, true);
-      req.params = await formatParams(req);
-      req.session = new Session({
-        cookie: headers.cookie,
-        logger,
-        sessionKey,
-        sessionSecret
-      });
-
-      resolver.next().value(req, res);
+  constructor({
+    logger,
+    router
+  }: {
+    logger: Logger,
+    router: Router
+  } = {}): Server {
+    const instance = http.createServer((req, res) => {
+      this.receiveRequest(req, res);
     });
 
-    defineProperties(this, {
+    Object.defineProperties(this, {
+      router: {
+        value: router,
+        writable: false,
+        enumerable: false,
+        configurable: false
+      },
+
       logger: {
         value: logger,
         writable: false,
@@ -61,11 +63,34 @@ class Server {
     return this;
   }
 
-  listen(port) {
+  listen(port: number): void {
     this.instance.listen(port);
   }
 
-  logRequest(req, res) {
+  async receiveRequest(
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<void> {
+    const { headers } = req;
+    const methodOverride = headers['X-HTTP-Method-Override'];
+
+    this.logRequest(req, res);
+
+    req.setEncoding('utf8');
+    res.setHeader('Content-Type', 'application/vnd.api+json');
+
+    if (methodOverride) {
+      req.method = methodOverride;
+    }
+
+    req.url = parseURL(req.url, true);
+    req.params = await formatParams(req);
+    req.headers = new Map(entries(headers));
+
+    this.router.resolve(req, res);
+  }
+
+  logRequest(req: IncomingMessage, res: ServerResponse): void {
     const startTime = new Date();
 
     res.once('finish', () => {
@@ -79,7 +104,7 @@ class Server {
         statusColor = 'red';
       }
 
-      this.logger.log(line`
+      this.logger.info(line`
         ${cyan(`${method}`)} ${url.pathname} -> Finished after
         ${new Date().getTime() - startTime.getTime()} ms with
         ${chalk[statusColor].call(null, `${statusCode}`)}

@@ -1,299 +1,559 @@
-import { Readable } from 'stream';
-import { dasherize, pluralize, camelize } from 'inflection';
+// @flow
+import { pluralize } from 'inflection';
 
-import tryCatch from '../../utils/try-catch';
-import underscore from '../../utils/underscore';
+import { Model } from '../database';
 
-import bound from '../../decorators/bound';
+import ContentStream from './content-stream';
 
-const { max } = Math;
-const { isArray } = Array;
-const { keys, defineProperties } = Object;
+import pick from '../../utils/pick';
+import insert from '../../utils/insert';
+import entries from '../../utils/entries';
+import { dasherizeKeys } from '../../utils/transform-keys';
 
+const idRegExp = /^id$/;
+
+/**
+ * The `Serializer` class is where you declare the specific attributes and
+ * relationships you would like to include for a particular resource (`Model`).
+ */
 class Serializer {
-  model;
-  domain;
-  serializers;
+  /**
+   * The resolved `Model` that a `Serializer` instance represents.
+   *
+   * @example
+   * PostsSerializer.model
+   * // => Post
+   *
+   * @property model
+   * @memberof Serializer
+   * @instance
+   * @readonly
+   * @private
+   */
+  model: typeof Model;
 
-  hasOne = [];
-  hasMany = [];
-  attributes = [];
+  /**
+   * A Map of all resolved serializers in a an `Application` instance. This is
+   * used when a `Serializer` instance has to serialize an embedded
+   * relationship.
+   *
+   * @property serializers
+   * @memberof Serializer
+   * @instance
+   * @readonly
+   * @private
+   */
+  serializers: Map<string, Serializer>;
 
-  constructor({ model, domain, serializers } = {}) {
-    defineProperties(this, {
-      model: {
-        value: model,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      },
+  /**
+   * Create an instance of `Serializer`.
+   *
+   * WARNING:
+   * This is a private constructor and you should not instantiate a `Serializer`
+   * manually. Serializers are instantiated automatically by your application
+   * when it is started.
+   *
+   * @private
+   */
+   constructor({
+     model,
+     serializers
+   }: {
+     model: typeof Model,
+     serializers: Map<string, Serializer>
+   } = {}) {
+     Object.defineProperties(this, {
+       model: {
+         value: model,
+         writable: false,
+         enumerable: false,
+         configurable: false
+       },
 
-      domain: {
-        value: domain,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      },
+       serializers: {
+         value: serializers,
+         writable: false,
+         enumerable: false,
+         configurable: false
+       }
+     });
 
-      serializers: {
-        value: serializers,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      }
+     return this;
+   }
+
+   /**
+    * An Array of the `hasOne` or `belongsTo` relationships on a `Serializer`
+    * instance's model to include in the `relationships` resource object of a
+    * serialized payload.
+    *
+    * @example
+    * class PostsSerializer extends Serializer {
+    *   hasOne = [
+    *     'author'
+    *   ];
+    * }
+    *
+    * // A request to `/posts` would result in the following payload:
+    *
+    * {
+    *   "data": [
+    *     {
+    *       "id": 1,
+    *       "type": "posts",
+    *       "attributes": {},
+    *       "relationships": [
+    *         {
+    *           "data": {
+    *             "id": 1,
+    *             "type": "authors"
+    *           },
+    *            "links": {
+    *              "self": "http://localhost:4000/authors/1"
+    *           }
+    *         }
+    *       ],
+    *       "links": {
+    *         "self": "http://localhost:4000/posts/1"
+    *       }
+    *     }
+    *   ],
+    *   "links": {
+    *     "self": "http://localhost:4000/posts",
+    *     "first": "http://localhost:4000/posts?page=1",
+    *     "last": "http://localhost:4000/posts?page=1",
+    *     "prev": null,
+    *     "next": null
+    *   }
+    *   "jsonapi": {
+    *     "version": "1.0"
+    *   }
+    * }
+    *
+    * @property hasOne
+    * @memberof Serializer
+    * @instance
+    */
+   get hasOne(): Array<string> {
+     return Object.freeze([]);
+   }
+
+   set hasOne(value: Array<string>): void {
+     if (value && value.length) {
+       const hasOne = new Array(value.length);
+
+       insert(hasOne, value);
+
+       Object.defineProperty(this, 'hasOne', {
+         value: Object.freeze(hasOne),
+         writable: false,
+         enumerable: true,
+         configurable: false
+       });
+     }
+   }
+
+   /**
+    * An Array of the `hasMany` relationships on a `Serializer` instance's model
+    * to include in the `relationships` resource object of a serialized payload.
+    *
+    * @example
+    * class PostsSerializer extends Serializer {
+    *   hasMany = [
+    *     'comments'
+    *   ];
+    * }
+    *
+    * // A request to `/posts` would result in the following payload:
+    *
+    * {
+    *   "data": [
+    *     {
+    *       "id": 1,
+    *       "type": "posts",
+    *       "attributes": {},
+    *       "relationships": [
+    *         {
+    *           "data": {
+    *             "id": 1,
+    *             "type": "comments"
+    *           },
+    *            "links": {
+    *              "self": "http://localhost:4000/comments/1"
+    *           }
+    *         },
+    *         {
+    *           "data": {
+    *             "id": 2,
+    *             "type": "comments"
+    *           },
+    *            "links": {
+    *              "self": "http://localhost:4000/comments/2"
+    *           }
+    *         }
+    *       ],
+    *       "links": {
+    *         "self": "http://localhost:4000/posts/1"
+    *       }
+    *     }
+    *   ],
+    *   "links": {
+    *     "self": "http://localhost:4000/posts",
+    *     "first": "http://localhost:4000/posts?page=1",
+    *     "last": "http://localhost:4000/posts?page=1",
+    *     "prev": null,
+    *     "next": null
+    *   }
+    *   "jsonapi": {
+    *     "version": "1.0"
+    *   }
+    * }
+    *
+    * @property hasMany
+    * @memberof Serializer
+    * @instance
+    */
+   get hasMany(): Array<string> {
+     return Object.freeze([]);
+   }
+
+   set hasMany(value: Array<string>): void {
+     if (value && value.length) {
+       const hasMany = new Array(value.length);
+
+       insert(hasMany, value);
+
+       Object.defineProperty(this, 'hasMany', {
+         value: Object.freeze(hasMany),
+         writable: false,
+         enumerable: true,
+         configurable: false
+       });
+     }
+   }
+
+   /**
+    * An Array of the `attributes` on a `Serializer` instance's model to include
+    * in the `attributes` resource object of a serialized payload.
+    *
+    * @example
+    * class PostsSerializer extends Serializer {
+    *   attributes = [
+    *     'title',
+    *     'isPublic'
+    *   ];
+    * }
+    *
+    * // A request to `/posts` would result in the following payload:
+    *
+    * {
+    *   "data": [
+    *     {
+    *       "id": 1,
+    *       "type": "posts",
+    *       "attributes": {
+    *         "title": "Not another Node.js framework...",
+    *         "is-public": true
+    *       },
+    *       "links": {
+    *         "self": "http://localhost:4000/posts/1"
+    *       }
+    *     }
+    *   ],
+    *   "links": {
+    *     "self": "http://localhost:4000/posts",
+    *     "first": "http://localhost:4000/posts?page=1",
+    *     "last": "http://localhost:4000/posts?page=1",
+    *     "prev": null,
+    *     "next": null
+    *   }
+    *   "jsonapi": {
+    *     "version": "1.0"
+    *   }
+    * }
+    *
+    * @property attributes
+    * @memberof Serializer
+    * @instance
+    */
+   get attributes(): Array<string> {
+     return Object.freeze([]);
+   }
+
+   set attributes(value: Array<string>): void {
+     if (value && value.length) {
+       const attributes = new Array(value.length);
+
+       insert(attributes, value);
+
+       Object.defineProperty(this, 'attributes', {
+         value: Object.freeze(attributes),
+         writable: false,
+         enumerable: true,
+         configurable: false
+       });
+     }
+   }
+
+  /**
+   * @private
+   */
+  stream({
+    data,
+    links = {},
+    fields = [],
+    domain = '',
+    include = {}
+  }: {
+    data: ?(Model | Array<Model>),
+    links: Object,
+    fields: Array<string>,
+    domain: string,
+    include: Object
+  }): ContentStream {
+    return new ContentStream().on('ready', (stream: ContentStream) => {
+      const serialized = this.serialize({
+        data,
+        links,
+        fields,
+        domain,
+        include
+      });
+
+      stream.end(serialized);
     });
-
-    return this;
   }
 
-  formatKey(key) {
-    return dasherize(underscore(key));
-  }
+  /**
+   * @private
+   */
+  serialize({
+    data,
+    links,
+    fields,
+    domain,
+    include
+  }: {
+    data: ?(Object | Array<Object> | Model),
+    links: Object,
+    fields: Array<string>,
+    domain: string,
+    include: Object
+  }): Object | Array<Object> {
+    let serialized = {};
 
-  fieldsFor(name, fields = {}) {
-    fields = fields[camelize(name.replace(/\-/g, '_'), true)];
+    if (data instanceof Model || Array.isArray(data)) {
+      const included = [];
 
-    if (fields) {
-      fields = [...fields];
+      if (Array.isArray(fields)) {
+        fields = fields.filter(field => !idRegExp.test(field));
+      } else {
+        fields = [];
+      }
+
+      if (Array.isArray(data)) {
+        serialized = {
+          ...serialized,
+
+          data: data.map(item => {
+            return this.serializeOne({
+              item,
+              fields,
+              domain,
+              include,
+              included
+            });
+          })
+        };
+      } else {
+        serialized = {
+          ...serialized,
+
+          data: this.serializeOne({
+            fields,
+            domain,
+            include,
+            included,
+            item: data,
+            links: false
+          })
+        };
+      }
+
+      if (included.length) {
+        serialized = {
+          ...serialized,
+          included
+        };
+      }
+
+      if (links) {
+        serialized = {
+          ...serialized,
+          links
+        };
+      }
+    } else if (data instanceof Object) {
+      serialized = data;
     }
 
-    return fields;
+    return {
+      ...serialized,
+
+      jsonapi: {
+        version: '1.0'
+      }
+    };
   }
 
-  attributesFor(item, fields = []) {
-    return (fields.length ? fields : this.attributes)
-      .reduce((hash, attr) => {
-        if (attr.indexOf('id') < 0) {
-          hash[this.formatKey(attr)] = item[attr];
-        }
+  /**
+   * @private
+   */
+  serializeOne({
+    item,
+    links,
+    fields,
+    domain,
+    include,
+    included
+  }: {
+    item: Model,
+    links?: boolean,
+    fields: Array<string>,
+    domain: string,
+    include: Object,
+    included: Array<Object>
+  }): Object {
+    const { id } = item;
+    const attributes = dasherizeKeys(pick(item, ...fields));
 
-        return hash;
-      }, {});
-  }
+    let { modelName: type } = item;
+    type = pluralize(type);
 
-  relationshipsFor(item, include, fields) {
-    const { domain, hasOne, hasMany } = this;
-    const hash = { data: {}, included: [] };
+    if (Array.isArray(attributes)) {
+      return {};
+    }
 
-    hash.data = {
-      ...hasOne.reduce((obj, key) => {
-        const related = item[key];
+    let serialized: {
+      id: number,
+      type: string,
+      links?: Object,
+      attributes: Object,
+      relationships?: Object
+    } = {
+      id,
+      type,
+      attributes
+    };
 
-        if (related) {
-          const { id, modelName } = related;
-          const type = pluralize(modelName);
+    if (Object.keys(include).length) {
+      const relationships = entries(include).reduce((hash, [name, attrs]) => {
+        const related = item[name];
 
-          obj[key] = {
-            data: {
-              id,
-              type
-            },
+        attrs = attrs.filter(field => !idRegExp.test(field));
 
-            links: {
-              self: `${domain}/${type}/${id}`
-            }
-          };
-
-          if (include.indexOf(key) >= 0) {
-            const {
-              constructor: {
-                serializer: relatedSerializer
-              }
-            } = related;
-
-            if (relatedSerializer) {
-              hash.included.push(
-                relatedSerializer.serializeOne(related, [], fields)
-              );
-            }
-          }
-        }
-
-        return obj;
-      }, {}),
-
-      ...hasMany.reduce((obj, key) => {
-        const records = item[key];
-
-        if (records && records.length) {
-          obj[key] = {
-            data: records.map(related => {
-              const { id, modelName } = related;
-              const type = pluralize(modelName);
-
-              if (include.indexOf(key) >= 0) {
-                const {
-                  constructor: {
-                    serializer: relatedSerializer
-                  }
-                } = related;
-
-                if (relatedSerializer) {
-                  hash.included.push(
-                    relatedSerializer.serializeOne(related, [], fields)
-                  );
-                }
-              }
+        if (related instanceof Model) {
+          hash[name] = this.serializeRelationship({
+            domain,
+            included,
+            item: related,
+            links: true,
+            fields: attrs
+          });
+        } else if (Array.isArray(related) && related.length) {
+          hash[name] = {
+            data: related.map(relatedItem => {
+              const {
+                data: relatedData,
+                links: relatedLinks
+              } = this.serializeRelationship({
+                domain,
+                included,
+                item: relatedItem,
+                links: true,
+                fields: attrs
+              });
 
               return {
-                id,
-                type,
-
-                links: {
-                  self: `${domain}/${type}/${id}`
-                }
+                ...relatedData,
+                links: relatedLinks
               };
             })
           };
         }
 
-        return obj;
-      }, {})
-    };
+        return hash;
+      }, {});
 
-    return hash;
-  }
-
-  serializeGroup(stream, key, data, include, fields) {
-    stream.push(`"${this.formatKey(key)}":`);
-
-    if (key === 'data') {
-      let included = [];
-      let lastItemIndex;
-
-      if (isArray(data)) {
-        lastItemIndex = max(data.length - 1, 0);
-
-        stream.push('[');
-
-        for (let i = 0; i < data.length; i++) {
-          let item = this.serializeOne(data[i], include, fields);
-
-          if (item.included && item.included.length) {
-            included = item.included.reduce((value, record) => {
-              const { id, type } = record;
-              const shouldInclude = !value.some(({ id: vId, type: vType }) => {
-                return vId === id && vType === type;
-              });
-
-              if (shouldInclude) {
-                value = [...value, record];
-              }
-
-              return value;
-            }, included);
-
-            delete item.included;
-          }
-
-          stream.push(
-            JSON.stringify(item)
-          );
-
-          if (i !== lastItemIndex) {
-            stream.push(',');
-          }
-        }
-
-        stream.push(']');
-      } else {
-        data = this.serializeOne(data, include, fields, false);
-
-        if (data.included && data.included.length) {
-          included = [...included, ...data.included];
-          delete data.included;
-        }
-
-        stream.push(
-          JSON.stringify(data)
-        );
+      if (Object.keys(relationships).length) {
+        serialized = {
+          ...serialized,
+          relationships
+        };
       }
-
-      if (included.length) {
-        lastItemIndex = max(included.length - 1, 0);
-
-        stream.push(',"included":[');
-
-        for (let i = 0; i < included.length; i++) {
-          stream.push(
-            JSON.stringify(included[i])
-          );
-
-          if (i !== lastItemIndex) {
-            stream.push(',');
-          }
-        }
-
-        stream.push(']');
-      }
-    } else {
-      stream.push(JSON.stringify(data));
-    }
-  }
-
-  async serializePayload(stream, payload, include, fields) {
-    tryCatch(() => {
-      let i, key, payloadKeys;
-
-      stream.push('{');
-
-      payloadKeys = keys(payload);
-
-      for (i = 0; i < payloadKeys.length; i++) {
-        key = payloadKeys[i];
-
-        this.serializeGroup(stream, key, payload[key], include, fields);
-        stream.push(',');
-      }
-
-      stream.push('"jsonapi":{"version":"1.0"}}');
-    }, err => {
-      console.error(err);
-    });
-
-    stream.push(null);
-
-    return stream;
-  }
-
-  stream(payload, include, fields) {
-    const stream = new Readable({
-      encoding: 'utf8'
-    });
-
-    this.serializePayload(stream, payload, include, fields);
-
-    return stream;
-  }
-
-  @bound
-  serializeOne(item, include, fields, links = true) {
-    const { id, modelName: name } = item;
-    const type = pluralize(name);
-
-    const data = {
-      id,
-      type,
-      attributes: this.attributesFor(item, this.fieldsFor(name, fields))
-    };
-
-    const relationships = this.relationshipsFor(item, include, fields);
-
-    if (keys(relationships.data).length) {
-      data.relationships = relationships.data;
     }
 
-    if (relationships.included.length) {
-      data.included = relationships.included;
-    }
-
-    if (links) {
-      data.links = {
-        self: `${this.domain}/${type}/${id}`
+    if (links || typeof links !== 'boolean') {
+      serialized.links = {
+        self: `${domain}/${type}/${id}`
       };
     }
 
-    return data;
+    return serialized;
+  }
+
+  /**
+   * @private
+   */
+  serializeRelationship({
+    item,
+    fields,
+    domain,
+    included
+  }: {
+    item: Model,
+    fields: Array<string>,
+    domain: string,
+    included: Array<Object>
+  }): Object {
+    const {
+      id,
+
+      constructor: {
+        serializer
+      }
+    } = item;
+
+    let { modelName: type } = item;
+    type = pluralize(type);
+
+    if (fields.length) {
+      const shouldInclude = !included.some((incl) => {
+        return id === incl.id && type === incl.type;
+      });
+
+      if (shouldInclude) {
+        included.push(
+          serializer.serializeOne({
+            item,
+            domain,
+            fields,
+            include: {},
+            included: []
+          })
+        );
+      }
+    }
+
+    return {
+      data: {
+        id,
+        type
+      },
+
+      links: {
+        self: `${domain}/${type}/${id}`
+      }
+    };
   }
 }
 
