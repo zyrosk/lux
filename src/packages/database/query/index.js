@@ -3,6 +3,8 @@ import { camelize } from 'inflection';
 import Model from '../model';
 import { sql } from '../../logger';
 
+import initialize from './initialize';
+
 import entries from '../../../utils/entries';
 import tryCatch from '../../../utils/try-catch';
 import formatSelect from './utils/format-select';
@@ -11,7 +13,7 @@ import buildResults from './utils/build-results';
 /**
  * @private
  */
-class Query extends Object {
+class Query {
   /**
    * @private
    */
@@ -38,8 +40,6 @@ class Query extends Object {
   relationships: Object;
 
   constructor(model: typeof Model): Query {
-    super();
-
     Object.defineProperties(this, {
       model: {
         value: model,
@@ -77,23 +77,7 @@ class Query extends Object {
       }
     });
 
-    return new Proxy(this, {
-      get(instance: Query, key: string, receiver: Proxy): ?mixed | void {
-        if (model.hasScope(key)) {
-          const scope = model.scopes[key];
-
-          return (...args) => {
-            let { snapshots } = scope.apply(model, args);
-            snapshots = snapshots.map(snapshot => [...snapshot, key]);
-
-            instance.snapshots.push(...snapshots);
-            return receiver;
-          };
-        } else {
-          return instance[key];
-        }
-      }
-    });
+    return initialize(this);
   }
 
   all(): Query {
