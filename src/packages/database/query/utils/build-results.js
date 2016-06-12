@@ -1,9 +1,10 @@
 // @flow
-import { camelize } from 'inflection';
+import { camelize, singularize } from 'inflection';
 
 import Model from '../../model';
 
 import entries from '../../../../utils/entries';
+import underscore from '../../../../utils/underscore';
 import promiseHash from '../../../../utils/promise-hash';
 
 export default async function buildResults({
@@ -23,13 +24,45 @@ export default async function buildResults({
   if (Object.keys(relationships).length) {
     related = entries(relationships)
       .reduce((hash, [name, relationship]) => {
-        const foreignKey = camelize(relationship.foreignKey, true);
+        let foreignKey = camelize(relationship.foreignKey, true);
 
-        hash[name] = relationship.model
-          .select(...relationship.attrs)
-          .where({
-            [foreignKey]: results.map(({ id }) => id)
-          });
+        if (relationship.through) {
+          const query = relationship.model.select(...relationship.attrs);
+
+          const baseKey = `${relationship.through.tableName}.` +
+            `${singularize(underscore(name))}_id`;
+
+          foreignKey = `${relationship.through.tableName}.` +
+            `${relationship.foreignKey}`;
+
+          query.snapshots.push(
+            ['select', [
+              `${baseKey} as ${camelize(baseKey.split('.').pop(), true)}`,
+              `${foreignKey} as ${camelize(foreignKey.split('.').pop(), true)}`
+            ]],
+
+            ['innerJoin', [
+              relationship.through.tableName,
+              `${relationship.model.tableName}.` +
+                `${relationship.model.primaryKey}`,
+              '=',
+              baseKey
+            ]],
+
+            ['whereIn', [
+              foreignKey,
+              results.map(({ id }) => id)
+            ]]
+          );
+
+          hash[name] = query;
+        } else {
+          hash[name] = relationship.model
+            .select(...relationship.attrs)
+            .where({
+              [foreignKey]: results.map(({ id }) => id)
+            });
+        }
 
         return hash;
       }, {});
@@ -39,16 +72,15 @@ export default async function buildResults({
 
   return results.map((record) => {
     entries(related)
-      .forEach(([name, relatedresults]: [string, Array<{}>]) => {
+      .forEach(([name, relatedResults]: [string, Array<Model>]) => {
         const relationship = model.relationshipFor(name);
 
         if (relationship) {
           let { foreignKey } = relationship;
           foreignKey = camelize(foreignKey, true);
 
-          const match = relatedresults.filter((relatedRecord): boolean => {
-            return record[model.primaryKey] ===
-              relatedRecord[camelize(foreignKey, true)];
+          const match = relatedResults.filter(({ rawColumnData }): boolean => {
+            return rawColumnData[foreignKey] === record[model.primaryKey];
           });
 
           if (match.length) {

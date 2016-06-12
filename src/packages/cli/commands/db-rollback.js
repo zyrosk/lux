@@ -1,4 +1,4 @@
-import Database, { createMigrations } from '../../database';
+import Database from '../../database';
 import Logger, { sql } from '../../logger';
 import fs from '../../fs';
 import loader from '../../loader';
@@ -10,19 +10,20 @@ const { env: { PWD } } = process;
  */
 export default async function dbRollback() {
   const { database: config } = loader(PWD, 'config');
+  const models = loader(PWD, 'models');
   const migrations = loader(PWD, 'migrations');
 
-  const { connection, schema } = new Database({
+  const { connection, schema } = await new Database({
     config,
+    models,
     path: PWD,
+    checkMigrations: false,
 
     logger: await new Logger({
       path: PWD,
       enabled: false
     })
   });
-
-  await createMigrations(schema);
 
   const migrationFiles = await fs.readdirAsync(`${PWD}/db/migrate`);
 

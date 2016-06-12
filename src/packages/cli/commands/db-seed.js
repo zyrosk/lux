@@ -14,13 +14,14 @@ export default async function dbSeed() {
 
   await new Database({
     config,
+    models,
     path: PWD,
 
     logger: await new Logger({
       path: PWD,
       enabled: false
     })
-  }).define(models);
+  });
 
   await seed();
 }

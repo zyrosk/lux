@@ -1,8 +1,12 @@
 import { camelize, dasherize, singularize } from 'inflection';
 
-import { line } from '../../../logger';
-import entries from '../../../../utils/entries';
-import underscore from '../../../../utils/underscore';
+import { line } from '../../logger';
+
+import entries from '../../../utils/entries';
+import underscore from '../../../utils/underscore';
+
+import type Database from '../index';
+import typeof Model from './index';
 
 const REFS = new WeakMap();
 
@@ -126,13 +130,17 @@ function initializeProps(prototype, attributes, relationships) {
   Object.defineProperties(prototype, props);
 }
 
-function initializeHooks(model, hooks) {
+function initializeHooks({
+  model,
+  hooks,
+  logger
+}) {
   hooks = entries({ ...hooks })
     .filter(([key]) => {
       const isValid = VALID_HOOKS.indexOf(key) >= 0;
 
       if (!isValid) {
-        model.logger.warn(line`
+        logger.warn(line`
           Invalid hook '${key}' will not be added to Model '${model.name}'.
           Valid hooks are ${VALID_HOOKS.map(h => `'${h}'`).join(', ')}.
         `);
@@ -150,7 +158,12 @@ function initializeHooks(model, hooks) {
   return Object.freeze(hooks);
 }
 
-function initializeValidations(model, attributes, validations) {
+function initializeValidations({
+  model,
+  logger,
+  attributes,
+  validations
+}) {
   const attributeNames = Object.keys(attributes);
 
   const validates = entries(validations)
@@ -158,7 +171,7 @@ function initializeValidations(model, attributes, validations) {
       let isValid = attributeNames.indexOf(key) >= 0;
 
       if (!isValid) {
-        model.logger.warn(line`
+        logger.warn(line`
           Invalid valiation '${key}' will not be added to Model '${model.name}'.
           '${key}' is not an attribute of Model '${model.name}'.
         `);
@@ -167,7 +180,7 @@ function initializeValidations(model, attributes, validations) {
       if (typeof value !== 'function') {
         isValid = false;
 
-        model.logger.warn(line`
+        logger.warn(line`
           Invalid valiation '${key}' will not be added to Model '${model.name}'.
           Validations must be a function.
         `);
@@ -185,7 +198,15 @@ function initializeValidations(model, attributes, validations) {
   return Object.freeze(validates);
 }
 
-export default async function initialize(store, model, table) {
+export default async function initializeClass({
+  store,
+  table,
+  model
+}: {
+  store: Database,
+  table: Function,
+  model: Model
+}): Model {
   const { hooks, scopes, validates } = model;
   const { logger } = store;
 
@@ -284,12 +305,25 @@ export default async function initialize(store, model, table) {
     }, {});
 
   const hasMany = entries(model.hasMany || {})
-    .reduce((hash, [relatedName, { inverse, model: relatedModel }]) => {
+    .reduce((hash, [relatedName, {
+      inverse,
+      through, model: relatedModel
+    }]) => {
       const relationship = {};
+      let foreignKey;
+
+      relatedModel = store.modelFor(relatedModel || singularize(relatedName));
+
+      if (typeof through === 'string') {
+        through = store.modelFor(through);
+        foreignKey = `${singularize(underscore(inverse))}_id`;
+      } else {
+        foreignKey = `${underscore(inverse)}_id`;
+      }
 
       Object.defineProperties(relationship, {
         model: {
-          value: store.modelFor(relatedModel || singularize(relatedName)),
+          value: relatedModel,
           writable: false,
           enumerable: true,
           configurable: false
@@ -302,6 +336,13 @@ export default async function initialize(store, model, table) {
           configurable: false
         },
 
+        through: {
+          value: through,
+          writable: false,
+          enumerable: Boolean(through),
+          configurable: false
+        },
+
         type: {
           value: 'hasMany',
           writable: false,
@@ -310,7 +351,7 @@ export default async function initialize(store, model, table) {
         },
 
         foreignKey: {
-          value: `${underscore(inverse)}_id`,
+          value: foreignKey,
           writable: false,
           enumerable: false,
           configurable: false
@@ -374,7 +415,11 @@ export default async function initialize(store, model, table) {
     },
 
     hooks: {
-      value: initializeHooks(model, hooks),
+      value: initializeHooks({
+        model,
+        hooks,
+        logger
+      }),
       writable: false,
       enumerable: Boolean(Object.keys(hooks).length),
       configurable: false
@@ -388,9 +433,21 @@ export default async function initialize(store, model, table) {
     },
 
     validates: {
-      value: initializeValidations(model, attributes, validates),
+      value: initializeValidations({
+        model,
+        logger,
+        validates,
+        attributes
+      }),
       writable: false,
       enumerable: Boolean(Object.keys(validates).length),
+      configurable: false
+    },
+
+    initialized: {
+      value: true,
+      writable: false,
+      enumerable: false,
       configurable: false
     },
 

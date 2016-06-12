@@ -11,7 +11,7 @@ import buildResults from './utils/build-results';
 /**
  * @private
  */
-class Query {
+class Query extends Object {
   /**
    * @private
    */
@@ -35,9 +35,11 @@ class Query {
   /**
    * @private
    */
-  relationships: {};
+  relationships: Object;
 
   constructor(model: typeof Model): Query {
+    super();
+
     Object.defineProperties(this, {
       model: {
         value: model,
@@ -75,8 +77,8 @@ class Query {
       }
     });
 
-    const proxy = new Proxy(this, {
-      get(instance: Query, key: string): ?mixed {
+    return new Proxy(this, {
+      get(instance: Query, key: string, receiver: Proxy): ?mixed | void {
         if (model.hasScope(key)) {
           const scope = model.scopes[key];
 
@@ -85,15 +87,13 @@ class Query {
             snapshots = snapshots.map(snapshot => [...snapshot, key]);
 
             instance.snapshots.push(...snapshots);
-            return proxy;
+            return receiver;
           };
         } else {
           return instance[key];
         }
       }
     });
-
-    return proxy;
   }
 
   all(): Query {
@@ -276,14 +276,21 @@ class Query {
           relationship: {
             type: string,
             model: Model,
+            through: ?Model,
             foreignKey: string
           }
         }) => {
           if (relationship.type === 'hasMany') {
+            attrs = relationship.through ? attrs : [
+              ...attrs,
+              camelize(relationship.foreignKey, true)
+            ];
+
             this.relationships[name] = {
               type: 'hasMany',
-              attrs: [...attrs, camelize(relationship.foreignKey, true)],
+              attrs: attrs,
               model: relationship.model,
+              through: relationship.through,
               foreignKey: relationship.foreignKey
             };
 
@@ -331,7 +338,7 @@ class Query {
       });
 
       this.snapshots = this.snapshots.filter(([, , scope]) => {
-        return !scope || scopes.indexOf(scope) < 0;
+        return typeof scope === 'string' ? scopes.indexOf(scope) < 0 : true;
       });
     } else {
       this.snapshots = this.snapshots.filter(([, , scope]) => !scope);

@@ -459,7 +459,7 @@ class Serializer {
             links: true,
             fields: attrs
           });
-        } else if (Array.isArray(related)) {
+        } else if (Array.isArray(related) && related.length) {
           hash[name] = {
             data: related.map(relatedItem => {
               const {

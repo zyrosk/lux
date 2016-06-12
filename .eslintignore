@@ -8,5 +8,5 @@ test/*
 node_modules/*
 
 # misc
+decl/*
 examples/*
-interfaces/*

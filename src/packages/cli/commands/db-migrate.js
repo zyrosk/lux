@@ -1,4 +1,4 @@
-import Database, { createMigrations, pendingMigrations } from '../../database';
+import Database, { pendingMigrations } from '../../database';
 import Logger, { sql } from '../../logger';
 import loader from '../../loader';
 
@@ -9,19 +9,20 @@ const { env: { PWD } } = process;
  */
 export default async function dbMigrate() {
   const { database: config } = loader(PWD, 'config');
+  const models = loader(PWD, 'models');
   const migrations = loader(PWD, 'migrations');
 
-  const { connection, schema } = new Database({
+  const { connection, schema } = await new Database({
     config,
+    models,
     path: PWD,
+    checkMigrations: false,
 
     logger: await new Logger({
       path: PWD,
       enabled: false
     })
   });
-
-  await createMigrations(schema);
 
   const pending = await pendingMigrations(PWD, () => connection('migrations'));
 

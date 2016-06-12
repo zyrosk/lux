@@ -3,6 +3,8 @@ import { dasherize, pluralize } from 'inflection';
 import Query from '../query';
 import { sql } from '../../logger';
 
+import initializeClass from './initialize-class';
+
 import validate from './utils/validate';
 
 import pick from '../../../utils/pick';
@@ -41,6 +43,11 @@ class Model {
    */
   static primaryKey: string = 'id';
 
+  /**
+   * @private
+   */
+  static initialized: boolean;
+
   constructor(attrs: {} = {}, initialize: boolean = true): Model {
     const {
       constructor: {
@@ -55,6 +62,13 @@ class Model {
         writable: !initialize,
         enumerable: false,
         configurable: !initialize
+      },
+
+      rawColumnData: {
+        value: attrs,
+        writable: false,
+        enumerable: false,
+        configurable: false
       },
 
       initialValues: {
@@ -369,6 +383,18 @@ class Model {
     }
   }
 
+  static initialize(store, table): Promise<typeof Model> {
+    if (this.initialized) {
+      return this;
+    } else {
+      return initializeClass({
+        store,
+        table,
+        model: this
+      });
+    }
+  }
+
   static async create(props = {}): Model {
     const {
       primaryKey,
@@ -530,5 +556,4 @@ class Model {
   }
 }
 
-export { default as initialize } from './utils/initialize';
 export default Model;

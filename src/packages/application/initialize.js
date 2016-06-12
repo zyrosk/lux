@@ -45,11 +45,15 @@ export default async function initialize(app: Application, {
     logger
   });
 
-  const store = new Database({
-    logger,
+  const store = await new Database({
     path,
-    config: database
+    models,
+    logger,
+    config: database,
+    checkMigrations: true
   });
+
+  Object.freeze(store);
 
   Object.defineProperties(app, {
     path: {
@@ -94,10 +98,6 @@ export default async function initialize(app: Application, {
       configurable: false
     }
   });
-
-  await store.define(models);
-
-  Object.freeze(store);
 
   Object.assign(app, {
     models,
