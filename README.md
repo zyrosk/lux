@@ -24,7 +24,7 @@ This isn't another wrapper around [Express](http://expressjs.com/) or a framewor
 * Optimized database queries based on serialized attributes and associations
 * Highly extensible - just write reusable JavaScript functions
 * Pairs nicely with client-side JavaScript applications 🍷
-* Easy to contribute (source is ~2,000 lines of readable JavaScript)
+* Easy to contribute
 * Routes are stored and accessed via a `Map` not an `Array`
 * Embraces ES2015 and beyond
   * Classes

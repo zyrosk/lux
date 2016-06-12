@@ -1,5 +1,160 @@
 # Lux Changelog
 
+### 0.0.1-beta.11 (June 12, 2016)
+
+This is the last big set of breaking changes before a stable `1.0.0` release
+and moving forward we will strictly follow semantic versioning.
+
+If all goes well in this release the next release will be `1.0.0-rc` and will
+only contain a few more features geared towards application profiling.
+
+##### Commits
+
+* [[`30f962c003`](https://github.com/postlight/lux/commit/30f962c003)] - **deps**: update dependencies (Zachary Golba)
+* [[`b6700be793`](https://github.com/postlight/lux/commit/b6700be793)] - **refactor**: move query proxy to initializer function (Zachary Golba)
+* [[`b53c58a06f`](https://github.com/postlight/lux/commit/b53c58a06f)] - **chore**: update examples (Zachary Golba)
+* [[`2d0f2ef941`](https://github.com/postlight/lux/commit/2d0f2ef941)] - **feat**: support n:m relationships (Zachary Golba)
+* [[`93e3c0a14b`](https://github.com/postlight/lux/commit/93e3c0a14b)] - **feat**: add chainable query interface (Zachary Golba)
+* [[`425b8de4cc`](https://github.com/postlight/lux/commit/425b8de4cc)] - **feat**: use watchman for file watcher with fs.watch fallback (Zachary Golba)
+* [[`97bed29798`](https://github.com/postlight/lux/commit/97bed29798)] - **refactor**: remove all decorators from private and public APIs (Zachary Golba)
+* [[`53e257ae66`](https://github.com/postlight/lux/commit/53e257ae66)] - **refactor**: use lux babel preset (Zachary Golba)
+* [[`2512e857b2`](https://github.com/postlight/lux/commit/2512e857b2)] - **refactor**: use streams for Logger (Zachary Golba)
+* [[`4341f5cebd`](https://github.com/postlight/lux/commit/4341f5cebd)] - **refactor**: use rollup for build (Zachary Golba)
+* [[`6bc225ac87`](https://github.com/postlight/lux/commit/6bc225ac87)] - **feat**: add file watcher (Zachary Golba)
+* [[`5425c512e8`](https://github.com/postlight/lux/commit/5425c512e8)] - **feat**: add process manager (Zachary Golba)
+* [[`7d0463a3f0`](https://github.com/postlight/lux/commit/7d0463a3f0)] - **feat**: tree-shaking, native es6, and start of HMR work (Zachary Golba)
+* [[`82eab320d2`](https://github.com/postlight/lux/commit/82eab320d2)] - **docs**: start api documentation (Zachary Golba)
+* [[`7e4a38c781`](https://github.com/postlight/lux/commit/7e4a38c781)] - **deps**: update eslint to version 2.12.0 (#140) (Greenkeeper)
+* [[`6b8b29aea3`](https://github.com/postlight/lux/commit/6b8b29aea3)] - **deps**: update eslint to version 2.11.1 (#139) (Greenkeeper)
+* [[`ef8b36cb2f`](https://github.com/postlight/lux/commit/ef8b36cb2f)] - **deps**: update babel-core to version 6.9.1 (#137) (Greenkeeper)
+* [[`c5c812dc62`](https://github.com/postlight/lux/commit/c5c812dc62)] - **deps**: update eslint to version 2.11.0 (#135) (Greenkeeper)
+* [[`24033dcfb3`](https://github.com/postlight/lux/commit/24033dcfb3)] - **chore**: update eslint config (#133) (Zachary Golba)
+* [[`ed58e7a685`](https://github.com/postlight/lux/commit/ed58e7a685)] - **deps**: update mocha to version 2.5.3 (#132) (Greenkeeper)
+* [[`c76c51b802`](https://github.com/postlight/lux/commit/c76c51b802)] - **deps**: update mocha to version 2.5.2 (#130) (Greenkeeper)
+
+##### Upgrading
+
+##### Models
+
+For the sake of proper namespacing, Lux no longer exports the `Application`
+class as a `default` export. To upgrade simply use a named import of
+`Application` within your `./app/index.js` file.
+
+```javascript
+import { Application } from 'lux-framework';
+
+class MyApp extends Application {
+
+}
+
+export default MyApp;
+```
+
+You could also use a namespaced import of Lux if you are worried about
+collisions.
+
+```javascript
+import Lux from 'lux-framework';
+
+class MyApp extends Lux.Application {
+
+}
+
+export default MyApp;
+```
+
+##### Models
+
+Models now support scopes and have a chainable query interface. More docs will
+soon be available on this but for now it should be as simple as replacing calls
+to `Model.findAll` with `Model.where`.
+
+##### Controllers
+
+Decorators are no longer used to declare custom actions on your controller. For
+an easy upgrade simply remove the `@action` at the top of your custom actions.
+
+```javascript
+import { Controller } from 'lux-framework';
+
+import Post from '../models/post';
+
+class PostsController extends Controller {
+  drafts() {
+    return Post.drafts();
+  }
+}
+
+export default PostsController;
+```
+
+##### Routes
+
+Route declarations no longer support an arrow function export since arrow
+functions do not have a `name` property.
+
+```javascript
+// ./app/routes.js
+
+export default function routes(route, resource) {
+  resource('posts');
+}
+```
+
+##### Seed
+
+The db seed function no longer support an arrow function export since arrow
+functions do not have a `name` property.
+
+```javascript
+// ./db/seed.js
+
+export default function seed() {
+  resource('posts');
+}
+```
+
+##### Config
+
+Config files found in `./config/environments` now only require a single option
+`log`.
+
+```javascript
+// ./config/environments/development.js
+
+export default {
+  log: true
+};
+```
+
+##### .babelrc
+
+Lux now uses a special babel [preset](https://github.com/zacharygolba/babel-preset-lux)
+to only transpile features that are missing from Node 6.X. That means that ~95%
+of ES2015 syntax is actually using a native implementation. You can expect a
+performance boost in this release 🐇.
+
+```json
+{
+  "presets": ["lux"]
+}
+```
+
+##### package.json
+
+Update your `package.json` to only include the following base packages required
+for a Lux application (plus the ones you installed yourself).
+
+```json
+{
+  "babel-core": "6.9.1",
+  "babel-preset-lux": "1.0.0",
+  "knex": "0.11.5",
+  "lux-framework": "0.0.1-beta.11",
+  "sqlite3": "3.1.4"
+}
+```
+
 ### 0.0.1-beta.10 (May 23, 2016)
 
 * [[`f2b63501c9`](https://github.com/postlight/lux/commit/f2b63501c9)] - **chore**: bump version to 0.0.1-beta.10 (Zachary Golba)
