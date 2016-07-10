@@ -132,12 +132,10 @@ function initializeHooks({
 
       return isValid;
     })
-    .reduce((hash, [key, hook]) => {
-      return {
-        ...hash,
-        [key]: async (...args) => await hook.apply(model, args)
-      };
-    }, Object.create(null));
+    .reduce((hash, [key, hook]) => ({
+      ...hash,
+      [key]: async (...args) => await Reflect.apply(hook, model, args)
+    }), {});
 
   return Object.freeze(hooks);
 }
@@ -145,12 +143,12 @@ function initializeHooks({
 function initializeValidations({
   model,
   logger,
-  attributes,
-  validations
+  validates,
+  attributes
 }) {
   const attributeNames = Object.keys(attributes);
 
-  const validates = entries(validations)
+  validates = entries(validates)
     .filter(([key, value]) => {
       let isValid = attributeNames.indexOf(key) >= 0;
 
@@ -177,7 +175,7 @@ function initializeValidations({
         ...hash,
         [key]: value
       };
-    }, Object.create(null));
+    }, {});
 
   return Object.freeze(validates);
 }

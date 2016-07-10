@@ -4,15 +4,11 @@ import entries from './entries';
 /**
  * @private
  */
- export default function omit(source: {}, ...omitted: Array<string>): Object {
-  return entries(source)
-    .filter(([key, value]: [string, mixed]): boolean => {
-      return omitted.indexOf(key) < 0;
-    })
-    .reduce((result: {}, [key, value]: [string, mixed]): {} => {
-      return {
-        ...result,
-        [key]: value
-      };
-    }, {});
+export default function omit(src: Object, ...omitted: Array<string>): Object {
+  return entries(src)
+    .filter(([key]) => omitted.indexOf(key) < 0)
+    .reduce((result, [key, value]: [string, mixed]): {} => ({
+      ...result,
+      [key]: value
+    }), {});
 }
