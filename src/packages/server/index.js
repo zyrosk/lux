@@ -2,10 +2,7 @@
 import http from 'http';
 import { parse as parseURL } from 'url';
 
-import chalk, { cyan } from 'chalk';
-
 import responder from './responder';
-import { line } from '../logger';
 
 import entries from '../../utils/entries';
 import tryCatch from '../../utils/try-catch';
@@ -34,8 +31,8 @@ class Server {
     logger,
     router
   }: {
-    logger: Logger,
-    router: Router
+    logger: Logger;
+    router: Router;
   } = {}): Server {
     const instance = http.createServer((req, res) => {
       this.receiveRequest(req, res);
@@ -72,11 +69,23 @@ class Server {
   }
 
   receiveRequest(req: IncomingMessage, res: ServerResponse): void {
+    const startTime = Date.now();
+
     tryCatch(async () => {
+      const { logger } = this;
+
       req.setEncoding('utf8');
       res.setHeader('Content-Type', 'application/vnd.api+json');
 
-      req.url = parseURL(req.url, true);
+      Object.assign(res, {
+        logger,
+        stats: []
+      });
+
+      Object.assign(req, {
+        logger,
+        url: parseURL(req.url, true)
+      });
 
       Object.assign(req, {
         route: this.router.match(req),
@@ -88,14 +97,16 @@ class Server {
         req.method = req.headers.get('X-HTTP-Method-Override');
       }
 
-      this.logRequest(req, res);
-
       if (req.route) {
         req.params = {
           ...req.params,
           ...req.route.parseParams(req.url.pathname)
         };
       }
+
+      logger.request(req, res, {
+        startTime
+      });
 
       this.sendResponse(req, res, await this.router.visit(req, res));
     }, err => {
@@ -113,31 +124,6 @@ class Server {
     } else {
       responder.resolve(req, res, data);
     }
-  }
-
-  logRequest(req: IncomingMessage, res: ServerResponse): void {
-    const startTime = new Date();
-
-    res.once('finish', () => {
-      const { url, method } = req;
-      const { statusCode, statusMessage } = res;
-      let statusColor;
-
-      if (statusCode >= 200 && statusCode < 400) {
-        statusColor = 'green';
-      } else {
-        statusColor = 'red';
-      }
-
-      const colorString = Reflect.get(chalk, statusColor);
-
-      this.logger.info(line`
-        ${cyan(`${method}`)} ${url.pathname} -> Finished after
-        ${new Date().getTime() - startTime.getTime()} ms with
-        ${Reflect.apply(colorString, null, [`${statusCode}`])}
-        ${Reflect.apply(colorString, null, [`${statusMessage}`])}
-      `);
-    });
   }
 }
 
