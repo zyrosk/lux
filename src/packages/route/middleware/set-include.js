@@ -1,5 +1,5 @@
 // @flow
-import { singularize } from 'inflection';
+import { pluralize } from 'inflection';
 
 import omit from '../../../utils/omit';
 
@@ -35,7 +35,7 @@ export default function setInclude(req: IncomingMessage): void {
       }
     } = req;
 
-    fields = omit(fields, modelName);
+    fields = omit(fields, pluralize(modelName));
 
     Object.assign(req.params, {
       include: relationships.reduce((included, value) => {
@@ -50,11 +50,12 @@ export default function setInclude(req: IncomingMessage): void {
             model: {
               serializer: {
                 attributes: relatedAttrs
-              }
+              },
+              modelName: relatedName
             }
           } = relationship;
 
-          let fieldsForRelationship = fields[singularize(value)];
+          let fieldsForRelationship = fields[pluralize(relatedName)];
 
           if (fieldsForRelationship) {
             fieldsForRelationship = fieldsForRelationship.filter(attr => {
