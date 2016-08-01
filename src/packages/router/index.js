@@ -1,31 +1,23 @@
 // @flow
 import { ID_PATTERN } from '../route';
 
+import { FreezeableMap } from '../freezeable';
+
 import define from './define';
 
-import type { IncomingMessage, ServerResponse } from 'http';
-
-import type Controller from '../controller';
-import type Route from '../route';
-import type { options } from '../route/interfaces';
+import type { Request } from '../server';
+import type { Router$opts } from './interfaces';
+import type Route, { Route$opts } from '../route';
 
 /**
  * @private
  */
-class Router extends Map<string, Route> {
-  initialized: boolean;
-
-  constructor({
-    routes,
-    controllers
-  }: {
-    routes: () => void,
-    controllers: Map<string, Controller>
-  }): Router {
+class Router extends FreezeableMap<string, Route> {
+  constructor({ routes, controllers }: Router$opts) {
     super();
 
     Reflect.apply(routes, {
-      route: (path: string, opts: options) => define.route({
+      route: (path: string, opts: Route$opts) => define.route({
         ...opts,
         path,
         controllers,
@@ -39,46 +31,13 @@ class Router extends Map<string, Route> {
       })
     }, []);
 
-    Reflect.defineProperty(this, 'initialized', {
-      value: true,
-      writable: false,
-      enumerable: false,
-      configurable: false
-    });
-
-    return this;
+    this.freeze();
   }
 
-  set(key: string, value: Route): Router {
-    if (!this.initialized) {
-      super.set(key, value);
-    }
-
-    return this;
-  }
-
-  match({ method, url: { pathname } }: IncomingMessage): void | Route {
+  match({ method, url: { pathname } }: Request) {
     const staticPath = pathname.replace(ID_PATTERN, ':dynamic');
 
     return this.get(`${method}:${staticPath}`);
-  }
-
-  async visit(req: IncomingMessage, res: ServerResponse): void | ?mixed {
-    if (req.route) {
-      let i, data, handler;
-      const { route: { handlers } } = req;
-
-      for (i = 0; i < handlers.length; i++) {
-        handler = handlers[i];
-        data = await handler(req, res);
-
-        if (typeof data !== 'undefined') {
-          return data;
-        }
-      }
-
-      return data;
-    }
   }
 }
 

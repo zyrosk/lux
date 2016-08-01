@@ -1,5 +1,6 @@
 import { expect } from 'chai';
-import fetch from 'isomorphic-fetch';
+
+import fetch from '../../utils/fetch';
 
 const host = 'http://localhost:4000';
 

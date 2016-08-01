@@ -1,5 +1,10 @@
+// @flow
+
+/**
+ * @private
+ */
 class ControllerMissingError extends Error {
-  constructor(resource) {
+  constructor(resource: string) {
     super(`Could not resolve controller by name '${resource}'`);
   }
 }

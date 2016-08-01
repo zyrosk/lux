@@ -1,27 +1,32 @@
+// @flow
 import Validation from '../../validation';
 import { ValidationError } from '../errors';
 
 import pick from '../../../../utils/pick';
 import entries from '../../../../utils/entries';
 
-export default function validate(instance) {
+import type { Model } from '../../index';
+
+/**
+ * @private
+ */
+export default function validate(instance: Model) {
   const { initialized, constructor: model } = instance;
   let { validates } = model;
 
   if (initialized) {
-    validates = pick(validates, ...instance.dirtyAttributes);
+    validates = pick(validates, ...Array.from(instance.dirtyAttributes));
   }
 
   for (const [key, validator] of entries(validates)) {
-    const value = instance[key];
-    const { isValid } = new Validation({
+    const value = Reflect.get(instance, key);
+    const validation = new Validation({
       key,
       value,
-      model,
       validator
     });
 
-    if (!isValid) {
+    if (!validation.isValid()) {
       throw new ValidationError(key, value);
     }
   }

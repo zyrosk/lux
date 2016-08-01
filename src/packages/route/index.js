@@ -1,26 +1,33 @@
 // @flow
 import { ID_PATTERN, RESOURCE_PATTERN } from './constants';
 
-import createAction from './utils/create-action';
+import { FreezeableSet } from '../freezeable';
+
+import { createAction } from './action';
+import { paramsFor, defaultParamsFor, validateResourceId } from './params';
+
 import getStaticPath from './utils/get-static-path';
 import getDynamicSegments from './utils/get-dynamic-segments';
 
 import type Controller from '../controller';
-import type { options } from './interfaces';
+import type { Request, Response } from '../server';
+import type { Action } from './action';
+import type { ParameterGroup } from './params';
+import type { Route$opts } from './interfaces';
 
 /**
  * @private
  */
-class Route {
-  path: string;
+class Route extends FreezeableSet<Action<any>> {
+  path: Route$opts.path;
 
-  action: string;
+  params: ParameterGroup;
 
-  method: string;
+  action: Route$opts.action;
+
+  method: Route$opts.method;
 
   resource: string;
-
-  handlers: Array<Function>;
 
   controller: Controller;
 
@@ -31,25 +38,38 @@ class Route {
   constructor({
     path,
     action,
-    controllers,
-    method
-  }: options) {
+    method,
+    controllers
+  }: Route$opts) {
     const [resource] = path.match(RESOURCE_PATTERN) || [path];
     const controller: ?Controller = controllers.get(resource);
     const dynamicSegments = getDynamicSegments(path);
-    let handlers;
 
     if (action && controller) {
-      const handler: ?Function = controller[action];
+      const handler = Reflect.get(controller, action);
 
       if (typeof handler === 'function') {
-        handlers = createAction(controller, handler);
+        const params = paramsFor({
+          action,
+          method,
+          controller,
+          dynamicSegments
+        });
+
+        super(createAction(action, controller, handler));
 
         Object.defineProperties(this, {
           path: {
             value: path,
             writable: false,
             enumerable: true,
+            configurable: false
+          },
+
+          params: {
+            value: params,
+            writable: false,
+            enumerable: false,
             configurable: false
           },
 
@@ -61,7 +81,7 @@ class Route {
           },
 
           method: {
-            value: method.toUpperCase(),
+            value: method,
             writable: false,
             enumerable: true,
             configurable: false
@@ -69,13 +89,6 @@ class Route {
 
           resource: {
             value: resource,
-            writable: false,
-            enumerable: false,
-            configurable: false
-          },
-
-          handlers: {
-            value: handlers,
             writable: false,
             enumerable: false,
             configurable: false
@@ -103,8 +116,14 @@ class Route {
           }
         });
       } else {
+        const {
+          constructor: {
+            name: controllerName
+          }
+        } = controller;
+
         throw new TypeError(
-          `Handler for ${controller.name}#${action} is not a function.`
+          `Handler for ${controllerName}#${action} is not a function.`
         );
       }
     } else {
@@ -113,10 +132,10 @@ class Route {
       );
     }
 
-    return this;
+    this.freeze();
   }
 
-  parseParams(pathname: string): Object {
+  parseParams(pathname: string) {
     const parts = pathname.match(ID_PATTERN) || [];
 
     return parts.reduce((params, val, index) => {
@@ -132,7 +151,46 @@ class Route {
       return params;
     }, {});
   }
+
+  getDefaultParams() {
+    const { action, controller } = this;
+
+    return defaultParamsFor({
+      action,
+      controller
+    });
+  }
+
+  async execHandlers(req: Request, res: Response) {
+    for (const handler of this) {
+      const data = await handler(req, res);
+
+      if (typeof data !== 'undefined') {
+        return data;
+      }
+    }
+  }
+
+  async visit(req: Request, res: Response) {
+    Object.assign(req, {
+      defaultParams: this.getDefaultParams(),
+
+      params: this.params.validate({
+        ...req.params,
+        ...this.parseParams(req.url.pathname)
+      })
+    });
+
+    if (req.method === 'PATCH') {
+      validateResourceId(req);
+    }
+
+    return await this.execHandlers(req, res);
+  }
 }
 
-export { ID_PATTERN, RESOURCE_PATTERN } from './constants';
 export default Route;
+export * from './constants';
+
+export type { Action } from './action';
+export type { Route$opts } from './interfaces';

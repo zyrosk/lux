@@ -1,8 +1,6 @@
 // @flow
-import { isMaster } from 'cluster';
-
 import { LUX_CONSOLE } from '../../constants';
-import { DEBUG, INFO, WARN, ERROR, LEVELS } from './constants';
+import { LEVELS } from './constants';
 
 import { createWriter } from './writer';
 import { createRequestLogger } from './request-logger';
@@ -11,7 +9,6 @@ import K from '../../utils/k';
 
 import type {
   Logger$config,
-  Logger$data,
   Logger$format,
   Logger$level,
   Logger$logFn
@@ -164,7 +161,7 @@ class Logger {
    * WARNING:
    * It is highly reccomended that you do not override this method.
    */
-  constructor({ level, format, filter, enabled }: Logger$config): Logger {
+  constructor({ level, format, filter, enabled }: Logger$config) {
     let write = K;
     let request = K;
 
@@ -218,27 +215,15 @@ class Logger {
         enumerable: false,
         configurable: false,
 
-        value: val >= levelNum ? (data: Logger$data | string) => {
-          const timestamp = this.getTimestamp();
-
-          if (typeof data === 'string') {
-            write({
-              timestamp,
-              level: key,
-              message: data
-            });
-          } else {
-            write({
-              ...data,
-              timestamp,
-              level: key
-            });
-          }
+        value: val >= levelNum ? (message: void | ?mixed) => {
+          write({
+            message,
+            level: key,
+            timestamp: this.getTimestamp()
+          });
         } : K
       });
     });
-
-    return this;
   }
 
   /**
@@ -246,40 +231,13 @@ class Logger {
    *
    * @private
    */
-  getTimestamp(): string {
+  getTimestamp() {
     return new Date().toISOString();
-  }
-
-  /**
-   * Instances of `Logger` on worker processes do not actually write any data to
-   * `process.stdout` or `process.stdout`. Instead, they send a message to the
-   * master process using IPC which is then calls this method to direct the
-   * message to the appropriate log method.
-   *
-   * This method is used to receive log messages from worker processes and
-   * calling the appropriate log method on the master process.
-   *
-   * @private
-   */
-  logFromMessage({ data, type }: { data: string, type: string }): void {
-    if (isMaster) {
-      switch (type) {
-        case DEBUG:
-          return this.debug(data);
-
-        case INFO:
-          return this.info(data);
-
-        case WARN:
-          return this.warn(data);
-
-        case ERROR:
-          return this.error(data);
-      }
-    }
   }
 }
 
+export default Logger;
 export { default as line } from './utils/line';
 export { default as sql } from './utils/sql';
-export default Logger;
+
+export type { Logger$config } from './interfaces';

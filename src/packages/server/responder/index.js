@@ -1,26 +1,26 @@
 // @flow
+import { MIME_TYPE } from '../../jsonapi';
+
 import normalize from './utils/normalize';
+import hasContentType from './utils/has-content-type';
 
-import type { IncomingMessage, ServerResponse } from 'http';
+import type { Request, Response } from '../index';
 
-export function createResponder(
-  req: IncomingMessage,
-  res: ServerResponse
-): (data: ?mixed | void) => void {
-  return function respond(data: ?mixed | void): void {
-    const { normalized, ...meta } = normalize(data);
-    let { statusCode } = meta;
+/**
+ * @private
+ */
+export function createResponder(req: Request, res: Response) {
+  return function respond(data?: ?mixed) {
+    const normalized = normalize(data);
 
-    if (statusCode === 200 && req.method === 'POST') {
-      statusCode++;
+    if (normalized.statusCode) {
+      res.statusCode = normalized.statusCode;
     }
 
-    res.statusCode = statusCode;
-
-    if (typeof normalized === 'string') {
-      res.end(normalized);
-    } else {
-      res.end(JSON.stringify(normalized));
+    if (res.statusCode !== 204 && !hasContentType(res)) {
+      res.setHeader('Content-Type', MIME_TYPE);
     }
+
+    res.end(normalized.data);
   };
 }

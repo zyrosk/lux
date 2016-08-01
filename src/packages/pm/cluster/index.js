@@ -6,10 +6,13 @@ import { join as joinPath } from 'path';
 import { red, green } from 'chalk';
 
 import { NODE_ENV } from '../../../constants';
+
 import range from '../../../utils/range';
 
 import type { Worker } from 'cluster';
+
 import type Logger from '../../logger';
+import type { Cluster$opts } from './interfaces';
 
 /**
  * @private
@@ -25,17 +28,7 @@ class Cluster extends EventEmitter {
 
   maxWorkers: number;
 
-  constructor({
-    path,
-    port,
-    logger,
-    maxWorkers
-  }: {
-    path: string;
-    port: number;
-    logger: Logger;
-    maxWorkers?: number;
-  }): Cluster {
+  constructor({ path, port, logger, maxWorkers }: Cluster$opts) {
     super();
 
     Object.defineProperties(this, {
@@ -76,7 +69,7 @@ class Cluster extends EventEmitter {
     });
 
     cluster.setupMaster({
-      exec: joinPath(path, 'dist/boot.js')
+      exec: joinPath(path, 'dist', 'boot.js')
     });
 
     process.on('update', (changed) => {
@@ -88,8 +81,6 @@ class Cluster extends EventEmitter {
     });
 
     this.forkAll().then(() => this.emit('ready'));
-
-    return this;
   }
 
   fork(retry: boolean = true): Promise<Worker> {
@@ -137,29 +128,16 @@ class Cluster extends EventEmitter {
           clearTimeout(timeout);
         };
 
-        const handleMessage = ({
-          message,
-          ...options
-        }: {
-          type: string,
-          data: string,
-          message: string,
-        }) => {
-          switch (message) {
-            case 'log':
-              this.logger.logFromMessage(options);
-              break;
+        const handleMessage = (message: string) => {
+          if (message === 'ready') {
+            this.logger.info(
+              `Adding worker process: ${green(`${worker.process.pid}`)}`
+            );
 
-            case 'ready':
-              this.logger.info(
-                `Adding worker process: ${green(`${worker.process.pid}`)}`
-              );
+            this.workers.add(worker);
 
-              this.workers.add(worker);
-
-              clearTimeout(timeout);
-              resolve(worker);
-              break;
+            clearTimeout(timeout);
+            resolve(worker);
           }
         };
 
@@ -205,3 +183,5 @@ class Cluster extends EventEmitter {
 }
 
 export default Cluster;
+
+export type { Cluster$opts } from './interfaces';

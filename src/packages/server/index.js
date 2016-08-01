@@ -1,43 +1,34 @@
 // @flow
-import http from 'http';
-import { parse as parseURL } from 'url';
+import { createServer } from 'http';
 
+import { HAS_BODY } from './constants';
+
+import { createRequest, parseRequest } from './request';
+import { createResponse } from './response';
 import { createResponder } from './responder';
 
-import entries from '../../utils/entries';
-import tryCatch from '../../utils/try-catch';
-import formatParams from './utils/format-params';
+import { tryCatchSync } from '../../utils/try-catch';
+import validateAccept from './utils/validate-accept';
+import validateContentType from './utils/validate-content-type';
 
-import type {
-  Server as HTTPServer,
-  IncomingMessage,
-  ServerResponse
-} from 'http';
+import type { Writable } from 'stream';
+import type { IncomingMessage, Server as HTTPServer } from 'http';
 
-import type Logger from '../logger';
-import type Router from '../router';
+import type { Request } from './request/interfaces';
+import type { Response } from './response/interfaces';
+import type { Server$opts } from './interfaces';
 
 /**
  * @private
  */
 class Server {
-  router: Router;
+  logger: Server$opts.logger;
 
-  logger: Logger;
+  router: Server$opts.router;
 
   instance: HTTPServer;
 
-  constructor({
-    logger,
-    router
-  }: {
-    logger: Logger;
-    router: Router;
-  } = {}): Server {
-    const instance = http.createServer((req, res) => {
-      this.receiveRequest(req, res);
-    });
-
+  constructor({ logger, router }: Server$opts) {
     Object.defineProperties(this, {
       router: {
         value: router,
@@ -54,64 +45,87 @@ class Server {
       },
 
       instance: {
-        value: instance,
+        value: createServer(this.receiveRequest),
         writable: false,
         enumerable: false,
         configurable: false
       }
     });
-
-    return this;
   }
 
   listen(port: number): void {
     this.instance.listen(port);
   }
 
-  receiveRequest(req: IncomingMessage, res: ServerResponse): void {
-    const startTime = Date.now();
-    const respond = createResponder(req, res);
+  initializeRequest(req: IncomingMessage, res: Writable): [Request, Response] {
+    const { logger, router } = this;
 
-    tryCatch(async () => {
-      const { logger } = this;
+    req.setEncoding('utf8');
 
-      req.setEncoding('utf8');
-      res.setHeader('Content-Type', 'application/vnd.api+json');
-
-      Object.assign(res, {
+    return [
+      createRequest(req, {
         logger,
-        stats: []
-      });
+        router
+      }),
+      createResponse(res, {
+        logger
+      })
+    ];
+  }
 
-      Object.assign(req, {
-        logger,
-        url: parseURL(req.url, true)
-      });
+  validateRequest({ method, headers }: Request): true {
+    let isValid = validateAccept(headers.get('accept'));
 
-      Object.assign(req, {
-        route: this.router.match(req),
-        params: await formatParams(req),
-        headers: new Map(entries(req.headers)),
-      });
+    if (HAS_BODY.test(method)) {
+      isValid = validateContentType(headers.get('content-type'));
+    }
 
-      if (req.headers.has('X-HTTP-Method-Override')) {
-        req.method = req.headers.get('X-HTTP-Method-Override');
-      }
+    return isValid;
+  }
 
-      if (req.route) {
-        req.params = {
-          ...req.params,
-          ...req.route.parseParams(req.url.pathname)
-        };
-      }
+  receiveRequest = (req: IncomingMessage, res: Writable): void => {
+    const { logger } = this;
+    const [request, response] = this.initializeRequest(req, res);
+    const respond = createResponder(request, response);
 
-      logger.request(req, res, {
-        startTime
-      });
+    logger.request(request, response, {
+      startTime: Date.now()
+    });
 
-      respond(await this.router.visit(req, res));
+    const isValid = tryCatchSync(() => {
+      return this.validateRequest(request);
     }, respond);
+
+    if (isValid) {
+      parseRequest(request)
+        .then(params => {
+          const { route } = request;
+
+          Object.assign(request, {
+            params
+          });
+
+          if (route) {
+            return route.visit(request, response);
+          }
+        })
+        .then(respond)
+        .catch(err => {
+          logger.error(err);
+          respond(err);
+        });
+    }
   }
 }
 
 export default Server;
+export { getDomain } from './request';
+export { default as createServerError } from './utils/create-server-error';
+
+export type {
+  Request,
+  Request$params,
+  Request$method
+} from './request/interfaces';
+
+export type { Response } from './response/interfaces';

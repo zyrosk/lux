@@ -8,15 +8,18 @@ import filterParams from './filter-params';
 import { infoTemplate, debugTemplate } from '../templates';
 
 import type Logger from '../../index';
-import type { IncomingMessage, ServerResponse } from 'http';
+import type { Request, Response } from '../../../server';
 
+/**
+ * @private
+ */
 export default function logText(logger: Logger, {
   startTime,
   request: req,
   response: res
 }: {
-  request: IncomingMessage;
-  response: ServerResponse;
+  request: Request;
+  response: Response;
   startTime: number;
 }): void {
   res.once('finish', () => {
@@ -35,9 +38,10 @@ export default function logText(logger: Logger, {
       }
     } = req;
 
-    const { stats, statusCode, statusMessage } = res;
+    const { stats, statusMessage } = res;
 
     let { params } = req;
+    let { statusCode } = res;
     let statusColor;
 
     params = filterParams(params, ...logger.filter.params);
@@ -53,6 +57,8 @@ export default function logText(logger: Logger, {
     if (typeof colorStr === 'undefined') {
       colorStr = (str: string) => str;
     }
+
+    statusCode = statusCode.toString();
 
     const templateData = {
       path,

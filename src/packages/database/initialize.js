@@ -3,33 +3,29 @@ import { worker, isMaster } from 'cluster';
 
 import { NODE_ENV } from '../../constants';
 
-import { MigrationsPendingError } from './errors';
+import { ConfigMissingError, MigrationsPendingError } from './errors';
 
 import connect from './utils/connect';
 import createMigrations from './utils/create-migrations';
 import pendingMigrations from './utils/pending-migrations';
 
-import type Database from './index';
-import type Logger from '../logger';
-import typeof Model from './model';
+import type Database, { Database$opts } from './index'; // eslint-disable-line no-unused-vars, max-len
 
 /**
  * @private
  */
-export default async function initialize(instance: Database, {
+export default async function initialize<T: Database>(instance: T, {
   path,
   models,
   config,
   logger,
   checkMigrations
-}: {
-  path: string,
-  models: Map<string, Model>,
-  config: Object,
-  logger: Logger,
-  checkMigrations: boolean
-}): Promise<Database> {
-  config = config[NODE_ENV];
+}: Database$opts) {
+  config = Reflect.get(config, NODE_ENV);
+
+  if (!config) {
+    throw new ConfigMissingError(NODE_ENV);
+  }
 
   const {
     debug = (NODE_ENV === 'development')

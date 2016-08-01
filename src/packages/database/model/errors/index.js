@@ -1,1 +1,2 @@
-export { default as ValidationError } from './validation';
+// @flow
+export { default as ValidationError } from './validation-error';

@@ -1,9 +1,10 @@
 // @flow
 import type Controller from '../controller';
+import type { Request, Response, Request$method } from '../server';
 
-export type options = {
+export type Route$opts = {
   path: string;
   action: string;
-  method: string;
+  method: Request$method;
   controllers: Map<string, Controller>;
 };

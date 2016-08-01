@@ -7,18 +7,25 @@ import entries from '../../../../utils/entries';
 import underscore from '../../../../utils/underscore';
 import promiseHash from '../../../../utils/promise-hash';
 
-export default async function buildResults({
+/**
+ * @private
+ */
+export default async function buildResults<T: Model>({
   model,
   records,
   relationships
 }: {
-  model: typeof Model,
+  model: Class<T>,
   records: Promise<Array<Object>>,
   relationships: Object
-}): Promise<Array<Object>> {
+}): Promise<Array<T>> {
   const results = await records;
   const pkPattern = new RegExp(`^.+\.${model.primaryKey}$`);
   let related;
+
+  if (!results.length) {
+    return [];
+  }
 
   if (Object.keys(relationships).length) {
     related = entries(relationships)
@@ -80,11 +87,14 @@ export default async function buildResults({
             foreignKey = camelize(foreignKey, true);
 
             const match = relatedResults.filter(({ rawColumnData }) => {
-              return rawColumnData[foreignKey] === record[model.primaryKey];
+              const fk = Reflect.get(rawColumnData, foreignKey);
+              const pk = Reflect.get(record, model.primaryKey);
+
+              return fk === pk;
             });
 
             if (match.length) {
-              record[name] = match;
+              Reflect.set(record, name, match);
             }
           }
         });
@@ -115,6 +125,6 @@ export default async function buildResults({
         };
       }, {});
 
-    return new model(record);
+    return Reflect.construct(model, [record]);
   });
 }

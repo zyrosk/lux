@@ -3,23 +3,17 @@
 /**
  * @private
  */
-class Migration {
-  fn: (schema: Object) => Promise<void>;
+class Migration<T: (schema: Object) => Promise<void>> {
+  fn: T;
 
-  constructor(fn: (schema: Object) => Promise<void>): Migration {
-    Reflect.defineProperty(this, 'fn', {
-      value: fn,
-      writeable: false,
-      enumerable: false,
-      configurable: false
-    });
-
-    return this;
+  constructor(fn: T) {
+    this.fn = fn;
   }
 
-  run(schema: Object): Promise<void> {
-    return Reflect.apply(this.fn, null, [schema]);
+  run(schema: Object) {
+    return this.fn(schema);
   }
 }
 
 export default Migration;
+export { default as generateTimestamp } from './utils/generate-timestamp';

@@ -1,67 +1,43 @@
 // @flow
-import typeof Model from '../model';
+import type { Validation$Validator, Validation$opts } from './interfaces';
 
-class Validation {
+/**
+ * @private
+ */
+class Validation<T: Validation$Validator> {
   key: string;
 
   value: mixed;
 
-  model: Model;
+  validator: Validation$Validator;
 
-  validator: () => boolean;
-
-  constructor({
-    key,
-    value,
-    model,
-    validator = () => true
-  }: {
-    key: string,
-    value: mixed,
-    model: Model,
-    validator: () => boolean
-  } = {}) {
+  constructor(opts: Validation$opts<T>) {
     Object.defineProperties(this, {
       key: {
-        value: key,
+        value: opts.key,
         writable: false,
         enumerable: true,
         configurable: false
       },
 
       value: {
-        value,
+        value: opts.value,
         writable: false,
         enumerable: true,
         configurable: false
       },
 
-      model: {
-        value: model,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      },
-
       validator: {
-        value: validator,
+        value: opts.validator,
         writable: false,
         enumerable: false,
         configurable: false
       }
     });
-
-    return this;
   }
 
-  get isValid(): boolean {
-    const {
-      model,
-      value,
-      validator
-    } = this;
-
-    return Reflect.apply(validator, model, [value]);
+  isValid() {
+    return this.validator(this.value);
   }
 }
 

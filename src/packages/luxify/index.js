@@ -1,6 +1,8 @@
 // @flow
 import createResponseProxy from './utils/create-response-proxy';
-import type { IncomingMessage, ServerResponse } from 'http';
+
+import type { Action } from '../route';
+import type { Request, Response } from '../server';
 
 /**
  * Convert traditional node HTTP server middleware into a lux compatible
@@ -8,11 +10,11 @@ import type { IncomingMessage, ServerResponse } from 'http';
  */
 export default function luxify(
   middleware: (
-    req: IncomingMessage,
-    res: ServerResponse,
+    req: Request,
+    res: Response,
     next: (err?: Error) => void
   ) => void
-): (req: IncomingMessage, res: ServerResponse) => Promise<void|mixed> {
+): Action<void|?mixed> {
   const result = function (req, res) {
     return new Promise((resolve, reject) => {
       res = createResponseProxy(res, resolve);

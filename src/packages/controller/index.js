@@ -1,11 +1,16 @@
-import Model from '../database/model';
+// @flow
+import { Model } from '../database';
+import { getDomain } from '../server';
 
 import insert from '../../utils/insert';
-
-import type { IncomingMessage } from 'http';
+import findOne from './utils/find-one';
+import findMany from './utils/find-many';
+import findRelated from './utils/find-related';
 
 import type Database from '../database';
 import type Serializer from '../serializer';
+import type { Request, Response } from '../server';
+import type { Controller$opts } from './interfaces';
 
 /**
  * The `Controller` class is responsible for taking in requests from the outside
@@ -82,13 +87,13 @@ class Controller {
   serializer: Serializer;
 
   /**
-   * @property serializers
+   * @property controllers
    * @memberof Controller
    * @instance
    * @readonly
    * @private
    */
-  serializers: Map<string, Serializer>;
+  controllers: Map<string, Controller>;
 
   /**
    * @property parentController
@@ -103,15 +108,9 @@ class Controller {
     store,
     model,
     serializer,
-    serializers = new Map(),
+    controllers,
     parentController
-  }: {
-    store: Database,
-    model: ?Model<T>,
-    serializer: Serializer,
-    serializers: Map<string, Serializer>,
-    parentController: ?Controller
-  }): Controller {
+  }: Controller$opts) {
     let attributes = [];
     let relationships = [];
 
@@ -159,7 +158,7 @@ class Controller {
       },
 
       modelName: {
-        value: model ? model.modelName : null,
+        value: model ? model.modelName : '',
         writable: false,
         enumerable: false,
         configurable: false
@@ -179,8 +178,8 @@ class Controller {
         configurable: false
       },
 
-      serializers: {
-        value: serializers,
+      controllers: {
+        value: controllers,
         writable: false,
         enumerable: false,
         configurable: false
@@ -193,8 +192,104 @@ class Controller {
         configurable: false
       }
     });
+  }
 
-    return this;
+  /**
+   * Use this property to let Lux know what custom query parameters you want to
+   * allow for this controller.
+   *
+   * For security reasons, query parameters passed to Controller actions from an
+   * incoming request other than sort, filter, and page must have their key
+   * whitelisted.
+   *
+   * @example
+   * class UsersController extends Controller {
+   *   // Allow the following custom query parameters to be used for this
+   *   // Controller's actions.
+   *   query = [
+   *     'cache'
+   *   ];
+   * }
+   *
+   * @property params
+   * @memberof Controller
+   * @instance
+   */
+  get query(): Array<string> {
+    return Object.freeze([]);
+  }
+
+  set query(value: Array<string>): void {
+    if (value && value.length) {
+      const query = new Array(value.length);
+
+      insert(query, value);
+
+      Reflect.defineProperty(this, 'query', {
+        value: Object.freeze(query),
+        writable: false,
+        enumerable: true,
+        configurable: false
+      });
+    }
+  }
+
+  /**
+   * Whitelisted `?sort` parameter values.
+   *
+   * If you do not override this property all of the attributes of the Model
+   * that this Controller represents will be valid.
+   *
+   * @property sort
+   * @memberof Controller
+   * @instance
+   */
+  get sort(): Array<string> {
+    return this.attributes;
+  }
+
+  set sort(value: Array<string>): void {
+    if (value && value.length) {
+      const sort = new Array(sort.length);
+
+      insert(sort, value);
+
+      Reflect.defineProperty(this, 'sort', {
+        value: Object.freeze(sort),
+        writable: false,
+        enumerable: true,
+        configurable: false
+      });
+    }
+  }
+
+  /**
+   * Whitelisted `?filter[{key}]` parameter keys.
+   *
+   * If you do not override this property all of the attributes of the Model
+   * that this Controller represents will be valid.
+   *
+   * @property filter
+   * @memberof Controller
+   * @instance
+   */
+  get filter(): Array<string> {
+    return this.attributes;
+  }
+
+  set filter(value: Array<string>): void {
+    if (value && value.length) {
+      const filter = new Array(filter.length);
+
+      insert(filter, value);
+
+      Reflect.defineProperty(this, 'filter', {
+        value: Object.freeze(filter),
+        writable: false,
+        enumerable: true,
+        configurable: false
+      });
+    }
   }
 
   /**
@@ -267,64 +362,6 @@ class Controller {
   }
 
   /**
-   * Whitelisted `?sort` parameter values.
-   *
-   * If you do not override this property all of the attributes of the Model
-   * that this Controller represents will be valid.
-   *
-   * @property sort
-   * @memberof Controller
-   * @instance
-   */
-  get sort(): Array<string> {
-    return this.attributes;
-  }
-
-  set sort(value: Array<string>): void {
-    if (value && value.length) {
-      const sort = new Array(sort.length);
-
-      insert(sort, value);
-
-      Reflect.defineProperty(this, 'sort', {
-        value: Object.freeze(sort),
-        writable: false,
-        enumerable: true,
-        configurable: false
-      });
-    }
-  }
-
-  /**
-   * Whitelisted `?filter[{key}]` parameter keys.
-   *
-   * If you do not override this property all of the attributes of the Model
-   * that this Controller represents will be valid.
-   *
-   * @property filter
-   * @memberof Controller
-   * @instance
-   */
-  get filter(): Array<string> {
-    return this.attributes;
-  }
-
-  set filter(value: Array<string>): void {
-    if (value && value.length) {
-      const filter = new Array(filter.length);
-
-      insert(filter, value);
-
-      Reflect.defineProperty(this, 'filter', {
-        value: Object.freeze(filter),
-        writable: false,
-        enumerable: true,
-        configurable: false
-      });
-    }
-  }
-
-  /**
    * @property middleware
    * @memberof Controller
    * @instance
@@ -360,121 +397,140 @@ class Controller {
    * This method supports filtering, sorting, pagination, including
    * relationships, and sparse fieldsets via query parameters.
    *
-   * @param  {IncomingMessage} request
-   * @param  {ServerResponse} response
+   * @param  {Request} request
+   * @param  {Response} response
    */
-  index(req: IncomingMessage): Promise<Array<Model>> {
-    const {
-      params: {
-        sort,
-        page,
-        filter,
-        fields,
-        include
-      }
-    } = req;
-
-    return this.model.select(...fields)
-      .include(include)
-      .limit(page.size)
-      .page(page.number)
-      .where(filter)
-      .order(...sort);
+  index(req: Request): Promise<Array<Model>> {
+    return findMany(req);
   }
 
   /**
-   * Returns a single `Model` instance that the Controller instance represents.
+   * Returns a single `Model` instance that the `Controller` instance
+   * represents.
    *
    * This method supports including relationships, and sparse fieldsets via
    * query parameters.
    *
-   * @param  {IncomingMessage} request
-   * @param  {ServerResponse} response
+   * @param  {Request} request
+   * @param  {Response} response
    */
-  show(req: IncomingMessage): Promise<?Model> {
-    const {
-      params: {
-        id,
-        fields,
-        include
-      }
-    } = req;
-
-    return this.model.find(id)
-      .select(...fields)
-      .include(include);
+  show(req: Request) {
+    return findOne(req);
   }
 
   /**
-   * Create and return a single `Model` instance that the Controller instance
+   * Create and return a single `Model` instance that the `Controller` instance
    * represents.
    *
-   * @param  {IncomingMessage} request
-   * @param  {ServerResponse} response
+   * @param  {Request} request
+   * @param  {Response} response
    */
-  create(req: IncomingMessage): Promise<Model> {
+  async create(req: Request, res: Response) {
     const {
+      url: {
+        pathname
+      },
+
       params: {
         data: {
-          attributes
+          attributes,
+          relationships
+        } = {}
+      },
+
+      route: {
+        controller: {
+          model,
+          controllers
         }
       }
     } = req;
 
-    return this.model.create(attributes);
-  }
+    const record = await model.create(attributes);
+    const id = Reflect.get(record, model.primaryKey);
 
-  /**
-   * Update and return a single `Model` instance that the Controller instance
-   * represents.
-   *
-   * @param  {IncomingMessage} request
-   * @param  {ServerResponse} response
-   */
-  async update(req: IncomingMessage): Promise<?Model> {
-    const {
-      params: {
-        id,
+    if (relationships) {
+      Object.assign(
+        record,
+        await findRelated(controllers, relationships)
+      );
 
-        data: {
-          attributes
-        }
-      }
-    } = req;
-
-    const record = await this.model.find(id);
-
-    if (record) {
-      await record.update(attributes);
+      await record.save(true);
     }
+
+    res.statusCode = 201;
+    res.setHeader('Location', `${getDomain(req) + pathname}/${id}`);
 
     return record;
   }
 
   /**
-   * Destroy a single `Model` instance that the Controller instance represents.
+   * Update and return a single `Model` instance that the `Controller` instance
+   * represents.
    *
-   * @param  {IncomingMessage} request
-   * @param  {ServerResponse} response
+   * @param  {Request} request
+   * @param  {Response} response
    */
-  async destroy(req: IncomingMessage): Promise<number> {
-    const record = await this.model.find(req.params.id);
+  async update(req: Request) {
+    const record = await findOne(req);
+
+    const {
+      params: {
+        data: {
+          attributes,
+          relationships
+        } = {}
+      },
+
+      route: {
+        controller: {
+          controllers
+        }
+      }
+    } = req;
+
+    if (record) {
+      Object.assign(record, attributes);
+
+      if (relationships) {
+        Object.assign(
+          record,
+          await findRelated(controllers, relationships)
+        );
+
+        return await record.save(true);
+      } else {
+        return record.isDirty ? await record.save() : 204;
+      }
+    }
+
+    return 404;
+  }
+
+  /**
+   * Destroy a single `Model` instance that the `Controller` instance
+   * represents.
+   *
+   * @param  {Request} request
+   * @param  {Response} response
+   */
+  async destroy(req: Request) {
+    const record = await findOne(req);
 
     if (record) {
       await record.destroy();
+      return 204;
     }
-
-    return 204;
   }
 
   /**
    * An action handler used for responding to HEAD or OPTIONS requests.
    *
-   * @param  {IncomingMessage} request
-   * @param  {ServerResponse} response
+   * @param  {Request} request
+   * @param  {Response} response
    * @private
    */
-  preflight(): number {
+  preflight() {
     return 204;
   }
 }
