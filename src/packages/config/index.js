@@ -8,6 +8,11 @@ export function createDefaultConfig(): Config {
   const isProdENV = NODE_ENV === 'production';
 
   return {
+    server: {
+      cors: {
+        enabled: false
+      }
+    },
     logging: {
       level: isProdENV ? 'INFO' : 'DEBUG',
       format: isProdENV ? 'json' : 'text',
