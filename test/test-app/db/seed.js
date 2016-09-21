@@ -2,8 +2,9 @@ import faker from 'faker';
 
 import Categorization from '../app/models/categorization';
 import Comment from '../app/models/comment';
+import Image from '../app/models/image';
 import Post from '../app/models/post';
-import Reaction from '../app/models/reaction';
+import Reaction, { REACTION_TYPES } from '../app/models/reaction';
 import Tag from '../app/models/tag';
 import User from '../app/models/user';
 import Friendship from '../app/models/friendship';
@@ -15,7 +16,9 @@ const {
   lorem,
   random,
   internet,
-
+  image: {
+    imageUrl
+  },
   helpers: {
     randomize
   }
@@ -47,6 +50,13 @@ export default async function seed() {
   );
 
   await Promise.all(
+    Array.from(range(1, 100)).map(() => Image.create({
+      url: imageUrl(),
+      postId: randomize([...range(1, 100)])
+    }))
+  );
+
+  await Promise.all(
     Array.from(range(1, 100)).map(() => Tag.create({
       name: lorem.word()
     }))
@@ -72,14 +82,7 @@ export default async function seed() {
     Array.from(range(1, 100)).map(() => Reaction.create({
       [`${randomize(['comment', 'post'])}Id`]: randomize([...range(1, 100)]),
       userId: randomize([...range(1, 100)]),
-
-      type: randomize([
-        ':+1:',
-        ':heart:',
-        ':confetti_ball:',
-        ':laughing:',
-        ':disappointed:'
-      ])
+      type: randomize(REACTION_TYPES)
     }))
   );
 };
