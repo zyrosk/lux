@@ -8,9 +8,9 @@ import eslint from 'rollup-plugin-eslint';
 import nodeResolve from 'rollup-plugin-node-resolve';
 import { rollup } from 'rollup';
 
-import { BACKSLASH } from '../../constants';
-import { rmrf, readdir, readdirRec, isJSFile } from '../fs';
+import { rmrf, exists, readdir, readdirRec, isJSFile } from '../fs';
 import template from '../template';
+import uniq from '../../utils/uniq';
 
 import normalizePath from './utils/normalize-path';
 import createManifest from './utils/create-manifest';
@@ -32,14 +32,16 @@ export async function compile(dir: string, env: string, {
 
   const nodeModules = path.join(dir, 'node_modules');
   const luxNodeModules = path.join(__dirname, '..', 'node_modules');
-  const sourceMapSupport = path.join(luxNodeModules, 'source-map-support');
-
-  const external = await Promise.all([
-    readdir(nodeModules),
-    readdir(luxNodeModules)
-  ]).then(([a, b]: [Array<string>, Array<string>]) => (
-    a.concat(b).filter(name => name !== 'lux-framework')
+  let external = await readdir(nodeModules).then(files => (
+    files.filter(name => name !== 'lux-framework')
   ));
+
+  if (await exists(luxNodeModules)) {
+    external = uniq([
+      ...external,
+      ...(await readdir(luxNodeModules))
+    ]);
+  }
 
   const assets = await Promise.all([
     readdir(path.join(dir, 'app', 'models')),
@@ -76,7 +78,6 @@ export async function compile(dir: string, env: string, {
     createManifest(dir, assets, {
       useStrict
     }),
-
     createBootScript(dir, {
       useStrict
     })
@@ -86,7 +87,6 @@ export async function compile(dir: string, env: string, {
     entry,
     onwarn,
     external,
-
     plugins: [
       alias({
         resolve: ['.js'],
@@ -120,9 +120,7 @@ export async function compile(dir: string, env: string, {
   await rmrf(entry);
 
   banner = template`
-    const srcmap = require('${
-      sourceMapSupport.replace(BACKSLASH, '/')
-    }').install({
+    const srcmap = require('source-map-support').install({
       environment: 'node'
     });
   `;
