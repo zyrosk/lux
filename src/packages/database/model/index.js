@@ -1,27 +1,35 @@
 // @flow
 import { pluralize } from 'inflection';
 
-import { NEW_RECORDS } from '../constants';
 import Query from '../query';
-import { sql } from '../../logger';
-import { saveRelationships } from '../relationship';
+import ChangeSet from '../change-set';
+import { updateRelationship } from '../relationship';
+import {
+  createTransactionResultProxy,
+  createStaticTransactionProxy,
+  createInstanceTransactionProxy
+} from '../transaction';
 import pick from '../../../utils/pick';
-import omit from '../../../utils/omit';
-import chain from '../../../utils/chain';
-import setType from '../../../utils/set-type';
 import underscore from '../../../utils/underscore';
-import type Logger from '../../logger'; // eslint-disable-line max-len, no-duplicate-imports
+import { compose } from '../../../utils/compose';
+import { map as diffMap } from '../../../utils/diff';
+import mapToObject from '../../../utils/map-to-object';
+import type Logger from '../../logger';
 import type Database from '../../database';
 import type Serializer from '../../serializer';
-import type { Relationship$opts } from '../relationship'; // eslint-disable-line max-len, no-duplicate-imports
+/* eslint-disable no-duplicate-imports */
+import type { Relationship$opts } from '../relationship';
+import type { Transaction$ResultProxy } from '../transaction';
+/* eslint-enable no-duplicate-imports */
 
+import { create, update, destroy, createRunner } from './utils/persistence';
 import initializeClass from './initialize-class';
-import getColumns from './utils/get-columns';
 import validate from './utils/validate';
+import runHooks from './utils/run-hooks';
+import type { Model$Hooks } from './interfaces';
 
 /**
  * ## Overview
- *
  *
  * @module lux-framework
  * @namespace Lux
@@ -59,6 +67,24 @@ class Model {
   resourceName: string;
 
   /**
+   * A timestamp representing when the Model instance was created.
+   *
+   * @property createdAt
+   * @type {Date}
+   * @public
+   */
+  createdAt: Date;
+
+  /**
+   * A timestamp representing the last time the Model instance was updated.
+   *
+   * @property updatedAt
+   * @type {Date}
+   * @public
+   */
+  updatedAt: Date;
+
+  /**
    * @property initialized
    * @type {Boolean}
    * @private
@@ -73,20 +99,6 @@ class Model {
   rawColumnData: Object;
 
   /**
-   * @property initialValues
-   * @type {Map}
-   * @private
-   */
-  initialValues: Map<string, mixed>;
-
-  /**
-   * @property dirtyAttributes
-   * @type {Set}
-   * @private
-   */
-  dirtyAttributes: Set<string>;
-
-  /**
    * @property prevAssociations
    * @type {Set}
    * @private
@@ -97,6 +109,11 @@ class Model {
    * @private
    */
   prevAssociations: Set<Model>;
+
+  /**
+   * @private
+   */
+  changeSets: Array<ChangeSet>;
 
   /**
    * A reference to the instance of the `Logger` used for the `Application` the
@@ -155,7 +172,15 @@ class Model {
    * @static
    * @private
    */
-  static table;
+  static table: () => Knex$QueryBuilder;
+
+  /**
+   * @property hooks
+   * @type {Object}
+   * @static
+   * @private
+   */
+  static hooks: Model$Hooks;
 
   /**
    * @property store
@@ -213,30 +238,16 @@ class Model {
    */
   static relationshipNames: Array<string>;
 
-  constructor(attrs: Object = {}, initialize: boolean = true) {
-    const { constructor: { attributeNames, relationshipNames } } = this;
-
+  constructor(attrs: Object = {}, initialize: boolean = true): this {
     Object.defineProperties(this, {
+      changeSets: {
+        value: [new ChangeSet()],
+        writable: false,
+        enumerable: false,
+        configurable: false
+      },
       rawColumnData: {
         value: attrs,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      },
-      initialValues: {
-        value: new Map(),
-        writable: false,
-        enumerable: false,
-        configurable: false
-      },
-      dirtyAttributes: {
-        value: new Set(),
-        writable: false,
-        enumerable: false,
-        configurable: false
-      },
-      isModelInstance: {
-        value: true,
         writable: false,
         enumerable: false,
         configurable: false
@@ -249,6 +260,7 @@ class Model {
       }
     });
 
+    const { constructor: { attributeNames, relationshipNames } } = this;
     const props = pick(attrs, ...attributeNames.concat(relationshipNames));
 
     Object.assign(this, props);
@@ -260,12 +272,7 @@ class Model {
         enumerable: false,
         configurable: false
       });
-
-      Object.freeze(this);
-      Object.freeze(this.rawColumnData);
     }
-
-    NEW_RECORDS.add(this);
 
     return this;
   }
@@ -300,7 +307,7 @@ class Model {
    * @public
    */
   get isNew(): boolean {
-    return NEW_RECORDS.has(this);
+    return !this.persistedChangeSet;
   }
 
   /**
@@ -333,7 +340,7 @@ class Model {
    * @public
    */
   get isDirty(): boolean {
-    return Boolean(this.dirtyAttributes.size);
+    return Boolean(this.dirtyProperties.size);
   }
 
   /**
@@ -367,6 +374,80 @@ class Model {
    */
   get persisted(): boolean {
     return !this.isNew && !this.isDirty;
+  }
+
+  /**
+   * @property dirtyProperties
+   * @type {Map}
+   */
+  get dirtyProperties(): Map<string, any> {
+    const { currentChangeSet, persistedChangeSet } = this;
+
+    if (!persistedChangeSet) {
+      return new Map(currentChangeSet);
+    }
+
+    return diffMap(persistedChangeSet, currentChangeSet);
+  }
+
+  /**
+   * @property dirtyAttributes
+   * @type {Map}
+   */
+  get dirtyAttributes(): Map<string, any> {
+    const {
+      dirtyProperties,
+      constructor: {
+        relationshipNames
+      }
+    } = this;
+
+    Array
+      .from(dirtyProperties.keys())
+      .forEach(key => {
+        if (relationshipNames.indexOf(key) >= 0) {
+          dirtyProperties.delete(key);
+        }
+      });
+
+    return dirtyProperties;
+  }
+
+  /**
+   * @property dirtyRelationships
+   * @type {Map}
+   */
+  get dirtyRelationships(): Map<string, any> {
+    const {
+      dirtyProperties,
+      constructor: {
+        attributeNames
+      }
+    } = this;
+
+    Array
+      .from(dirtyProperties.keys())
+      .forEach(key => {
+        if (attributeNames.indexOf(key) >= 0) {
+          dirtyProperties.delete(key);
+        }
+      });
+
+    return dirtyProperties;
+  }
+
+  /**
+   * @private
+   */
+  get currentChangeSet(): ChangeSet {
+    return this.changeSets[0];
+  }
+
+  /**
+   * @private
+   */
+  get persistedChangeSet(): void | ChangeSet {
+    return this.changeSets.find(({ isPersisted }) => isPersisted);
   }
 
   static get hasOne(): Object {
@@ -414,21 +495,6 @@ class Model {
     }
   }
 
-  static get hooks(): Object {
-    return Object.freeze({});
-  }
-
-  static set hooks(value: Object): void {
-    if (value && Object.keys(value).length) {
-      Reflect.defineProperty(this, 'hooks', {
-        value,
-        writable: true,
-        enumerable: false,
-        configurable: true
-      });
-    }
-  }
-
   static get scopes(): Object {
     return Object.freeze({});
   }
@@ -459,141 +525,147 @@ class Model {
     }
   }
 
-  async save(deep?: boolean): Promise<this> {
-    const {
-      constructor: {
-        table,
-        logger,
-        primaryKey,
+  transacting(trx: Knex$Transaction): this {
+    return createInstanceTransactionProxy(this, trx);
+  }
 
-        hooks: {
-          afterUpdate,
-          afterSave,
-          afterValidation,
-          beforeUpdate,
-          beforeSave,
-          beforeValidation
-        }
+  transaction<T>(fn: (...args: Array<any>) => Promise<T>): Promise<T> {
+    return this.constructor.transaction(fn);
+  }
+
+  save(
+    transaction?: Knex$Transaction
+  ): Promise<Transaction$ResultProxy<this, *>> {
+    return this.update(mapToObject(this.dirtyProperties), transaction);
+  }
+
+  update(
+    props: Object = {},
+    transaction?: Knex$Transaction
+  ): Promise<Transaction$ResultProxy<this, *>> {
+    const run = async (trx: Knex$Transaction) => {
+      const { constructor: { hooks, logger } } = this;
+      let statements = [];
+      let promise = Promise.resolve([]);
+      let hadDirtyAttrs = false;
+      let hadDirtyAssoc = false;
+
+      const associations = Object
+        .keys(props)
+        .filter(key => (
+          Boolean(this.constructor.relationshipFor(key))
+        ));
+
+      Object.assign(this, props);
+
+      if (associations.length) {
+        hadDirtyAssoc = true;
+        statements = associations.reduce((arr, key) => [
+          ...arr,
+          ...updateRelationship(this, key, trx)
+        ], []);
       }
-    } = this;
 
-    if (typeof beforeValidation === 'function') {
-      await beforeValidation(this);
-    }
+      if (this.isDirty) {
+        hadDirtyAttrs = true;
 
-    validate(this);
+        await runHooks(this, trx, hooks.beforeValidation);
 
-    if (typeof afterValidation === 'function') {
-      await afterValidation(this);
-    }
+        validate(this);
 
-    if (typeof beforeUpdate === 'function') {
-      await beforeUpdate(this);
-    }
+        await runHooks(this, trx,
+          hooks.afterValidation,
+          hooks.beforeUpdate,
+          hooks.beforeSave
+        );
 
-    if (typeof beforeSave === 'function') {
-      await beforeSave(this);
-    }
+        promise = update(this, trx);
+      }
 
-    Reflect.set(this, 'updatedAt', new Date());
-
-    const query = table()
-      .where({ [primaryKey]: Reflect.get(this, primaryKey) })
-      .update(getColumns(this, Array.from(this.dirtyAttributes)))
-      .on('query', () => {
-        setImmediate(() => logger.debug(sql`${query.toString()}`));
-      });
-
-    if (deep) {
-      await Promise.all([
-        query,
-        saveRelationships(this)
-      ]);
+      await createRunner(logger, statements)(await promise);
 
       this.prevAssociations.clear();
-    } else {
-      await query;
-    }
+      this.currentChangeSet.persist(this.changeSets);
 
-    NEW_RECORDS.delete(this);
-    this.dirtyAttributes.clear();
-
-    if (typeof afterUpdate === 'function') {
-      await afterUpdate(this);
-    }
-
-    if (typeof afterSave === 'function') {
-      await afterSave(this);
-    }
-
-    return this;
-  }
-
-  async update(attributes: Object = {}): Promise<this> {
-    Object.assign(this, attributes);
-
-    if (this.isDirty) {
-      return await this.save(true);
-    }
-
-    return this;
-  }
-
-  async destroy(): Promise<this> {
-    const {
-      constructor: {
-        primaryKey,
-        logger,
-        table,
-
-        hooks: {
-          afterDestroy,
-          beforeDestroy
-        }
+      if (hadDirtyAttrs) {
+        await runHooks(this, trx,
+          hooks.afterUpdate,
+          hooks.afterSave
+        );
       }
-    } = this;
 
-    if (typeof beforeDestroy === 'function') {
-      await beforeDestroy(this);
+      return createTransactionResultProxy(this, hadDirtyAttrs || hadDirtyAssoc);
+    };
+
+    if (transaction) {
+      return run(transaction);
     }
 
-    const query = table()
-      .where({ [primaryKey]: this.getPrimaryKey() })
-      .del()
-      .on('query', () => {
-        setImmediate(() => logger.debug(sql`${query.toString()}`));
-      });
+    return this.transaction(run);
+  }
 
-    await query;
+  destroy(
+    transaction?: Knex$Transaction
+  ): Promise<Transaction$ResultProxy<this, true>> {
+    const run = async (trx: Knex$Transaction) => {
+      const { constructor: { hooks, logger } } = this;
 
-    if (typeof afterDestroy === 'function') {
-      await afterDestroy(this);
+      await runHooks(this, trx, hooks.beforeDestroy);
+      await createRunner(logger, [])(await destroy(this, trx));
+      await runHooks(this, trx, hooks.afterDestroy);
+
+      return createTransactionResultProxy(this, true);
+    };
+
+    if (transaction) {
+      return run(transaction);
+    }
+
+    return this.transaction(run);
+  }
+
+  reload(): Promise<this> {
+    if (this.isNew) {
+      return Promise.resolve(this);
+    }
+
+    return this.constructor.find(this.getPrimaryKey());
+  }
+
+  rollback(): this {
+    const { persistedChangeSet } = this;
+
+    if (persistedChangeSet && !this.currentChangeSet.isPersisted) {
+      persistedChangeSet
+        .applyTo(this)
+        .persist(this.changeSets);
     }
 
     return this;
   }
 
   getAttributes(...keys: Array<string>): Object {
-    return setType(() => pick(this, ...keys));
+    return pick(this, ...keys);
   }
 
   /**
    * @private
    */
-  getPrimaryKey() {
+  getPrimaryKey(): number {
     return Reflect.get(this, this.constructor.primaryKey);
   }
 
+  /**
+   * @private
+   */
   static initialize(store, table): Promise<Class<this>> {
     if (this.initialized) {
       return Promise.resolve(this);
     }
 
     if (!this.tableName) {
-      const tableName = chain(this.name)
-        .pipe(underscore)
-        .pipe(pluralize)
-        .value();
+      const getTableName = compose(pluralize, underscore);
+      const tableName = getTableName(this.name);
 
       Reflect.defineProperty(this, 'tableName', {
         value: tableName,
@@ -617,81 +689,93 @@ class Model {
     });
   }
 
-  static async create(props = {}): Promise<this> {
-    const {
-      primaryKey,
-      logger,
-      table,
+  static create(
+    props: Object = {},
+    transaction?: Knex$Transaction
+  ): Promise<Transaction$ResultProxy<this, true>> {
+    const run = async (trx: Knex$Transaction) => {
+      const { hooks, logger, primaryKey } = this;
+      const instance = Reflect.construct(this, [props, false]);
+      let statements = [];
 
-      hooks: {
-        afterCreate,
-        afterSave,
-        afterValidation,
-        beforeCreate,
-        beforeSave,
-        beforeValidation
+      const associations = Object
+        .keys(props)
+        .filter(key => (
+          Boolean(this.relationshipFor(key))
+        ));
+
+      if (associations.length) {
+        statements = associations.reduce((arr, key) => [
+          ...arr,
+          ...updateRelationship(instance, key, trx)
+        ], []);
       }
-    } = this;
 
-    const datetime = new Date();
-    const instance = Reflect.construct(this, [{
-      ...props,
-      createdAt: datetime,
-      updatedAt: datetime
-    }, false]);
+      await runHooks(instance, trx, hooks.beforeValidation);
 
-    if (typeof beforeValidation === 'function') {
-      await beforeValidation(instance);
-    }
+      validate(instance);
 
-    validate(instance);
+      await runHooks(instance, trx,
+        hooks.afterValidation,
+        hooks.beforeCreate,
+        hooks.beforeSave
+      );
 
-    if (typeof afterValidation === 'function') {
-      await afterValidation(instance);
-    }
+      const runner = createRunner(logger, statements);
+      const [[primaryKeyValue]] = await runner(await create(instance, trx));
 
-    if (typeof beforeCreate === 'function') {
-      await beforeCreate(instance);
-    }
+      Reflect.set(instance, primaryKey, primaryKeyValue);
+      Reflect.set(instance.rawColumnData, primaryKey, primaryKeyValue);
 
-    if (typeof beforeSave === 'function') {
-      await beforeSave(instance);
-    }
-
-    const query = table()
-      .returning(primaryKey)
-      .insert(omit(getColumns(instance), primaryKey))
-      .on('query', () => {
-        setImmediate(() => logger.debug(sql`${query.toString()}`));
+      Reflect.defineProperty(instance, 'initialized', {
+        value: true,
+        writable: false,
+        enumerable: false,
+        configurable: false
       });
 
-    const [primaryKeyValue] = await query;
+      instance.currentChangeSet.persist(instance.changeSets);
 
-    Object.assign(instance, {
-      [primaryKey]: primaryKeyValue
-    });
+      await runHooks(instance, trx,
+        hooks.afterCreate,
+        hooks.afterSave
+      );
 
-    Reflect.set(instance.rawColumnData, primaryKey, primaryKeyValue);
+      return createTransactionResultProxy(instance, true);
+    };
 
-    Reflect.defineProperty(instance, 'initialized', {
-      value: true,
-      writable: false,
-      enumerable: false,
-      configurable: false
-    });
-
-    Object.freeze(instance);
-    NEW_RECORDS.delete(instance);
-
-    if (typeof afterCreate === 'function') {
-      await afterCreate(instance);
+    if (transaction) {
+      return run(transaction);
     }
 
-    if (typeof afterSave === 'function') {
-      await afterSave(instance);
-    }
+    return this.transaction(run);
+  }
 
-    return instance;
+  static transacting(trx: Knex$Transaction): Class<this> {
+    return createStaticTransactionProxy(this, trx);
+  }
+
+  static transaction<T>(fn: (...args: Array<any>) => Promise<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const { store: { connection } } = this;
+      let result: T;
+
+      connection
+        .transaction(trx => {
+          fn(trx)
+            .then(data => {
+              result = data;
+              return trx.commit();
+            })
+            .catch(trx.rollback);
+        })
+        .then(() => {
+          resolve(result);
+        })
+        .catch(err => {
+          reject(err);
+        });
+    });
   }
 
   static all(): Query<Array<this>> {
@@ -761,23 +845,33 @@ class Model {
   /**
    * Check if a value is an instance of a Model.
    */
-  static isInstance(obj: mixed): boolean {
+  static isInstance(obj: any): boolean {
     return obj instanceof this;
   }
 
+  /**
+   * @private
+   */
   static columnFor(key: string): void | Object {
     return Reflect.get(this.attributes, key);
   }
 
+  /**
+   * @private
+   */
   static columnNameFor(key: string): void | string {
     const column = this.columnFor(key);
 
     return column ? column.columnName : undefined;
   }
 
+  /**
+   * @private
+   */
   static relationshipFor(key: string): void | Relationship$opts {
     return Reflect.get(this.relationships, key);
   }
 }
 
 export default Model;
+export type { Model$Hook, Model$Hooks } from './interfaces';

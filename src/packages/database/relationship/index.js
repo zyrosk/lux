@@ -3,7 +3,6 @@ import { camelize } from 'inflection';
 
 import type { Model } from '../index';
 
-import relatedFor from './utils/related-for';
 import { getHasOne, getHasMany, getBelongsTo } from './utils/getters';
 import { setHasOne, setHasMany, setBelongsTo } from './utils/setters';
 
@@ -51,11 +50,10 @@ export async function get(
   let value = null;
 
   if (opts) {
-    const related = relatedFor(owner);
     const { type } = opts;
     let { foreignKey } = opts;
 
-    value = related.get(key);
+    value = owner.currentChangeSet.get(key);
     foreignKey = camelize(foreignKey, true);
 
     if (!value) {
@@ -92,6 +90,5 @@ export async function get(
   return value;
 }
 
-export { default as saveRelationships } from './utils/save-relationships';
-
+export { default as updateRelationship } from './utils/update-relationship';
 export type { Relationship$opts } from './interfaces';

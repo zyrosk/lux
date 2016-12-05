@@ -1,16 +1,15 @@
 import { join as joinPath } from 'path';
 
+import type Knex from 'knex';
+
 import { NODE_ENV, DATABASE_URL } from '../../../constants';
 import { VALID_DRIVERS } from '../constants';
-import { tryCatchSync } from '../../../utils/try-catch';
 import { InvalidDriverError } from '../errors';
-import ModuleMissingError from '../../../errors/module-missing-error';
 
 /**
  * @private
  */
-export default function connect(path, config = {}) {
-  let knex;
+export default function connect(path: string, config: Object = {}): Knex {
   let { pool } = config;
 
   const {
@@ -31,18 +30,14 @@ export default function connect(path, config = {}) {
 
   if (pool && typeof pool === 'number') {
     pool = {
-      min: 0,
+      min: pool > 1 ? 2 : 1,
       max: pool
     };
   }
 
-  tryCatchSync(() => {
-    knex = Reflect.apply(require, null, [
-      joinPath(path, 'node_modules', 'knex')
-    ]);
-  }, () => {
-    throw new ModuleMissingError('knex');
-  });
+  const knex: Class<Knex> = Reflect.apply(require, null, [
+    joinPath(path, 'node_modules', 'knex')
+  ]);
 
   const usingSQLite = driver === 'sqlite3';
 

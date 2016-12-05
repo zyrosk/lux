@@ -2,6 +2,7 @@
 import { camelize, dasherize, pluralize, singularize } from 'inflection';
 
 import { line } from '../../logger';
+import { createAttribute } from '../attribute';
 import {
   get as getRelationship,
   set as setRelationship
@@ -10,9 +11,7 @@ import entries from '../../../utils/entries';
 import underscore from '../../../utils/underscore';
 import type Database, { Model } from '../index'; // eslint-disable-line no-unused-vars, max-len
 
-import { createAttribute } from './attribute';
-
-const VALID_HOOKS = [
+const VALID_HOOKS = new Set([
   'afterCreate',
   'afterDestroy',
   'afterSave',
@@ -23,7 +22,7 @@ const VALID_HOOKS = [
   'beforeSave',
   'beforeUpdate',
   'beforeValidation'
-];
+]);
 
 /**
  * @private
@@ -55,29 +54,28 @@ function initializeProps(prototype, attributes, relationships) {
 /**
  * @private
  */
-function initializeHooks(opts) {
-  const { model, logger } = opts;
-  let { hooks } = opts;
-
-  hooks = entries(hooks)
-    .filter(([key]) => {
-      const isValid = VALID_HOOKS.indexOf(key) >= 0;
-
-      if (!isValid) {
+function initializeHooks({ model, hooks, logger }) {
+  return Object.freeze(
+    entries(hooks).reduce((obj, [key, value]) => {
+      if (!VALID_HOOKS.has(key)) {
         logger.warn(line`
           Invalid hook '${key}' will not be added to Model '${model.name}'.
-          Valid hooks are ${VALID_HOOKS.map(h => `'${h}'`).join(', ')}.
+          Valid hooks are ${
+            Array.from(VALID_HOOKS).map(h => `'${h}'`).join(', ')
+          }.
         `);
+
+        return obj;
       }
 
-      return isValid;
-    })
-    .reduce((hash, [key, hook]) => ({
-      ...hash,
-      [key]: async (...args) => await Reflect.apply(hook, model, args)
-    }), {});
-
-  return Object.freeze(hooks);
+      return {
+        ...obj,
+        [key]: async (instance, transaction) => {
+          await Reflect.apply(value, model, [instance, transaction]);
+        }
+      };
+    }, {})
+  );
 }
 
 /**
@@ -94,8 +92,8 @@ function initializeValidations(opts) {
 
       if (!isValid) {
         logger.warn(line`
-          Invalid validation '${key}' will not be added to Model 
-          '${model.name}'. '${key}' is not an attribute of Model 
+          Invalid validation '${key}' will not be added to Model
+          '${model.name}'. '${key}' is not an attribute of Model
           '${model.name}'.
         `);
       }
@@ -104,7 +102,7 @@ function initializeValidations(opts) {
         isValid = false;
 
         logger.warn(line`
-          Invalid validation '${key}' will not be added to Model 
+          Invalid validation '${key}' will not be added to Model
           '${model.name}'. Validations must be a function.
         `);
       }
@@ -128,10 +126,11 @@ export default async function initializeClass<T: Class<Model>>({
   model
 }: {
   store: Database,
-  table: Function,
+  table: $PropertyType<T, 'table'>,
   model: T
 }): Promise<T> {
-  const { hooks, scopes, validates } = model;
+  let { hooks } = model;
+  const { scopes, validates } = model;
   const { logger } = store;
   const modelName = dasherize(underscore(model.name));
   const resourceName = pluralize(modelName);
@@ -299,6 +298,10 @@ export default async function initializeClass<T: Class<Model>>({
     ...belongsTo
   });
 
+  if (!hooks) {
+    hooks = {};
+  }
+
   Object.defineProperties(model, {
     store: {
       value: store,
@@ -447,11 +450,16 @@ export default async function initializeClass<T: Class<Model>>({
       enumerable: true,
       configurable: false
     },
-
     resourceName: {
       value: resourceName,
       writable: false,
       enumerable: true,
+      configurable: false
+    },
+    isModelInstance: {
+      value: true,
+      writable: false,
+      enumerable: false,
       configurable: false
     }
   });
