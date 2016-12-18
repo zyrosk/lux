@@ -14,24 +14,25 @@ export function create(
   record: Model,
   trx: Knex$Transaction
 ): [Knex$QueryBuilder] {
+  const target = record;
   const timestamp = new Date();
 
-  Object.assign(record, {
+  Object.assign(target, {
     createdAt: timestamp,
     updatedAt: timestamp
   });
 
-  Object.assign(record.rawColumnData, {
+  Object.assign(target.rawColumnData, {
     createdAt: timestamp,
     updatedAt: timestamp
   });
 
   return [
-    record.constructor
+    target.constructor
       .table()
       .transacting(trx)
-      .returning(record.constructor.primaryKey)
-      .insert(omit(getColumns(record), record.constructor.primaryKey))
+      .returning(target.constructor.primaryKey)
+      .insert(omit(getColumns(target), target.constructor.primaryKey))
   ];
 }
 
@@ -42,16 +43,18 @@ export function update(
   record: Model,
   trx: Knex$Transaction
 ): [Knex$QueryBuilder] {
-  Reflect.set(record, 'updatedAt', new Date());
+  const target = record;
+
+  target.updatedAt = new Date();
 
   return [
-    record.constructor
+    target.constructor
       .table()
       .transacting(trx)
-      .where(record.constructor.primaryKey, record.getPrimaryKey())
+      .where(target.constructor.primaryKey, target.getPrimaryKey())
       .update(getColumns(
-        record,
-        Array.from(record.dirtyAttributes.keys())
+        target,
+        Array.from(target.dirtyAttributes.keys())
       ))
   ];
 }

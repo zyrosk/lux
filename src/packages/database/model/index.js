@@ -683,7 +683,7 @@ class Model {
     Object.assign(this, props);
 
     if (initialize) {
-      Reflect.defineProperty(this, 'initialized', {
+      Object.defineProperty(this, 'initialized', {
         value: true,
         writable: false,
         enumerable: false,
@@ -1150,7 +1150,8 @@ class Model {
    * @private
    */
   getPrimaryKey(): number {
-    return Reflect.get(this, this.constructor.primaryKey);
+    // $FlowIgnore
+    return this[this.constructor.primaryKey];
   }
 
   /**
@@ -1169,7 +1170,7 @@ class Model {
   ): Promise<Transaction$ResultProxy<this, true>> {
     const run = async (trx: Knex$Transaction) => {
       const { hooks, logger, primaryKey } = this;
-      const instance = Reflect.construct(this, [props, false]);
+      const instance = new this(props, false);
       let statements = [];
 
       const associations = Object
@@ -1198,10 +1199,11 @@ class Model {
       const runner = createRunner(logger, statements);
       const [[primaryKeyValue]] = await runner(await create(instance, trx));
 
-      Reflect.set(instance, primaryKey, primaryKeyValue);
-      Reflect.set(instance.rawColumnData, primaryKey, primaryKeyValue);
+      // $FlowIgnore
+      instance[primaryKey] = primaryKeyValue;
+      instance.rawColumnData[primaryKey] = primaryKeyValue;
 
-      Reflect.defineProperty(instance, 'initialized', {
+      Object.defineProperty(instance, 'initialized', {
         value: true,
         writable: false,
         enumerable: false,
@@ -1384,7 +1386,7 @@ class Model {
    * @public
    */
   static hasScope(name: string): boolean {
-    return Boolean(Reflect.get(this.scopes, name));
+    return Boolean(this.scopes[name]);
   }
 
   /**
@@ -1422,14 +1424,14 @@ class Model {
       const getTableName = compose(pluralize, underscore);
       const tableName = getTableName(this.name);
 
-      Reflect.defineProperty(this, 'tableName', {
+      Object.defineProperty(this, 'tableName', {
         value: tableName,
         writable: false,
         enumerable: true,
         configurable: false
       });
 
-      Reflect.defineProperty(this.prototype, 'tableName', {
+      Object.defineProperty(this.prototype, 'tableName', {
         value: tableName,
         writable: false,
         enumerable: false,
@@ -1453,7 +1455,7 @@ class Model {
    * @private
    */
   static columnFor(key: string): void | Object {
-    return Reflect.get(this.attributes, key);
+    return this.attributes[key];
   }
 
   /**
@@ -1467,7 +1469,11 @@ class Model {
   static columnNameFor(key: string): void | string {
     const column = this.columnFor(key);
 
-    return column ? column.columnName : undefined;
+    if (column) {
+      return column.columnName;
+    }
+
+    return undefined;
   }
 
   /**
@@ -1479,7 +1485,7 @@ class Model {
    * @private
    */
   static relationshipFor(key: string): void | Relationship$opts {
-    return Reflect.get(this.relationships, key);
+    return this.relationships[key];
   }
 }
 

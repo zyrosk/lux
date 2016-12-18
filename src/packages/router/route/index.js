@@ -43,7 +43,8 @@ class Route extends FreezeableSet<Action<any>> {
     const dynamicSegments = getDynamicSegments(path);
 
     if (action && controller) {
-      const handler = Reflect.get(controller, action);
+      // $FlowIgnore
+      const handler = controller[action];
 
       if (typeof handler === 'function') {
         const params = paramsFor({

@@ -33,7 +33,7 @@ export default function trackPerf<T, U: Action<T>>(action: U): Action<T> {
     return result;
   };
 
-  Reflect.defineProperty(trackedAction, 'name', {
+  Object.defineProperty(trackedAction, 'name', {
     value: action.name
   });
 

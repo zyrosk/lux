@@ -108,7 +108,7 @@ describe('module "controller"', () => {
 
         result.forEach(item => {
           assertRecord(item);
-          expect(Reflect.get(item, 'isPublic')).to.be.false;
+          expect(item).to.have.property('isPublic', false);
         });
       });
 
@@ -315,9 +315,12 @@ describe('module "controller"', () => {
           'updatedAt'
         ]);
 
-        const user = await Reflect.get(result, 'user');
-        const title = Reflect.get(result, 'title');
-        const isPublic = Reflect.get(result, 'isPublic');
+        // $FlowIgnore
+        const user = await result.user;
+        // $FlowIgnore
+        const title = result.title;
+        // $FlowIgnore
+        const isPublic = result.isPublic;
 
         expect(user.id).to.equal(1);
         expect(title).to.equal('#create() Test');
@@ -355,7 +358,7 @@ describe('module "controller"', () => {
 
         result = await subject.create(request, response);
 
-        const id = Reflect.get(result, 'id');
+        const id = result.getPrimaryKey();
         const location = response.getHeader('Location');
 
         expect(location).to.equal(`http://${HOST}/posts/${id}`);
@@ -390,8 +393,10 @@ describe('module "controller"', () => {
 
       it('returns a record if attribute(s) change', async () => {
         let item = record;
-        let isPublic = Reflect.get(item, 'isPublic');
-        const id = Reflect.get(item, 'id');
+        // $FlowIgnore
+        let isPublic = item.isPublic;
+        // $FlowIgnore
+        const id = item.id;
 
         expect(isPublic).to.be.false;
 
@@ -410,16 +415,18 @@ describe('module "controller"', () => {
         assertRecord(result);
 
         item = await Post.find(id);
-        isPublic = Reflect.get(item, 'isPublic');
+        isPublic = item.isPublic;
 
         expect(isPublic).to.be.true;
       });
 
       it('returns a record if relationships(s) change', async () => {
         let item = record;
-        let user = await Reflect.get(item, 'user');
-        let comments = await Reflect.get(item, 'comments');
-        const id = Reflect.get(item, 'id');
+        // $FlowIgnore
+        let user = await item.user;
+        // $FlowIgnore
+        let comments = await item.comments;
+        const id = item.getPrimaryKey();
 
         expect(user).to.be.null;
         expect(comments).to.deep.equal([]);
@@ -469,8 +476,8 @@ describe('module "controller"', () => {
         ]);
 
         item = await Post.find(id);
-        user = await Reflect.get(item, 'user');
-        comments = await Reflect.get(item, 'comments');
+        user = await item.user;
+        comments = await item.comments;
 
         expect(user.id).to.equal(1);
 
@@ -484,7 +491,7 @@ describe('module "controller"', () => {
       });
 
       it('returns the number `204` if no changes occur', async () => {
-        const id = Reflect.get(record, 'id');
+        const id = record.getPrimaryKey();
 
         const request = createRequest({
           id,
@@ -519,8 +526,9 @@ describe('module "controller"', () => {
 
       it('supports sparse field sets', async () => {
         let item = record;
-        let title = Reflect.get(item, 'title');
-        const id = Reflect.get(item, 'id');
+        // $FlowIgnore
+        let title = item.title;
+        const id = item.getPrimaryKey();
 
         expect(title).to.equal('#destroy() Test');
 
@@ -542,7 +550,7 @@ describe('module "controller"', () => {
         assertRecord(result, ['id', 'title']);
 
         item = await Post.find(id);
-        title = Reflect.get(item, 'title');
+        title = item.title;
 
         expect(title).to.equal('Sparse Field Sets Work With #destroy()!');
       });
@@ -571,7 +579,7 @@ describe('module "controller"', () => {
       });
 
       it('returns the number `204` if the record is destroyed', async () => {
-        const id = Reflect.get(record, 'id');
+        const id = record.getPrimaryKey();
         const result = await subject.destroy(createRequest({ id }));
 
         expect(result).to.equal(204);

@@ -629,7 +629,7 @@ class Controller {
       `${getDomain(req) + pathname}/${record.getPrimaryKey()}`
     );
 
-    Reflect.set(res, 'statusCode', 201);
+    res.status(201);
 
     return record.unwrap();
   }

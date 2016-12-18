@@ -132,7 +132,7 @@ describe('module "database/model"', () => {
         ]);
 
         Object.keys(Subject.attributes).forEach(key => {
-          const value = Reflect.get(Subject.attributes, key);
+          const value = Subject.attributes[key];
 
           expect(value).to.have.all.keys([
             'type',
@@ -161,7 +161,7 @@ describe('module "database/model"', () => {
 
       it('adds attribute accessors on the `prototype`', () => {
         Object.keys(Subject.attributes).forEach(key => {
-          const desc = Reflect.getOwnPropertyDescriptor(Subject.prototype, key);
+          const desc = Object.getOwnPropertyDescriptor(Subject.prototype, key);
 
           expect(desc).to.have.property('get').and.be.a('function');
           expect(desc).to.have.property('set').and.be.a('function');
@@ -180,7 +180,7 @@ describe('module "database/model"', () => {
         ]);
 
         Object.keys(Subject.hasMany).forEach(key => {
-          const value = Reflect.get(Subject.hasMany, key);
+          const value = Subject.hasMany[key];
 
           expect(value).to.be.an('object');
           expect(value).to.have.property('type').and.equal('hasMany');
@@ -198,7 +198,7 @@ describe('module "database/model"', () => {
         expect(Subject.belongsTo).to.have.all.keys(['user']);
 
         Object.keys(Subject.belongsTo).forEach(key => {
-          const value = Reflect.get(Subject.belongsTo, key);
+          const value = Subject.belongsTo[key];
 
           expect(value).to.be.an('object');
           expect(value).to.have.property('type').and.equal('belongsTo');
@@ -220,7 +220,7 @@ describe('module "database/model"', () => {
         ]);
 
         Object.keys(Subject.relationships).forEach(key => {
-          const value = Reflect.get(Subject.relationships, key);
+          const value = Subject.relationships[key];
 
           expect(value).to.have.property('type');
 
@@ -254,7 +254,7 @@ describe('module "database/model"', () => {
 
       it('adds relationship accessors to the `prototype`', () => {
         Object.keys(Subject.relationships).forEach(key => {
-          const desc = Reflect.getOwnPropertyDescriptor(Subject.prototype, key);
+          const desc = Object.getOwnPropertyDescriptor(Subject.prototype, key);
 
           expect(desc).to.have.property('get').and.be.a('function');
           expect(desc).to.have.property('set').and.be.a('function');
@@ -283,7 +283,8 @@ describe('module "database/model"', () => {
         ]);
 
         Object.keys(Subject.scopes).forEach(key => {
-          const value = Reflect.get(Subject, key);
+          // $FlowIgnore
+          const value = Subject[key];
 
           expect(value).to.be.a('function');
         });
@@ -836,7 +837,8 @@ describe('module "database/model"', () => {
       const assertSaveHook = async (instance: Model, hookSpy) => {
         hookSpy.reset();
 
-        Reflect.set(instance, 'isPublic', true);
+        // $FlowIgnore
+        instance.isPublic = true;
         await instance.save();
 
         expect(hookSpy.calledWith(instance)).to.be.true;

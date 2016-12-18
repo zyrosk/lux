@@ -22,13 +22,14 @@ export default function createSerializer<T: Serializer<*>>(
     parent = null;
   }
 
-  const instance: T = Reflect.construct(constructor, [{
+  const instance: T = new constructor({
+    // $FlowIgnore
     model,
     parent,
     namespace
-  }]);
+  });
 
-  Reflect.defineProperty(instance, 'parent', {
+  Object.defineProperty(instance, 'parent', {
     value: parent,
     writable: false,
     enumerable: true,

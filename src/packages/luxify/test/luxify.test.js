@@ -38,7 +38,8 @@ describe('module "luxify"', () => {
 
     it('resolves when Response#send is called', () => {
       const subject = luxify((req, res) => {
-        Reflect.apply(Reflect.get(res, 'send'), res, ['Hello world!']);
+        // $FlowIgnore
+        res.send('Hello world!');
       });
 
       return subject(request, response).then(data => {
@@ -48,9 +49,10 @@ describe('module "luxify"', () => {
 
     it('resolves when Response#json is called', () => {
       const subject = luxify((req, res) => {
-        Reflect.apply(Reflect.get(res, 'json'), res, [{
+        // $FlowIgnore
+        res.json({
           data: 'Hello world!'
-        }]);
+        });
       });
 
       return subject(request, response).then(data => {

@@ -17,7 +17,7 @@ export default function createServerError<T: any>(
     }
   };
 
-  Reflect.defineProperty(ServerError, 'name', {
+  Object.defineProperty(ServerError, 'name', {
     value: Target.name
   });
 

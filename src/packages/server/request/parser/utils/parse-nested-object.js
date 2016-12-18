@@ -10,7 +10,7 @@ export default function parseNestedObject(source: Object): Object {
   return entries(source).reduce((result, [key, value]) => {
     if (DELIMITER.test(key)) {
       const parentKey = key.replace(DELIMITER, '$1');
-      const parentValue = Reflect.get(result, parentKey);
+      const parentValue = result[parentKey];
 
       return {
         ...result,

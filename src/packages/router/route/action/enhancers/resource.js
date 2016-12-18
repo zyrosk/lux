@@ -74,7 +74,7 @@ export default function resource(action: Action<any>): Action<any> {
     return data;
   };
 
-  Reflect.defineProperty(resourceAction, 'name', {
+  Object.defineProperty(resourceAction, 'name', {
     value: action.name
   });
 
