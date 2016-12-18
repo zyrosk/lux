@@ -8,14 +8,15 @@ import eslint from 'rollup-plugin-eslint';
 import nodeResolve from 'rollup-plugin-node-resolve';
 import { rollup } from 'rollup';
 
-import { rmrf, exists, readdir, readdirRec, isJSFile } from '../fs';
+import { IS_PRODUCTION } from '../../constants';
+import { rmrf, exists, readdir, readdirRec, readFile, isJSFile } from '../fs';
 import template from '../template';
 import uniq from '../../utils/uniq';
 
-import onwarn from './utils/handle-warning';
 import normalizePath from './utils/normalize-path';
 import createManifest from './utils/create-manifest';
 import createBootScript from './utils/create-boot-script';
+import { createRollupConfig, createBundleConfig } from './utils/config';
 
 /**
  * @private
@@ -74,7 +75,11 @@ export async function compile(dir: string, env: string, {
     ]);
   });
 
-  await Promise.all([
+  const [babelrc] = await Promise.all([
+    readFile(
+      path.join(dir, '.babelrc'),
+      'utf8'
+    ),
     createManifest(dir, assets, {
       useStrict
     }),
@@ -83,39 +88,39 @@ export async function compile(dir: string, env: string, {
     })
   ]);
 
-  const bundle = await rollup({
-    entry,
-    onwarn,
-    external,
-    plugins: [
-      alias({
-        resolve: ['.js'],
-        app: normalizePath(path.join(dir, 'app')),
-        LUX_LOCAL: normalizePath(local)
-      }),
-
-      json(),
-
-      nodeResolve({
-        preferBuiltins: true
-      }),
-
-      eslint({
-        cwd: dir,
-        parser: 'babel-eslint',
-        useEslintrc: false,
-        include: [
-          path.join(dir, 'app', '**'),
-        ],
-        exclude: [
-          path.join(dir, 'package.json'),
-          path.join(__dirname, '..', 'src', '**')
-        ]
-      }),
-
-      babel()
-    ]
-  });
+  const bundle = await rollup(
+    createRollupConfig({
+      entry,
+      external,
+      plugins: [
+        alias({
+          resolve: ['.js'],
+          app: normalizePath(path.join(dir, 'app')),
+          LUX_LOCAL: normalizePath(local)
+        }),
+        json(),
+        nodeResolve({ preferBuiltins: true }),
+        eslint({
+          cwd: dir,
+          parser: 'babel-eslint',
+          useEslintrc: false,
+          include: [
+            path.join(dir, 'app', '**'),
+          ],
+          exclude: [
+            path.join(dir, 'package.json'),
+            path.join(__dirname, '..', 'src', '**')
+          ]
+        }),
+        babel({
+          babelrc: false,
+          minified: IS_PRODUCTION,
+          comments: false,
+          ...JSON.parse(babelrc.toString())
+        })
+      ]
+    })
+  );
 
   await rmrf(entry);
 
@@ -126,14 +131,15 @@ export async function compile(dir: string, env: string, {
   `;
 
   if (useStrict) {
-    banner = `'use strict';\n\n${banner}`;
+    banner = `\n'use strict';\n\n${banner}`;
   }
 
-  return bundle.write({
-    banner,
-    dest: path.join(dir, 'dist', 'bundle.js'),
-    format: 'cjs',
-    sourceMap: true,
-    useStrict: false
-  });
+  return bundle.write(
+    createBundleConfig({
+      banner,
+      dest: path.join(dir, 'dist', 'bundle.js')
+    })
+  );
 }
+
+export { createRollupConfig, createBundleConfig } from './utils/config';
