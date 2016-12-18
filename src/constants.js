@@ -24,3 +24,4 @@ export const PLATFORM = platform();
 export const BACKSLASH = /\\/g;
 export const CIRCLECI = ENV.CIRCLECI;
 export const APPVEYOR = ENV.APPVEYOR;
+export const IS_PRODUCTION = NODE_ENV === 'production';
