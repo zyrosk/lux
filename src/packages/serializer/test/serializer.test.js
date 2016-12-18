@@ -336,7 +336,7 @@ describe('module "serializer"', () => {
 
       it('works with a single instance of `Model`', async () => {
         const post = await createPost();
-        const result = await subject.format({
+        const result = subject.format({
           data: post,
           domain: DOMAIN,
           include: [],
@@ -376,7 +376,7 @@ describe('module "serializer"', () => {
           .map(post => post.getPrimaryKey())
           .map(String);
 
-        const result = await subject.format({
+        const result = subject.format({
           data: posts,
           domain: DOMAIN,
           include: [],
@@ -410,7 +410,7 @@ describe('module "serializer"', () => {
         subject = createSerializer('admin');
 
         const post = await createPost();
-        const result = await subject.format({
+        const result = subject.format({
           data: post,
           domain: DOMAIN,
           include: [],
@@ -444,7 +444,7 @@ describe('module "serializer"', () => {
           includeComments: true
         });
 
-        const result = await subject.format({
+        const result = subject.format({
           data: post,
           domain: DOMAIN,
           include: [],
@@ -474,7 +474,7 @@ describe('module "serializer"', () => {
         const post = await createPost();
         // $FlowIgnore
         const image = await post.image;
-        const result = await subject.format({
+        const result = subject.format({
           data: post,
           domain: DOMAIN,
           include: ['image'],
@@ -506,7 +506,7 @@ describe('module "serializer"', () => {
         const post = await createPost();
         // $FlowIgnore
         const user = await post.user;
-        const result = await subject.format({
+        const result = subject.format({
           data: post,
           domain: DOMAIN,
           include: ['user'],
@@ -539,7 +539,7 @@ describe('module "serializer"', () => {
         const post = await createPost();
         // $FlowIgnore
         const comments = await post.comments;
-        const result = await subject.format({
+        const result = subject.format({
           data: post,
           domain: DOMAIN,
           include: ['comments'],
@@ -579,7 +579,7 @@ describe('module "serializer"', () => {
         const post = await createPost();
         // $FlowIgnore
         const tags = await post.tags;
-        const result = await subject.format({
+        const result = subject.format({
           data: post,
           domain: DOMAIN,
           include: ['tags'],

@@ -7,6 +7,7 @@ import Serializer from '../../serializer';
 import { Model } from '../../database';
 
 import { getTestApp } from '../../../../test/utils/get-test-app';
+import { createResponse } from '../../../../test/utils/mocks';
 
 import type { Request, Response } from '../../server';
 
@@ -258,20 +259,6 @@ describe('module "controller"', () => {
             posts: attributes,
             users: ['id']
           }
-        }
-      });
-
-      // $FlowIgnore
-      const createResponse = (): Response => ({
-        headers: new Map(),
-        statusCode: 200,
-
-        setHeader(key: string, value: string): void {
-          this.headers.set(key, value);
-        },
-
-        getHeader(key: string): string | void {
-          return this.headers.get(key);
         }
       });
 
