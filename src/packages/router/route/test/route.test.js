@@ -325,5 +325,79 @@ describe('module "router/route"', () => {
         });
       });
     });
+
+    describe('#visit', () => {
+      let controller: Controller;
+
+      before(async () => {
+        const { controllers } = await getTestApp();
+
+        // $FlowIgnore
+        controller = await controllers.get('posts');
+      });
+
+      ['GET', 'OPTIONS'].forEach(method => {
+        describe(`- method "${method}"`, () => {
+          let subject;
+          let createRequest;
+
+          before(async () => {
+
+
+            subject = new Route({
+              method,
+              controller,
+              type: 'collection',
+              path: 'posts',
+              action: 'preflight'
+            });
+          });
+
+          describe('- with params', () => {
+            before(() => {
+              createRequest = createRequestBuilder({
+                method,
+                controller,
+                path: '/posts',
+                route: subject,
+                params: {
+                  filter: {
+                    title: 'New Post'
+                  }
+                }
+              });
+            });
+
+            it('works', async () => {
+              const result = await subject.visit(
+                createRequest(),
+                createResponse()
+              );
+
+              expect(result).to.be.ok;
+            });
+          });
+
+          describe('- without params', () => {
+            before(() => {
+              createRequest = createRequestBuilder({
+                method,
+                path: '/posts',
+                route: subject
+              });
+            });
+
+            it('works', async () => {
+              const result = await subject.visit(
+                createRequest(),
+                createResponse()
+              );
+
+              expect(result).to.be.ok;
+            });
+          });
+        });
+      });
+    });
   });
 });
