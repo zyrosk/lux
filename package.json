@@ -1,6 +1,6 @@
 {
   "name": "lux-framework",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Build scalable, Node.js-powered REST APIs with almost no code.",
   "repository": "github:postlight/lux",
   "keywords": [
@@ -53,19 +53,19 @@
     "rollup-plugin-eslint": "3.0.0",
     "rollup-plugin-json": "2.0.2",
     "rollup-plugin-node-resolve": "2.0.0",
-    "source-map-support": "0.4.6"
+    "source-map-support": "0.4.8"
   },
   "devDependencies": {
     "babel-core": "6.21.0",
-    "babel-plugin-istanbul": "2.0.3",
+    "babel-plugin-istanbul": "3.0.0",
     "babel-plugin-transform-es2015-modules-commonjs": "6.18.0",
     "babel-preset-lux": "2.0.1",
     "chai": "3.5.0",
     "eslint-config-airbnb-base": "11.0.0",
-    "eslint-plugin-flowtype": "2.29.1",
+    "eslint-plugin-flowtype": "2.29.2",
     "eslint-plugin-import": "2.2.0",
     "faker": "3.1.0",
-    "flow-bin": "0.37.0",
+    "flow-bin": "0.37.4",
     "flow-typed": "2.0.0",
     "mocha": "3.2.0",
     "node-fetch": "1.6.3",
@@ -73,6 +73,6 @@
     "remark-cli": "2.1.0",
     "remark-lint": "5.4.0",
     "remark-preset-lint-recommended": "1.0.0",
-    "sinon": "1.17.6"
+    "sinon": "1.17.7"
   }
 }

@@ -164,13 +164,18 @@ class Route extends FreezeableSet<Action<any>> {
 
     tryCatchSync(() => {
       const { defaultParams } = this;
+      let params = {
+        ...req.params,
+        ...this.parseParams(req.url.params)
+      };
+
+      if (req.method !== 'OPTIONS') {
+        params = this.params.validate(params);
+      }
 
       Object.assign(req, {
-        defaultParams,
-        params: this.params.validate({
-          ...req.params,
-          ...this.parseParams(req.url.params)
-        })
+        params,
+        defaultParams
       });
 
       if (this.type === 'member' && req.method === 'PATCH') {
