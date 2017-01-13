@@ -2,15 +2,14 @@
 
 require('../../../lib/babel-hook');
 
-const fs = require('fs');
 const path = require('path');
 
-// Plugins
 const json = require('rollup-plugin-json');
 const babel = require('rollup-plugin-babel');
-const nodeResolve = require('rollup-plugin-node-resolve');
+const resolve = require('rollup-plugin-node-resolve');
 
-const template = require('../../../src/packages/template').default;
+const { onwarn } = require('../../../src/packages/compiler');
+const { default: template } = require('../../../src/packages/template');
 
 const BANNER = template`
   'use strict';
@@ -22,20 +21,26 @@ const BANNER = template`
 
 module.exports = {
   rollup: {
-    external: [
-      'knex',
-      'bundle',
-      path.join(__dirname, '..', '..', '..', 'lib', 'fs', 'index.js'),
-      ...fs.readdirSync(path.join(__dirname, '..', '..', '..', 'node_modules'))
-    ],
-
+    onwarn,
     plugins: [
       json(),
       babel(),
-      nodeResolve({ preferBuiltins: true })
-    ]
+      resolve({
+        preferBuiltins: true
+      })
+    ],
+    external(id) {
+      return !(
+        id.startsWith('.')
+        || id.startsWith('/') // Absolute path on Unix
+        || /^[A-Z]:[\\/]/.test(id) // Absolute path on Windows
+        || id.startsWith('src')
+        || id.startsWith(path.join('..', '..', '..', 'src'))
+        || id === 'babelHelpers'
+        || id === '\u0000babelHelpers'
+      );
+    },
   },
-
   bundle: {
     banner: BANNER,
     format: 'cjs',
