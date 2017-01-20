@@ -18,11 +18,13 @@ export function transformKeys<T: Object | Array<mixed>>(
     // $FlowIgnore
     return entries(source).reduce((obj, [key, value]) => {
       const result = obj;
-      const recurse = deep
+      const recurse = (
+        deep
         && value
         && typeof value === 'object'
         && !Array.isArray(value)
-        && !(value instanceof Date);
+        && !(value instanceof Date)
+      );
 
       if (recurse) {
         result[transformer(key)] = transformKeys(value, transformer, true);
