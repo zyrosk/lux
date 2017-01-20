@@ -1,11 +1,10 @@
 // @flow
-import { join as joinPath } from 'path';
+import { posix, join as joinPath } from 'path';
 
 import { green } from 'chalk';
 import { pluralize, singularize } from 'inflection';
 
 import { NAMESPACED_RESOURCE_MESSAGE } from '../constants';
-import { stripNamespaces, getNamespaceKey } from '../../../loader';
 import { generateTimestamp } from '../../../database';
 import { exists, readFile, writeFile } from '../../../fs';
 import modelTemplate from '../../templates/model';
@@ -45,9 +44,9 @@ export async function controller(opts: Generator$opts): Promise<void> {
     name
   });
 
-  const namespace = getNamespaceKey(name);
+  const namespace = posix.dirname(name);
 
-  if (namespace !== 'root') {
+  if (namespace !== '.') {
     const hasParent = await exists(
       joinPath(cwd, dir, ...[...namespace.split('/'), 'application.js'])
     );
@@ -86,9 +85,9 @@ export async function serializer(opts: Generator$opts): Promise<void> {
     name
   });
 
-  const namespace = getNamespaceKey(name);
+  const namespace = posix.dirname(name);
 
-  if (namespace !== 'root') {
+  if (namespace !== '.') {
     const hasParent = await exists(
       joinPath(cwd, dir, ...[...namespace.split('/'), 'application.js'])
     );
@@ -119,7 +118,7 @@ export function migration(opts: Generator$opts) {
   });
 
   name = chain(name)
-    .pipe(stripNamespaces)
+    .pipe(posix.basename)
     .pipe(str => `${generateTimestamp()}-${str}`)
     .value();
 
@@ -149,7 +148,7 @@ export function modelMigration(opts: Generator$opts) {
   });
 
   name = chain(name)
-    .pipe(stripNamespaces)
+    .pipe(posix.basename)
     .pipe(pluralize)
     .pipe(str => `${generateTimestamp()}-create-${str}`)
     .value();
@@ -178,7 +177,7 @@ export async function model(opts: Generator$opts): Promise<void> {
   await modelMigration({ name, ...opts });
 
   name = chain(name)
-    .pipe(stripNamespaces)
+    .pipe(posix.basename)
     .pipe(singularize)
     .value();
 
@@ -236,30 +235,31 @@ export async function resource(opts: Generator$opts) {
   await controller(opts);
   await serializer(opts);
 
-  if (getNamespaceKey(opts.name) !== 'root') {
+  if (posix.dirname(opts.name) !== '.') {
     log(NAMESPACED_RESOURCE_MESSAGE);
-  } else {
-    const path = joinPath(opts.cwd, 'app', 'routes.js');
-    const routes = chain(await readFile(path))
-      .pipe(buf => buf.toString('utf8'))
-      .pipe(str => str.split('\n'))
-      .pipe(lines => lines.reduce((result, line, index, arr) => {
-        const closeIndex = arr.lastIndexOf('}');
-        let str = result;
-
-        if (line && index <= closeIndex) {
-          str += `${line}\n`;
-        }
-
-        if (index + 1 === closeIndex) {
-          str += `  this.resource('${pluralize(opts.name)}');\n`;
-        }
-
-        return str;
-      }, ''))
-      .value();
-
-    await writeFile(path, routes);
-    log(`${green('update')} app/routes.js`);
+    return;
   }
+
+  const path = joinPath(opts.cwd, 'app', 'routes.js');
+  const routes = chain(await readFile(path))
+    .pipe(buf => buf.toString('utf8'))
+    .pipe(str => str.split('\n'))
+    .pipe(lines => lines.reduce((result, line, index, arr) => {
+      const closeIndex = arr.lastIndexOf('}');
+      let str = result;
+
+      if (line && index <= closeIndex) {
+        str += `${line}\n`;
+      }
+
+      if (index + 1 === closeIndex) {
+        str += `  this.resource('${pluralize(opts.name)}');\n`;
+      }
+
+      return str;
+    }, ''))
+    .value();
+
+  await writeFile(path, routes);
+  log(`${green('update')} app/routes.js`);
 }

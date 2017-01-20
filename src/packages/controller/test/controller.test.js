@@ -16,7 +16,7 @@ const HOST = 'localhost:4000';
 describe('module "controller"', () => {
   describe('class Controller', () => {
     let Post: Class<Model>;
-    let subject: Controller;
+    let subject: Controller<*>;
 
     const attributes = [
       'id',
@@ -37,15 +37,16 @@ describe('module "controller"', () => {
 
     before(async () => {
       const app = await getTestApp();
+      const model = app.models.get('post');
 
-      // $FlowIgnore
-      Post = app.models.get('post');
+      if (model) {
+        Post = model;
+      }
 
       subject = new Controller({
         model: Post,
         namespace: '',
         serializer: new Serializer({
-          // $FlowIgnore
           model: Post,
           parent: null,
           namespace: ''
@@ -75,58 +76,65 @@ describe('module "controller"', () => {
         }
       });
 
-      it('returns an array of records', async () => {
-        const request = createRequest();
-        const result = await subject.index(request);
-
-        expect(result).to.be.an('array').with.lengthOf(25);
-        result.forEach(item => assertRecord(item));
+      it('returns an array of records', () => {
+        return subject
+          .index(createRequest())
+          .then(result => {
+            expect(result).to.be.an('array').with.lengthOf(25);
+            result.forEach(item => assertRecord(item));
+          });
       });
 
-      it('supports specifying page size', async () => {
+      it('supports specifying page size', () => {
         const request = createRequest({
           page: {
             size: 10
           }
         });
 
-        const result = await subject.index(request);
-
-        expect(result).to.be.an('array').with.lengthOf(10);
-        result.forEach(item => assertRecord(item));
+        return subject
+          .index(request)
+          .then(result => {
+            expect(result).to.be.an('array').with.lengthOf(10);
+            result.forEach(item => assertRecord(item));
+          });
       });
 
-      it('supports filter parameters', async () => {
+      it('supports filter parameters', () => {
         const request = createRequest({
           filter: {
             isPublic: false
           }
         });
 
-        const result = await subject.index(request);
+        return subject
+          .index(request)
+          .then(result => {
+            expect(result).to.be.an('array').with.length.above(0);
 
-        expect(result).to.be.an('array').with.length.above(0);
-
-        result.forEach(item => {
-          assertRecord(item);
-          expect(item).to.have.property('isPublic', false);
-        });
+            result.forEach(item => {
+              assertRecord(item);
+              expect(item).to.have.property('isPublic', false);
+            });
+          });
       });
 
-      it('supports sparse field sets', async () => {
+      it('supports sparse field sets', () => {
         const request = createRequest({
           fields: {
             posts: ['id', 'title']
           }
         });
 
-        const result = await subject.index(request);
-
-        expect(result).to.be.an('array').with.lengthOf(25);
-        result.forEach(item => assertRecord(item, ['id', 'title']));
+        return subject
+          .index(request)
+          .then(result => {
+            expect(result).to.be.an('array').with.lengthOf(25);
+            result.forEach(item => assertRecord(item, ['id', 'title']));
+          });
       });
 
-      it('supports eager loading relationships', async () => {
+      it('supports eager loading relationships', () => {
         const request = createRequest({
           include: ['user'],
           fields: {
@@ -138,21 +146,23 @@ describe('module "controller"', () => {
           }
         });
 
-        const result = await subject.index(request);
+        return subject
+          .index(request)
+          .then(result => {
+            expect(result).to.be.an('array').with.lengthOf(25);
 
-        expect(result).to.be.an('array').with.lengthOf(25);
+            result.forEach(item => {
+              assertRecord(item, [
+                ...attributes,
+                'user'
+              ]);
 
-        result.forEach(item => {
-          assertRecord(item, [
-            ...attributes,
-            'user'
-          ]);
-
-          expect(item.rawColumnData.user).to.have.all.keys([
-            'id',
-            'name',
-            'email'
-          ]);
+              expect(item.rawColumnData.user).to.have.all.keys([
+                'id',
+                'name',
+                'email'
+              ]);
+          });
         });
       });
     });
@@ -204,7 +214,7 @@ describe('module "controller"', () => {
         assertRecord(result, ['id', 'title']);
       });
 
-      it('supports eager loading relationships', async () => {
+      it('supports eager loading relationships', () => {
         const request = createRequest({
           id: 1,
           include: ['user'],
@@ -217,22 +227,24 @@ describe('module "controller"', () => {
           }
         });
 
-        const result = await subject.show(request);
+        return subject
+          .show(request)
+          .then(result => {
+            expect(result).to.be.ok;
 
-        expect(result).to.be.ok;
+            if (result) {
+              assertRecord(result, [
+                ...attributes,
+                'user'
+              ]);
 
-        if (result) {
-          assertRecord(result, [
-            ...attributes,
-            'user'
-          ]);
-
-          expect(result.rawColumnData.user).to.have.all.keys([
-            'id',
-            'name',
-            'email'
-          ]);
-        }
+              expect(result.rawColumnData.user).to.have.all.keys([
+                'id',
+                'name',
+                'email'
+              ]);
+            }
+          });
       });
     });
 
@@ -302,11 +314,8 @@ describe('module "controller"', () => {
           'updatedAt'
         ]);
 
-        // $FlowIgnore
         const user = await result.user;
-        // $FlowIgnore
         const title = result.title;
-        // $FlowIgnore
         const isPublic = result.isPublic;
 
         expect(user.id).to.equal(1);

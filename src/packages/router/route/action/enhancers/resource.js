@@ -17,7 +17,7 @@ export default function resource(action: Action<any>): Action<any> {
       Promise.resolve(0)
     ];
 
-    if (isIndex) {
+    if (isIndex && init[0] instanceof Query) {
       init[1] = Query.from(init[0]).count();
     }
 

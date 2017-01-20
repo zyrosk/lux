@@ -49,7 +49,6 @@ export function createRunner(target: Query<*>, opts: {
           name = 'select';
         }
 
-        // $FlowIgnore
         const method = query[name];
 
         if (!Array.isArray(params)) {

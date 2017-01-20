@@ -6,7 +6,7 @@ import { freezeProps } from '../freezeable';
 import uniq from '../../utils/uniq';
 import underscore from '../../utils/underscore';
 import { dasherizeKeys } from '../../utils/transform-keys';
-import type { Model } from '../database'; // eslint-disable-line no-unused-vars
+import { Model } from '../database'; // eslint-disable-line no-unused-vars
 import type { // eslint-disable-line no-duplicate-imports
   JSONAPI$Document,
   JSONAPI$DocumentLinks,
@@ -14,7 +14,11 @@ import type { // eslint-disable-line no-duplicate-imports
   JSONAPI$RelationshipObject
 } from '../jsonapi';
 
-import type { Serializer$opts } from './interfaces';
+export type Options<T: Model> = {
+  model?: ?Class<T>;
+  parent: ?Serializer<*>;
+  namespace: string;
+};
 
 /**
  * ## Overview
@@ -401,7 +405,7 @@ class Serializer<T: Model> {
    * @type {Model}
    * @private
    */
-  model: Class<T>;
+  model: ?Class<T>;
 
   /**
    * A reference to the root Serializer for the namespace that a Serializer
@@ -422,7 +426,7 @@ class Serializer<T: Model> {
    */
   namespace: string;
 
-  constructor({ model, parent, namespace }: Serializer$opts<T>) {
+  constructor({ model, parent, namespace }: Options<T>) {
     Object.assign(this, {
       model,
       parent,

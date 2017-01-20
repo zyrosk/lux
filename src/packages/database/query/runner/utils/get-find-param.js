@@ -17,7 +17,6 @@ export default function getFindParam({
       const [, params] = snapshot;
 
       if (params && isObject(params)) {
-        // $FlowIgnore
         return params[`${tableName}.${primaryKey}`];
       }
     }

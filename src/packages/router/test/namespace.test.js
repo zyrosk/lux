@@ -10,7 +10,7 @@ describe('module "router/namespace"', () => {
   describe('class Namespace', () => {
     describe('#constructor()', () => {
       let root;
-      let controller: Controller;
+      let controller: Controller<*>;
       let controllers;
       let createRootNamespace;
       const expectNamspaceToBeValid = (subject: Namespace, name, path) => {
@@ -24,18 +24,25 @@ describe('module "router/namespace"', () => {
 
       before(async () => {
         const app = await getTestApp();
+        const rootController = app.controllers.get('application');
+        const namespaceController = controllers.get('admin/application');
+
+        if (!rootController) {
+          throw new Error('Could not find controller "application".');
+        }
+
+        if (!namespaceController) {
+          throw new Error('Could not find controller "admin/application".');
+        }
 
         controllers = app.controllers;
-
-        // $FlowIgnore
-        controller = controllers.get('admin/application');
+        controller = namespaceController;
 
         createRootNamespace = (): Namespace => new Namespace({
           controllers,
           path: '/',
           name: 'root',
-          // $FlowIgnore
-          controller: controllers.get('application')
+          controller: rootController
         });
       });
 

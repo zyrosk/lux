@@ -28,7 +28,7 @@ class Route extends FreezeableSet<Action<any>> {
 
   handlers: Array<Action<any>>;
 
-  controller: Controller;
+  controller: Controller<*>;
 
   staticPath: string;
 

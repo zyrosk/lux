@@ -10,7 +10,7 @@ import getColumns from './get-columns';
 /**
  * @private
  */
-export function create(record: Model, trx: Object): [Object] {
+export function create(record: Model, trx: Object): Array<Object> {
   const target = record;
   const timestamp = new Date();
 
@@ -36,7 +36,7 @@ export function create(record: Model, trx: Object): [Object] {
 /**
  * @private
  */
-export function update(record: Model, trx: Object): [Object] {
+export function update(record: Model, trx: Object): Array<Object> {
   const target = record;
 
   target.updatedAt = new Date();
@@ -56,7 +56,7 @@ export function update(record: Model, trx: Object): [Object] {
 /**
  * @private
  */
-export function destroy(record: Model, trx: Object): [Object] {
+export function destroy(record: Model, trx: Object): Array<Object> {
   return [
     record.constructor
       .table()

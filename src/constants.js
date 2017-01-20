@@ -21,7 +21,6 @@ export const NODE_ENV = ENV.NODE_ENV || 'development';
 export const DATABASE_URL = ENV.DATABASE_URL;
 export const LUX_CONSOLE = ENV.LUX_CONSOLE || false;
 export const PLATFORM = platform();
-export const BACKSLASH = /\\/g;
 export const CIRCLECI = ENV.CIRCLECI;
 export const APPVEYOR = ENV.APPVEYOR;
 export const IS_PRODUCTION = NODE_ENV === 'production';

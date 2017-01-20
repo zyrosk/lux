@@ -13,7 +13,7 @@ import type { Action } from './interfaces';
 export function createAction(
   type: string,
   action: Action<any>,
-  controller: Controller
+  controller: Controller<*>
 ): Array<Action<any>> {
   let controllerAction = action.bind(controller);
 

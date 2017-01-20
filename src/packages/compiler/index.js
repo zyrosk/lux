@@ -1,48 +1,43 @@
 // @flow
-import path from 'path';
+import os from 'os';
+import path, { posix } from 'path';
 
+import lux from 'rollup-plugin-lux';
 import json from 'rollup-plugin-json';
 import alias from 'rollup-plugin-alias';
 import babel from 'rollup-plugin-babel';
 import eslint from 'rollup-plugin-eslint';
-import nodeResolve from 'rollup-plugin-node-resolve';
+import resolve from 'rollup-plugin-node-resolve';
 import { rollup } from 'rollup';
 
-import { IS_PRODUCTION } from '../../constants';
-import { rmrf, exists, readdir, readdirRec, readFile, isJSFile } from '../fs';
+import { rmrf, readdir, readdirRec, isJSFile } from '../fs';
 import template from '../template';
-import uniq from '../../utils/uniq';
 
-import normalizePath from './utils/normalize-path';
+import onwarn from './utils/handle-warning';
+import isExternal from './utils/is-external';
 import createManifest from './utils/create-manifest';
 import createBootScript from './utils/create-boot-script';
-import { createRollupConfig, createBundleConfig } from './utils/config';
 
 /**
  * @private
  */
-export async function compile(dir: string, env: string, {
-  useStrict = false
-}: {
-  useStrict: boolean
-} = {}): Promise<void> {
-  let banner;
+type CompileOptions = {
+  useStrict?: boolean;
+};
 
+/**
+ * @private
+ */
+export async function compile(
+  dir: string,
+  env: string,
+  opts: CompileOptions = {}
+): Promise<void> {
+  const { useStrict = false } = opts;
   const local = path.join(__dirname, '..', 'src', 'index.js');
   const entry = path.join(dir, 'dist', 'index.js');
-
-  const nodeModules = path.join(dir, 'node_modules');
-  const luxNodeModules = path.join(__dirname, '..', 'node_modules');
-  let external = await readdir(nodeModules).then(files => (
-    files.filter(name => name !== 'lux-framework')
-  ));
-
-  if (await exists(luxNodeModules)) {
-    external = uniq([
-      ...external,
-      ...(await readdir(luxNodeModules))
-    ]);
-  }
+  const external = isExternal(dir);
+  let banner;
 
   const assets = await Promise.all([
     readdir(path.join(dir, 'app', 'models')),
@@ -75,11 +70,7 @@ export async function compile(dir: string, env: string, {
     ]);
   });
 
-  const [babelrc] = await Promise.all([
-    readFile(
-      path.join(dir, '.babelrc'),
-      'utf8'
-    ),
+  await Promise.all([
     createManifest(dir, assets, {
       useStrict
     }),
@@ -88,39 +79,48 @@ export async function compile(dir: string, env: string, {
     })
   ]);
 
-  const bundle = await rollup(
-    createRollupConfig({
-      entry,
-      external,
-      plugins: [
-        alias({
-          resolve: ['.js'],
-          app: normalizePath(path.join(dir, 'app')),
-          LUX_LOCAL: normalizePath(local)
-        }),
-        json(),
-        nodeResolve({ preferBuiltins: true }),
-        eslint({
-          cwd: dir,
-          parser: 'babel-eslint',
-          useEslintrc: false,
-          include: [
-            path.join(dir, 'app', '**'),
-          ],
-          exclude: [
-            path.join(dir, 'package.json'),
-            path.join(__dirname, '..', 'src', '**')
-          ]
-        }),
-        babel({
-          babelrc: false,
-          minified: IS_PRODUCTION,
-          comments: false,
-          ...JSON.parse(babelrc.toString())
-        })
-      ]
-    })
-  );
+  const aliases = {
+    app: posix.join('/', ...dir.split(path.sep), 'app'),
+    LUX_LOCAL: posix.join('/', ...local.split(path.sep))
+  };
+
+  if (os.platform() === 'win32') {
+    const [volume] = dir;
+    const prefix = `${volume}:/`;
+
+    Object.assign(aliases, {
+      app: aliases.app.replace(prefix, ''),
+      LUX_LOCAL: aliases.LUX_LOCAL.replace(prefix, '')
+    });
+  }
+
+  const bundle = await rollup({
+    entry,
+    onwarn,
+    external,
+    plugins: [
+      alias({
+        resolve: ['.js'],
+        ...aliases
+      }),
+      json(),
+      resolve(),
+      eslint({
+        cwd: dir,
+        parser: 'babel-eslint',
+        useEslintrc: false,
+        include: [
+          path.join(dir, 'app', '**'),
+        ],
+        exclude: [
+          path.join(dir, 'package.json'),
+          path.join(__dirname, '..', 'src', '**')
+        ]
+      }),
+      babel(),
+      lux(path.resolve(path.sep, dir, 'app'))
+    ]
+  });
 
   await rmrf(entry);
 
@@ -131,15 +131,16 @@ export async function compile(dir: string, env: string, {
   `;
 
   if (useStrict) {
-    banner = `\n'use strict';\n\n${banner}`;
+    banner = `'use strict';\n\n${banner}`;
   }
 
-  return bundle.write(
-    createBundleConfig({
-      banner,
-      dest: path.join(dir, 'dist', 'bundle.js')
-    })
-  );
+  return bundle.write({
+    banner,
+    dest: path.join(dir, 'dist', 'bundle.js'),
+    format: 'cjs',
+    sourceMap: true,
+    useStrict: false
+  });
 }
 
-export { createRollupConfig, createBundleConfig } from './utils/config';
+export { default as onwarn } from './utils/handle-warning';
