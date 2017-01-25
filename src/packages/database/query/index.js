@@ -165,10 +165,9 @@ class Query<+T: any> extends Promise {
         this.snapshots = this.snapshots
           .filter(([method]) => method !== 'orderByRaw')
           .concat([
-            // eslint-disable-next-line prefer-template
             ['orderByRaw', uniq([columnName, this.model.primaryKey])
-              .map(key => `${this.model.tableName}.${key}`)
-              .join(', ') + ` ${direction}`
+              .map(key => `${this.model.tableName}.${key} ${direction}`)
+              .join(', ')
             ]
           ]);
       }
@@ -431,7 +430,7 @@ class Query<+T: any> extends Promise {
   ): Promise<U> {
     runQuery(this);
     return super.then(onFulfilled, onRejected);
-  }
+  } // eslint-disable-line brace-style
 
   catch<U>(onRejected?: (error: Error) => ?Promise<U> | U): Promise<U> {
     runQuery(this);
