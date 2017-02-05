@@ -1,21 +1,17 @@
 export function up(schema) {
   return schema.createTable('notifications', table => {
     table.increments('id');
+    table.timestamps();
 
-    table.string('message')
+    table
+      .string('message')
       .notNullable();
 
-    table.boolean('unread')
+    table
+      .boolean('unread')
       .index()
       .defaultTo(true)
       .notNullable();
-
-    table.integer('recipient_id')
-      .index();
-
-    table.timestamps();
-    table.index('created_at');
-    table.index('updated_at');
   });
 }
 

@@ -1,7 +1,9 @@
 // @flow
 declare class Knex$SchemaBuilder extends Knex$QueryBuilder {
+  [key: string]: any;
   hasTable(name: string): this;
   dropTable(name: string): this;
+  alterTable(name: string, fn: (table: Object) => void): this;
   createTable(name: string, fn: (table: Object) => void): this;
 }
 

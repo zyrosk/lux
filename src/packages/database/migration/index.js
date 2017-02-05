@@ -1,18 +1,21 @@
 // @flow
-import type { Migration$Fn } from './interfaces';
+import type Knex from 'knex';
+
+import createSchemaBuilder from './utils/create-schema-builder';
+
+type Schema = $PropertyType<Knex, 'schema'>;
+type Migrator = (schema: Schema) => Schema;
 
 /**
  * @private
  */
-class Migration<T: Object> {
-  fn: Migration$Fn<T>;
+class Migration {
+  run: Migrator;
 
-  constructor(fn: Migration$Fn<T>) {
-    this.fn = fn;
-  }
-
-  run(schema: T): T {
-    return this.fn(schema);
+  constructor(fn: Migrator) {
+    this.run = schema => (
+      fn(createSchemaBuilder(schema))
+    );
   }
 }
 

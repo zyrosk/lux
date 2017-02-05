@@ -1,22 +1,22 @@
 export function up(schema) {
   return schema.createTable('users', table => {
     table.increments('id');
+    table.timestamps();
 
-    table.string('name')
+    table
+      .string('name')
       .index()
       .notNullable();
 
-    table.string('email')
+    table
+      .string('email')
       .index()
       .unique()
       .notNullable();
 
-    table.string('password')
+    table
+      .string('password')
       .notNullable();
-
-    table.timestamps();
-    table.index('created_at');
-    table.index('updated_at');
   });
 }
 
