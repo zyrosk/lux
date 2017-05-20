@@ -1,21 +1,22 @@
-// @flow
+/* @flow */
+
 import merge from '../../../utils/merge';
-import type { Model, Query } from '../../database'; // eslint-disable-line max-len, no-unused-vars
-import type { Request } from '../../server';
+// eslint-disable-next-line no-unused-vars
+import type { Model, Query } from '../../database';
+import type Request from '../../request';
 
 import paramsToQuery from './params-to-query';
 
 /**
  * @private
  */
-export default function findOne<T: Model>(
-  model: Class<T>,
-  req: Request
-): Query<T> {
-  const params = merge(req.defaultParams, req.params);
+function findOne<T: Model>(model: Class<T>, request: Request): Query<T> {
+  const params = merge(request.defaultParams, request.params);
   const { id, select, include } = paramsToQuery(model, params);
 
   return model.find(id)
     .select(...select)
     .include(include);
 }
+
+export default findOne;

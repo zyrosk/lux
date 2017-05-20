@@ -1,81 +1,65 @@
-// @flow
+/* @flow */
+
 import chalk from 'chalk';
 
 import { DEBUG } from '../../constants';
 import { infoTemplate, debugTemplate } from '../templates';
 import type Logger from '../../index';
-import type { Request, Response } from '../../../server';
+import type Request from '../../../request';
+import type Response from '../../../response';
 
 import filterParams from './filter-params';
+
+type Options = {
+  request: Request;
+  response: Response;
+  startTime: number;
+};
 
 /**
  * @private
  */
-export default function logText(logger: Logger, {
-  startTime,
-  request: req,
-  response: res
-}: {
-  request: Request;
-  response: Response;
-  startTime: number;
-}): void {
-  res.once('finish', () => {
-    const endTime = Date.now();
+export default function logText(logger: Logger, options: Options): void {
+  const { request, response, startTime } = options;
+  const endTime = Date.now();
+  const { method, url: { path } } = request;
+  const { stats, statusMessage } = response;
+  let { params } = request;
+  let { statusCode } = response;
+  let statusColor;
 
-    const {
-      route,
-      method,
+  params = filterParams(params, ...logger.filter.params);
 
-      url: {
-        path
-      },
+  if (statusCode >= 200 && statusCode < 400) {
+    statusColor = 'green';
+  } else {
+    statusColor = 'red';
+  }
 
-      connection: {
-        remoteAddress
-      }
-    } = req;
+  let colorStr = Reflect.get(chalk, statusColor);
 
-    const { stats, statusMessage } = res;
+  if (typeof colorStr === 'undefined') {
+    colorStr = (str: string) => str;
+  }
 
-    let { params } = req;
-    let { statusCode } = res;
-    let statusColor;
+  statusCode = String(statusCode);
 
-    params = filterParams(params, ...logger.filter.params);
+  const templateData = {
+    path,
+    stats,
+    method,
+    params,
+    colorStr,
+    startTime,
+    endTime,
+    statusCode,
+    statusMessage,
+    remoteAddress: '::1'
+  };
 
-    if (statusCode >= 200 && statusCode < 400) {
-      statusColor = 'green';
-    } else {
-      statusColor = 'red';
-    }
-
-    let colorStr = Reflect.get(chalk, statusColor);
-
-    if (typeof colorStr === 'undefined') {
-      colorStr = (str: string) => str;
-    }
-
-    statusCode = statusCode.toString();
-
-    const templateData = {
-      path,
-      stats,
-      route,
-      method,
-      params,
-      colorStr,
-      startTime,
-      endTime,
-      statusCode,
-      statusMessage,
-      remoteAddress
-    };
-
-    if (logger.level === DEBUG) {
-      logger.debug(debugTemplate(templateData));
-    } else {
-      logger.info(infoTemplate(templateData));
-    }
-  });
+  if (logger.level === DEBUG) {
+    logger.debug(debugTemplate(templateData));
+  } else {
+    logger.info(infoTemplate(templateData));
+  }
 }

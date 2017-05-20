@@ -1,4 +1,5 @@
-// @flow
+/* @flow */
+
 import { posix, join as joinPath } from 'path';
 
 import { green } from 'chalk';
@@ -260,6 +261,6 @@ export async function resource(opts: Generator$opts) {
     }, ''))
     .value();
 
-  await writeFile(path, routes);
+  await writeFile(path, Buffer.from(routes));
   log(`${green('update')} app/routes.js`);
 }

@@ -1,6 +1,7 @@
-// @flow
+/* @flow */
+
 import { FreezeableMap } from '../freezeable';
-import type { Request } from '../server';
+import type Request from '../request';
 
 import Namespace from './namespace';
 import { build, define } from './definitions';
@@ -36,15 +37,19 @@ class Router extends FreezeableMap<string, Route> {
   }
 
   match({ method, url }: Request): void | Route {
-    const params = [];
-    const staticPath = url.pathname.replace(this.replacer, (str, g1, g2) => {
-      params.push(g2);
-      return `${g1}/:dynamic`;
-    });
+    if (url.pathname) {
+      const params = [];
+      const staticPath = url.pathname.replace(this.replacer, (str, g1, g2) => {
+        params.push(g2);
+        return `${g1}/:dynamic`;
+      });
 
-    Reflect.set(url, 'params', params);
+      // eslint-disable-next-line no-param-reassign
+      url.params = params;
+      return this.get(`${method}:${staticPath}`);
+    }
 
-    return this.get(`${method}:${staticPath}`);
+    return undefined;
   }
 }
 

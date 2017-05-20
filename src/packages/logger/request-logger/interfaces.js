@@ -1,27 +1,16 @@
-// @flow
+/* @flow */
+
 import type { Route } from '../../router';
-import type { Request, Response } from '../../server';
-
-export type Logger$RequestLogger = (
-  req: Request,
-  res: Response,
-
-  opts: {
-    startTime: number
-  }
-) => void;
 
 export type RequestLogger$templateData = {
   path: string;
-  stats: Array<Object>;
-  route?: Route;
+  stats: Array<any>;
   method: string;
-  params: Object;
+  params: any;
   startTime: number;
   endTime: number;
   statusCode: string;
   statusMessage: string;
   remoteAddress: string;
-
   colorStr(source: string): string;
 };

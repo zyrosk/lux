@@ -3,9 +3,8 @@ export default {
     level: 'WARN',
     format: 'text',
     enabled: false,
-
     filter: {
-      params: []
-    }
+      params: [],
+    },
   }
 };

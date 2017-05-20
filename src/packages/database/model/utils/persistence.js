@@ -1,10 +1,12 @@
-// @flow
+/* @flow */
+
 import { sql } from '../../../logger';
 import omit from '../../../../utils/omit';
 // eslint-disable-next-line no-duplicate-imports
 import type Logger from '../../../logger';
 import type Model from '../index';
 
+import tableFor from './table-for';
 import getColumns from './get-columns';
 
 /**
@@ -31,9 +33,7 @@ export function create(record: Model, trx: Object): Array<Object> {
   }
 
   return [
-    record.constructor
-      .table()
-      .transacting(trx)
+    tableFor(record, trx)
       .returning(record.constructor.primaryKey)
       .insert(columns)
   ];
@@ -46,14 +46,11 @@ export function update(record: Model, trx: Object): Array<Object> {
   Reflect.set(record, 'updatedAt', new Date());
 
   return [
-    record.constructor
-      .table()
-      .transacting(trx)
+    tableFor(record, trx)
       .where(record.constructor.primaryKey, record.getPrimaryKey())
-      .update(getColumns(
-        record,
-        Array.from(record.dirtyAttributes.keys())
-      ))
+      .update(getColumns(record, [
+        ...record.dirtyAttributes.keys()
+      ]))
   ];
 }
 
@@ -62,9 +59,7 @@ export function update(record: Model, trx: Object): Array<Object> {
  */
 export function destroy(record: Model, trx: Object): Array<Object> {
   return [
-    record.constructor
-      .table()
-      .transacting(trx)
+    tableFor(record, trx)
       .where(record.constructor.primaryKey, record.getPrimaryKey())
       .del()
   ];

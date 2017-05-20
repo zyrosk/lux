@@ -1,15 +1,31 @@
-// @flow
+/* @flow */
+
 import { FreezeableSet, freezeProps, deepFreezeProps } from '../../freezeable';
 import type Controller from '../../controller';
-import type { Request, Response, Request$method } from '../../server';
+import type Request, { Method } from '../../request';
+import type Response from '../../response';
 
-import { FINAL_HANDLER, createAction } from './action';
+import { createAction } from './action';
 import { paramsFor, defaultParamsFor, validateResourceId } from './params';
 import getStaticPath from './utils/get-static-path';
 import getDynamicSegments from './utils/get-dynamic-segments';
-import type { Action } from './action'; // eslint-disable-line max-len, no-duplicate-imports
-import type { ParameterGroup } from './params'; // eslint-disable-line max-len, no-duplicate-imports
-import type { Route$opts } from './interfaces';
+// eslint-disable-next-line no-duplicate-imports
+import type { Action } from './action';
+// eslint-disable-next-line no-duplicate-imports
+import type { ParameterGroup } from './params';
+
+export type Type =
+  | 'custom'
+  | 'member'
+  | 'collection';
+
+export type Options = {
+  type: Type;
+  path: string;
+  action: string;
+  method: Method;
+  controller: Controller;
+};
 
 /**
  * @private
@@ -23,7 +39,7 @@ class Route extends FreezeableSet<Action<any>> {
 
   params: ParameterGroup;
 
-  method: Request$method;
+  method: Method;
 
   controller: Controller;
 
@@ -39,7 +55,7 @@ class Route extends FreezeableSet<Action<any>> {
     action,
     method,
     controller
-  }: Route$opts) {
+  }: Options) {
     const dynamicSegments = getDynamicSegments(path);
 
     if (action && controller) {
@@ -134,7 +150,7 @@ class Route extends FreezeableSet<Action<any>> {
       // eslint-disable-next-line no-await-in-loop
       data = await handler(req, res, data);
 
-      if (handler.name === FINAL_HANDLER) {
+      if (handler.isFinal) {
         calledFinal = true;
       }
 
@@ -146,27 +162,27 @@ class Route extends FreezeableSet<Action<any>> {
     return data;
   }
 
-  async visit(req: Request, res: Response): Promise<any> {
+  async visit(request: Request, response: Response): Promise<any> {
     const { defaultParams } = this;
     let params = {
-      ...req.params,
-      ...this.parseParams(req.url.params)
+      ...request.params,
+      ...this.parseParams(request.url.params)
     };
 
-    if (req.method !== 'OPTIONS') {
+    if (request.method !== 'OPTIONS') {
       params = this.params.validate(params);
     }
 
-    Object.assign(req, {
+    Object.assign(request, {
       params,
-      defaultParams
+      defaultParams,
     });
 
-    if (this.type === 'member' && req.method === 'PATCH') {
-      validateResourceId(req);
+    if (this.type === 'member' && request.method === 'PATCH') {
+      validateResourceId(request);
     }
 
-    return this.execHandlers(req, res);
+    return this.execHandlers(request, response);
   }
 }
 

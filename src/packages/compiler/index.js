@@ -1,6 +1,7 @@
-// @flow
-import os from 'os';
-import path, { posix } from 'path';
+/* @flow */
+
+import * as os from 'os';
+import * as path from 'path';
 
 import lux from 'rollup-plugin-lux';
 import json from 'rollup-plugin-json';
@@ -17,12 +18,14 @@ import { NODE_ENV } from '../../constants';
 import onwarn from './utils/handle-warning';
 import isExternal from './utils/is-external';
 import createManifest from './utils/create-manifest';
+import readBabelConfig from './utils/read-babel-config';
 import createBootScript from './utils/create-boot-script';
 
 /**
  * @private
  */
-type CompileOptions = {
+type Options = {
+  local?: string;
   useStrict?: boolean;
 };
 
@@ -34,10 +37,10 @@ let cache;
 export async function compile(
   dir: string,
   env: string,
-  opts: CompileOptions = {}
+  opts: Options = {}
 ): Promise<void> {
   const { useStrict = false } = opts;
-  const local = path.join(__dirname, '..', 'src', 'index.js');
+  const local = opts.local || path.join(__dirname, '..', 'src', 'index.js');
   const entry = path.join(dir, 'dist', 'index.js');
   const external = isExternal(dir);
   let banner;
@@ -83,8 +86,8 @@ export async function compile(
   ]);
 
   const aliases = {
-    app: posix.join('/', ...dir.split(path.sep), 'app'),
-    LUX_LOCAL: posix.join('/', ...local.split(path.sep))
+    app: path.posix.join('/', ...dir.split(path.sep), 'app'),
+    LUX_LOCAL: path.posix.join('/', ...local.split(path.sep))
   };
 
   if (os.platform() === 'win32') {
@@ -118,10 +121,13 @@ export async function compile(
         ],
         exclude: [
           path.join(dir, 'package.json'),
-          path.join(__dirname, '..', 'src', '**')
+          path.join(local, '..', '**')
         ]
       }),
-      babel(),
+      babel({
+        ...(await readBabelConfig(dir)),
+        babelrc: false,
+      }),
       lux(path.resolve(path.sep, dir, 'app'))
     ]
   });

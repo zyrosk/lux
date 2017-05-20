@@ -1,4 +1,5 @@
-// @flow
+/* @flow */
+
 function formatInt(int: number): string {
   return (int / 10).toString().replace('.', '').substr(0, 2);
 }
@@ -23,5 +24,5 @@ export default function generateTimestamp(): string {
     + formatInt(now.getSeconds())
     + formatInt(now.getMilliseconds());
 
-  return timestamp + Array.from(padding('0', 16 - timestamp.length)).join('');
+  return timestamp + [...padding('0', 16 - timestamp.length)].join('');
 }

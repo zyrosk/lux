@@ -1,14 +1,20 @@
 build: off
+image: Visual Studio 2017
 version: '{build}'
 branches:
   only:
     - master
+cache:
+  - .eslintcache
+  - .jest-cache
+  - node_modules
+  - test\test-app\node_modules
 platform: x64
 services:
   - mysql
   - postgresql
 environment:
-  nodejs_version: 6
+  nodejs_version: 6.10.0
   NODE_ENV: test
   CREATE_DATABASE: CREATE DATABASE lux_test;
   DROP_DATABASE: DROP DATABASE IF EXISTS lux_test;
@@ -21,10 +27,10 @@ environment:
     - DATABASE_DRIVER: sqlite3
 install:
   - ps: Install-Product node $env:nodejs_version $env:platform
-  - npm install
+  - yarn install
   - npm link
   - ps: Set-Location C:\projects\lux\test\test-app
-  - npm install
+  - yarn install
   - ps: Set-Location C:\projects\lux
 before_test:
   - |
@@ -35,20 +41,39 @@ before_test:
     psql -c "%DROP_DATABASE%"
     psql -c "%CREATE_DATABASE%"
   - ps: |
-      $env:MYSQL_PWD="$env:DATABASE_PASSWORD"
-      $mysql="C:\Program Files\MySql\MySQL Server 5.7\bin\mysql"
+      if ($env:DATABASE_DRIVER -eq "mysql2") {
+        $env:MYSQL_PWD="$env:DATABASE_PASSWORD"
+        $mysql="C:\Program Files\MySql\MySQL Server 5.7\bin\mysql"
 
-      Invoke-Expression "& '$mysql' -e '$env:DROP_DATABASE' -u root"
-      Invoke-Expression "& '$mysql' -e '$env:CREATE_DATABASE' -u root"
+        Invoke-Expression "& '$mysql' -e '$env:DROP_DATABASE' -u root"
+        Invoke-Expression "& '$mysql' -e '$env:CREATE_DATABASE' -u root"
+      }
 
-      Remove-Item C:\projects\lux\test\test-app\db\* -Force -Include *.sqlite
-      Write-Host $null >> C:\projects\lux\test\test-app\db\lux_test_test.sqlite
-  - npm run clean
-  - npm run build
+      if ($env:DATABASE_DRIVER -eq "sqlite3") {
+        Remove-Item C:\projects\lux\test\test-app\db\* -Force -Include *.sqlite
+        Write-Host $null >> C:\projects\lux\test\test-app\db\lux_test_test.sqlite
+      }
+  - yarn run clean
+  - ps: |
+      $env:NODE_ENV="production"
+      Set-Location C:\projects\lux
+      yarn build
+
+      $env:NODE_ENV="test"
+      Set-Location C:\projects\lux\test\test-app
+      lux build -e test
+
+      if ($env:DATABASE_DRIVER -ne "sqlite3") {
+        lux db:migrate -e test --skip-build
+        lux db:seed -e test --skip-build
+      }
+
+      Set-Location C:\projects\lux
 test_script:
-  - npm run flow
-  - npm run lint
-  - npm test
+  - yarn lint
+  - yarn flow
+  - ps: yarn test -- --colors --no-watchman
+  - yarn codecov
 notifications:
 - provider: Webhook
   url: https://webhooks.gitter.im/e/070ebbf83dc0f595c4fb

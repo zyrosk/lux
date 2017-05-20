@@ -1,4 +1,9 @@
-// @flow
+/* @flow */
+
+export type ObjectMap<T> = {
+  [key: string]: T;
+};
+
 export interface Lux$Collection<T> {
   size: number;
 

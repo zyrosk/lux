@@ -1,4 +1,5 @@
-// @flow
+/* @flow */
+
 import type Logger from '../logger';
 import type { Model } from './index';
 
@@ -20,6 +21,7 @@ export type Database$environment = {
   debug?: boolean;
   driver: string;
   socket?: string;
+  memory?: boolean;
   database?: string;
   username?: string;
   password?: string;
@@ -28,7 +30,7 @@ export type Database$environment = {
   url?: string;
 };
 
-export type Database$config = {
+export type Config = {
   development: Database$environment;
   test: Database$environment;
   production: Database$environment;
@@ -37,7 +39,7 @@ export type Database$config = {
 export type Database$opts = {
   path: string;
   models: Map<string, Class<Model>>;
-  config: Database$config;
+  config: Config;
   logger: Logger;
   checkMigrations: boolean;
 };

@@ -1,5 +1,6 @@
-// @flow
-import type { Response } from '../../server';
+/* @flow */
+
+import type Response from '../../response';
 
 /**
  * Create a Proxy that will trap typical node middleware callback invocations

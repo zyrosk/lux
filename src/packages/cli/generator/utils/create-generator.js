@@ -1,4 +1,5 @@
-// @flow
+/* @flow */
+
 import { join as joinPath } from 'path';
 
 import { red, green, yellow } from 'chalk';
@@ -44,7 +45,7 @@ export default function createGenerator({
       }
     }
 
-    await writeFile(path.absolute, template(name, attrs));
+    await writeFile(path.absolute, Buffer.from(template(name, attrs)));
     log(`${action} ${path.relative}`);
   };
 }

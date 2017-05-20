@@ -1,4 +1,5 @@
-// @flow
+/* @flow */
+
 import type { Builder$Construct, Builder$ChildrenBuilder } from '../interfaces';
 
 export default function createChildrenBuilder<T>(
@@ -8,7 +9,7 @@ export default function createChildrenBuilder<T>(
     key,
     value,
     parent
-  }) => Array.from(value).map(([name, constructor]) => {
+  }) => [...value].map(([name, constructor]) => {
     const normalized = key === 'root' ? name : `${key}/${name}`;
 
     if (parent && normalized.endsWith('application')) {

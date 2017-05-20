@@ -1,4 +1,5 @@
-// @flow
+/* @flow */
+
 import { camelize } from 'inflection';
 
 import entries from '../../../utils/entries';
@@ -162,11 +163,13 @@ class Query<+T: any> extends Promise {
       const columnName = this.model.columnNameFor(attr);
 
       if (columnName) {
+        const dirUpcase = direction.toUpperCase();
+
         this.snapshots = this.snapshots
           .filter(([method]) => method !== 'orderByRaw')
           .concat([
             ['orderByRaw', uniq([columnName, this.model.primaryKey])
-              .map(key => `${this.model.tableName}.${key} ${direction}`)
+              .map(key => `${this.model.tableName}.${key} ${dirUpcase}`)
               .join(', ')
             ]
           ]);
@@ -472,6 +475,7 @@ class Query<+T: any> extends Promise {
     return super.then(onFulfilled, onRejected);
   } // eslint-disable-line brace-style
 
+  // $FlowIgnore
   catch<U>(onRejected?: (error: Error) => ?Promise<U> | U): Promise<U> {
     runQuery(this);
     return super.catch(onRejected);

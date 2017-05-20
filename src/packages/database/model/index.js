@@ -1,4 +1,5 @@
-// @flow
+/* @flow */
+
 import { pluralize } from 'inflection';
 
 import Query from '../query';
@@ -10,6 +11,7 @@ import {
   createInstanceTransactionProxy
 } from '../transaction';
 import pick from '../../../utils/pick';
+import entries from '../../../utils/entries';
 import underscore from '../../../utils/underscore';
 import { compose } from '../../../utils/compose';
 import { map as diffMap } from '../../../utils/diff';
@@ -806,13 +808,11 @@ class Model {
       }
     } = this;
 
-    Array
-      .from(dirtyProperties.keys())
-      .forEach(key => {
-        if (relationshipNames.indexOf(key) >= 0) {
-          dirtyProperties.delete(key);
-        }
-      });
+    dirtyProperties.forEach((prop, key) => {
+      if (relationshipNames.indexOf(key) >= 0) {
+        dirtyProperties.delete(key);
+      }
+    });
 
     return dirtyProperties;
   }
@@ -1101,12 +1101,30 @@ class Model {
    * @return {Promise} Resolves with `this`.
    * @public
    */
-  reload(): Promise<this> {
+  reload(): Query<this> {
     if (this.isNew) {
+      // $FlowIgnore
       return Promise.resolve(this);
     }
 
-    return this.constructor.find(this.getPrimaryKey());
+    const {
+      persistedChangeSet,
+      constructor: {
+        attributeNames,
+        relationshipNames,
+      },
+    } = this;
+
+    let filterKey = key => attributeNames.includes(key);
+
+    if (persistedChangeSet) {
+      filterKey = key => persistedChangeSet.has(key);
+    }
+
+    return this.constructor
+      .find(this.getPrimaryKey())
+      .select(...attributeNames.filter(filterKey))
+      .include(...relationshipNames.filter(filterKey));
   }
 
   /**
@@ -1136,7 +1154,13 @@ class Model {
    * and their associated values.
    * @private
    */
-  getAttributes(...keys: Array<string>): Object {
+  getAttributes(...attrs: Array<string>): Object {
+    let keys = attrs;
+
+    if (keys.length === 0) {
+      keys = this.constructor.attributeNames;
+    }
+
     return pick(this, ...keys);
   }
 
@@ -1147,6 +1171,31 @@ class Model {
    */
   getPrimaryKey(): number {
     return Reflect.get(this, this.constructor.primaryKey);
+  }
+
+  toObject(callee?: Model, prev?: Object): Object {
+    const { currentChangeSet, constructor: { relationships } } = this;
+
+    return entries(relationships).reduce((obj, [key, { type }]) => {
+      const value = currentChangeSet.get(key);
+
+      /* eslint-disable no-param-reassign */
+
+      if (type === 'hasMany' && Array.isArray(value)) {
+        obj[key] = value.map(item => {
+          if (item === callee) {
+            return prev;
+          }
+          return item.toObject(this, obj);
+        });
+      } else if (value && typeof value.toObject === 'function') {
+        obj[key] = value === callee ? prev : value.toObject(this, obj);
+      }
+
+      /* eslint-enable no-param-reassign */
+
+      return obj;
+    }, this.getAttributes());
   }
 
   /**
@@ -1288,26 +1337,30 @@ class Model {
    * @public
    */
   static transaction<T>(fn: (...args: Array<any>) => Promise<T>): Promise<T> {
-    return new Promise((resolve, reject) => {
-      const { store: { connection } } = this;
-      let result: T;
+    if (this.store.hasPool) {
+      return new Promise((resolve, reject) => {
+        const { store: { connection } } = this;
+        let result: T;
 
-      connection
-        .transaction(trx => {
-          fn(trx)
-            .then(data => {
-              result = data;
-              return trx.commit();
-            })
-            .catch(trx.rollback);
-        })
-        .then(() => {
-          resolve(result);
-        })
-        .catch(err => {
-          reject(err);
-        });
-    });
+        connection
+          .transaction(trx => {
+            fn(trx)
+              .then(data => {
+                result = data;
+                return trx.commit();
+              })
+              .catch(trx.rollback);
+          })
+          .then(() => {
+            resolve(result);
+          })
+          .catch(err => {
+            reject(err);
+          });
+      });
+    }
+
+    return fn();
   }
 
   static all(): Query<Array<this>> {
@@ -1490,4 +1543,5 @@ class Model {
 }
 
 export default Model;
+export { default as tableFor } from './utils/table-for';
 export type { Model$Hook, Model$Hooks } from './interfaces';
