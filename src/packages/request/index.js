@@ -1,7 +1,7 @@
 /* @flow */
 
-import type Logger from '../logger';
-import type { ObjectMap } from '../../interfaces';
+import type Logger from '../logger'
+import type { ObjectMap } from '../../interfaces'
 
 export type URL = {
   protocol?: string;
@@ -17,9 +17,9 @@ export type URL = {
   path?: string;
   href: string;
   params: Array<any>;
-};
+}
 
-export type Params = ObjectMap<any>;
+export type Params = ObjectMap<any>
 
 export type Method =
   | 'GET'
@@ -27,7 +27,7 @@ export type Method =
   | 'POST'
   | 'PATCH'
   | 'DELETE'
-  | 'OPTIONS';
+  | 'OPTIONS'
 
 export type Options = {
   url: URL;
@@ -37,7 +37,7 @@ export type Options = {
   headers: Map<string, string>;
   encrypted: boolean;
   defaultParams: ObjectMap<any>;
-};
+}
 
 /**
  * @class Request
@@ -53,9 +53,9 @@ class Request {
   defaultParams: ObjectMap<any>;
 
   constructor(options: Options) {
-    Object.assign(this, options);
+    Object.assign(this, options)
   }
 }
 
-export default Request;
-export * from './constants';
+export default Request
+export * from './constants'

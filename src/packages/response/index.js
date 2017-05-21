@@ -1,6 +1,6 @@
 /* @flow */
 
-import type Logger from '../logger';
+import type Logger from '../logger'
 
 /* eslint-disable no-use-before-define */
 
@@ -16,7 +16,7 @@ export type Options = {
   getHeader(key: string): void | string;
   setHeader(key: string, value: string): void;
   removeHeader(key: string): void;
-};
+}
 
 /* eslint-enable no-use-before-define */
 
@@ -38,9 +38,9 @@ class Response {
   removeHeader: (key: string) => void;
 
   constructor(options: Options) {
-    Object.assign(this, options);
+    Object.assign(this, options)
   }
 }
 
-export default Response;
-export * from './constants';
+export default Response
+export * from './constants'

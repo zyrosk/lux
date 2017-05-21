@@ -1,8 +1,8 @@
 /* @flow */
 
-import { MIME_TYPE } from '../jsonapi';
-import type Application from '../application';
-import type { Method } from '../request';
+import { MIME_TYPE } from '../jsonapi'
+import type Application from '../application'
+import type { Method } from '../request'
 
 type Options = {
   body?: Object;
@@ -10,14 +10,14 @@ type Options = {
   cache?: string;
   method?: Method;
   headers?: Object;
-};
+}
 
-export type Fetch = (url: string, options: Options) => Promise<any>;
+export type Fetch = (url: string, options: Options) => Promise<any>
 
 const getDefaultHeaders = () => ({
   Accept: MIME_TYPE,
   'Content-Type': MIME_TYPE,
-});
+})
 
 export function mockFetch({ exec }: Application): Fetch {
   return (url, { method = 'GET', headers = {} }) => (
@@ -27,7 +27,7 @@ export function mockFetch({ exec }: Application): Fetch {
         resolve,
         method: String(method).toUpperCase(),
         headers: Object.assign(getDefaultHeaders(), headers),
-      });
+      })
     })
-  );
+  )
 }
