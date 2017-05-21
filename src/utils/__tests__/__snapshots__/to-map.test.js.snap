@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`it can collect an array of items into a map 1`] = `
+Map {
+  1 => Object {
+    "id": 1,
+    "name": "Test 1",
+  },
+  2 => Object {
+    "id": 2,
+    "name": "Test 2",
+  },
+  3 => Object {
+    "id": 3,
+    "name": "Test 3",
+  },
+  4 => Object {
+    "id": 4,
+    "name": "Test 4",
+  },
+}
+`;
+
+exports[`it ignores the item when the key is null or undefined 1`] = `
+Map {
+  1 => Object {
+    "id": 1,
+    "name": "Test 1",
+  },
+  2 => Object {
+    "id": 2,
+    "name": "Test 2",
+  },
+}
+`;
