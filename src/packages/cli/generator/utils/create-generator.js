@@ -2,9 +2,11 @@
 
 import { join as joinPath } from 'path'
 
+import * as fs from 'mz/fs'
 import { red, green, yellow } from 'chalk'
 
-import { rmrf, exists, mkdirRec, writeFile, parsePath } from '../../../fs'
+import * as fse from 'utils/fs-extras'
+import { rmrf, parsePath } from '../../../fs'
 import type { Generator, Generator$template } from '../index'
 
 import log from './log'
@@ -17,8 +19,8 @@ const FORWARD_SLASH = /\//g
 export default function createGenerator({
   dir,
   template,
-  hasConflict = exists
-}: {
+  hasConflict = fse.exists
+  }: {
   dir: string;
   template: Generator$template;
   hasConflict?: (path: string) => Promise<boolean>;
@@ -28,7 +30,7 @@ export default function createGenerator({
     const name = opts.name.replace(FORWARD_SLASH, '-')
     let action = green('create')
 
-    await mkdirRec(path.dir)
+    await fse.mkdirRec(path.dir)
 
     if (await hasConflict(path.absolute)) {
       const shouldContinue = await onConflict(path.relative)
@@ -45,7 +47,7 @@ export default function createGenerator({
       }
     }
 
-    await writeFile(path.absolute, Buffer.from(template(name, attrs)))
+    await fs.writeFile(path.absolute, Buffer.from(template(name, attrs)))
     log(`${action} ${path.relative}`)
   }
 }

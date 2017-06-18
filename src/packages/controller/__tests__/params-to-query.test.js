@@ -2,7 +2,7 @@
 
 import type { Model } from '../../database'
 import type Request from '../../request'
-import merge from '../../../utils/merge'
+import merge from 'utils/merge'
 import paramsToQuery from '../utils/params-to-query'
 import { getTestApp } from '../../../../test/utils/test-app'
 

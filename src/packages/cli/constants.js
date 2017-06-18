@@ -1,7 +1,7 @@
 /* @flow */
 
 import template from '../template'
-import { fileLink } from '../../utils/github'
+import { fileLink } from 'utils/github'
 
 export const VALID_DATABASES = [
   'postgres',

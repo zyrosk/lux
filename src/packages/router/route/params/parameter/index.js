@@ -24,7 +24,7 @@ class Parameter extends FreezeableSet<mixed> {
     values,
     required,
     sanitize
-  }: Parameter$opts) {
+    }: Parameter$opts) {
     super(values)
 
     Object.assign(this, {

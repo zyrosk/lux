@@ -12,7 +12,7 @@ export default function getDefaultMemberParams({
     hasMany,
     attributes
   }
-}: Controller): Object {
+  }: Controller): Object {
   return {
     fields: {
       [model.resourceName]: attributes,

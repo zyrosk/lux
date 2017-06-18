@@ -1,7 +1,7 @@
 /* @flow */
 
 import * as path from 'path'
-// $FlowIgnore
+// $FlowFixMe
 import { __reset__ } from 'fs'
 
 import * as fs from '../index'
@@ -27,18 +27,18 @@ describe('module "fs"', () => {
     })
 
     test('is true if regexp "PATH" exists within "DIR"', async () => {
-      const result = await fs.exists(
+      const result = await fs.existsInDir(
+        path.dirname(tmp),
         new RegExp(path.basename(tmp)),
-        path.dirname(tmp)
       )
 
       expect(result).toBe(true)
     })
 
     test('is false if regexp "PATH" does not exist within "DIR"', async () => {
-      const result = await fs.exists(
+      const result = await fs.existsInDir(
+        path.dirname(tmp),
         new RegExp('does-not-exist.tmp'),
-        path.dirname(tmp)
       )
 
       expect(result).toBe(false)

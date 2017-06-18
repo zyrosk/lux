@@ -2,13 +2,9 @@
 
 import * as path from 'path'
 
-const LOCAL = path.join(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  'index.js',
-)
+import { rollup } from 'rollup'
+
+import { compile, onwarn } from '../index'
 
 const APP_PATH = path.join(
   __dirname,
@@ -20,24 +16,13 @@ const APP_PATH = path.join(
   'test-app',
 )
 
+jest.mock('rollup')
+
 describe('module "compiler"', () => {
   describe('#compile()', () => {
-    let rollup
-    let compile
-
-    beforeAll(async () => {
-      rollup = jest.mock('rollup');
-      ({ compile } = require('../index'))
-    })
-
-    afterAll(async () => {
-      jest.unmock('rollup')
-    })
-
     describe('- with strict mode', () => {
       test('creates an instance with the correct config', async () => {
         await compile(APP_PATH, 'test', {
-          local: LOCAL,
           useStrict: true,
         })
 
@@ -48,7 +33,6 @@ describe('module "compiler"', () => {
     describe('- without strict mode', () => {
       test('creates an instance with the correct config', async () => {
         await compile(APP_PATH, 'test', {
-          local: LOCAL,
           useStrict: false,
         })
 
@@ -61,16 +45,14 @@ describe('module "compiler"', () => {
 
   describe('#onwarn()', () => {
     const { warn } = console
-    let onwarn
 
     beforeAll(() => {
-      // $FlowIgnore
-      console.warn = jest.fn();
-      ({ onwarn } = require('../index'))
+      // $FlowFixMe
+      console.warn = jest.fn()
     })
 
     afterAll(() => {
-      // $FlowIgnore
+      // $FlowFixMe
       console.warn = warn
       jest.resetModules()
     })

@@ -3,7 +3,7 @@
 import * as os from 'os'
 import { worker, isWorker } from 'cluster'
 
-import normalizePort from './utils/normalize-port'
+import normalizePort from 'utils/normalize-port'
 
 const { env: ENV } = process
 

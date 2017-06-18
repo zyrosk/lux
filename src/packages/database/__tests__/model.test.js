@@ -280,7 +280,7 @@ describe('module "database/model"', () => {
             isPublic: true
           })
 
-          // $FlowIgnore
+          // $FlowFixMe
           result = result.unwrap()
 
           expect(result).toBeInstanceOf(Subject)
@@ -1045,7 +1045,7 @@ describe('module "database/model"', () => {
               isPublic: true
             })
           } else {
-            // $FlowIgnore
+            // $FlowFixMe
             Object.assign(instance, {
               body,
               user,

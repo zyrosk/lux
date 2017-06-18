@@ -23,7 +23,7 @@ const createSorter = field => {
     return 0
   }
 
-  return (direction = 'asc', tiebreaker = () => 0) => (
+  return (direction = 'asc', tiebreaker = (..._) => 0) => (
     (a: ObjectMap<string>, b: ObjectMap<string>) => {
       let result = 0
 

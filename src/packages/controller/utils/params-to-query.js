@@ -1,7 +1,6 @@
 /* @flow */
 
-import omit from '../../../utils/omit'
-import entries from '../../../utils/entries'
+import omit from 'utils/omit'
 import type { Model } from '../../database'
 import type Request from '../../request'
 
@@ -15,8 +14,8 @@ export default function paramsToQuery(model: Class<Model>, {
   filter,
   fields,
   include
-}: $PropertyType<Request, 'params'>): Object {
-  const relationships = entries(model.relationships)
+  }: $PropertyType<Request, 'params'>): Object {
+  const relationships = Object.entries(model.relationships)
   let includedFields = omit(fields, model.resourceName)
 
   let query = {
@@ -47,7 +46,7 @@ export default function paramsToQuery(model: Class<Model>, {
     }
   }
 
-  includedFields = entries(includedFields).reduce((result, field) => {
+  includedFields = Object.entries(includedFields).reduce((result, field) => {
     const [key] = field
     let [, value] = field
 
@@ -55,8 +54,8 @@ export default function paramsToQuery(model: Class<Model>, {
       name,
       relationship
     ] = relationships.find(([, { model: related }]) => (
-      key === related.resourceName
-    )) || []
+        key === related.resourceName
+      )) || []
 
     if (!name || !relationship) {
       return result

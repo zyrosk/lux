@@ -30,7 +30,7 @@ class Namespace extends FreezeableSet<Route | Router$Namespace> {
     namespace,
     controller,
     controllers
-  }: Namespace$opts) {
+    }: Namespace$opts) {
     super()
 
     Object.assign(this, {

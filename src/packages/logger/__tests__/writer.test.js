@@ -1,7 +1,7 @@
 /* @flow */
 
 import { WARN, ERROR, LEVELS, FORMATS } from '../constants'
-import { createWriter } from '../writer'
+import * as writer from '../writer'
 
 const {
   stdout: {
@@ -29,7 +29,7 @@ describe('module "logger/writer"', () => {
         let subject
 
         beforeAll(() => {
-          subject = createWriter(format)
+          subject = writer.create(format)
         })
 
         LEVELS.forEach((num, level) => {

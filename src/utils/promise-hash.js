@@ -1,15 +1,13 @@
 /* @flow */
 
-import entries from './entries'
-
 /**
  * @private
  */
 export default function promiseHash(promises: Object): Promise<Object> {
   if (Object.keys(promises).length) {
     return Promise.all(
-      entries(promises)
-        .map(([key, promise]: [string, Promise<mixed>]) => (
+      Object.entries(promises)
+        .map(([key, promise]) => (
           new Promise((resolve, reject) => {
             if (promise && typeof promise.then === 'function') {
               promise

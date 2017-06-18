@@ -2,7 +2,7 @@
 
 import { cyan } from 'chalk'
 
-import { CWD, PORT, NODE_ENV } from '../../../constants'
+import { CWD, PORT, NODE_ENV } from 'constants'
 import Logger from '../../logger'
 import { createLoader } from '../../loader'
 import { createCluster } from '../../pm'
@@ -17,7 +17,7 @@ export async function serve({
   hot = (NODE_ENV === 'development'),
   cluster = false,
   useStrict = false
-}: {
+  }: {
   hot: boolean;
   cluster: boolean;
   useStrict: boolean;

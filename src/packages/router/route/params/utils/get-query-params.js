@@ -22,7 +22,7 @@ function getPageParam(): [string, ParameterLike] {
  */
 function getSortParam({
   sort
-}: Controller): [string, ParameterLike] {
+  }: Controller): [string, ParameterLike] {
   return ['sort', new Parameter({
     path: 'sort',
     type: 'string',
@@ -39,7 +39,7 @@ function getSortParam({
  */
 function getFilterParam({
   filter
-}: Controller): [string, ParameterLike] {
+  }: Controller): [string, ParameterLike] {
   return ['filter', new ParameterGroup(filter.map(param => [
     param,
     new Parameter({
@@ -60,7 +60,7 @@ function getFieldsParam({
     hasMany,
     attributes
   }
-}: Controller): [string, ParameterLike] {
+  }: Controller): [string, ParameterLike] {
   const relationships = [...hasOne, ...hasMany]
 
   return ['fields', new ParameterGroup([
@@ -106,7 +106,7 @@ function getIncludeParam({
     hasOne,
     hasMany
   }
-}: Controller): [string, ParameterLike] {
+  }: Controller): [string, ParameterLike] {
   const relationships = [...hasOne, ...hasMany]
 
   return ['include', new Parameter({
@@ -121,7 +121,7 @@ function getIncludeParam({
  */
 export function getCustomParams({
   query
-}: Controller): Array<[string, ParameterLike]> {
+  }: Controller): Array<[string, ParameterLike]> {
   return query.map(param => [param, new Parameter({
     path: param
   })])

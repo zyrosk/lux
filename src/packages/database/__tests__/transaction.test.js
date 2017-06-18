@@ -12,7 +12,7 @@ describe('module "database/transaction"', () => {
   const tableName = 'posts'
   let app
 
-  // $FlowIgnore
+  // $FlowFixMe
   class Subject extends Model {
     static tableName = tableName;
   }
@@ -88,7 +88,7 @@ describe('module "database/transaction"', () => {
 
         beforeAll(async () => {
           await Subject.create().then(proxy => {
-            // $FlowIgnore
+            // $FlowFixMe
             instance = proxy.unwrap()
             ogMethod = instance[method]
 

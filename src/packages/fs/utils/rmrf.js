@@ -2,30 +2,30 @@
 
 import * as path from 'path'
 
-import noop from '../../../utils/noop'
-import { stat, rmdir, readdir, unlink } from '../index'
+import * as fs from 'mz/fs'
+
+const joinWith = a => b => path.join(a, b)
 
 /**
  * @private
  */
-async function rmrf(target: string): Promise<boolean> {
-  const stats = await stat(target).catch(noop)
+export const rmrf = (target: string): Promise<boolean> =>
+  fs.stat(target)
+    .then(stats =>
+      (stats.isDirectory() ?
+        fs.readdir(target)
+          .then(files => files.map(joinWith(target)))
+          .then(files => files.map(rmrf))
+          .then(Promise.all)
+        : fs.unlink(target))
+    )
+    .then(() => true)
+    .catch(err => {
+      if (err.code === 'ENOENT') {
+        return true
+      }
 
-  if (stats) {
-    if (stats.isDirectory()) {
-      const files = await readdir(target)
-
-      await Promise.all(
-        files.map(file => rmrf(path.join(target, file)))
-      )
-
-      await rmdir(target).catch(noop)
-    } else {
-      await unlink(target)
-    }
-  }
-
-  return true
-}
+      return err
+    })
 
 export default rmrf

@@ -2,9 +2,8 @@
 
 import Migration from '../migration'
 import { getTestApp } from '../../../../test/utils/test-app'
-import {
-  default as generateTimestamp,
-  padding
+import generateTimestamp, {
+  padding,
 } from '../migration/utils/generate-timestamp'
 
 describe('module "database/migration"', () => {
@@ -47,10 +46,10 @@ describe('module "database/migration"', () => {
       ))
 
       test('runs a migration function', () => subject
-          .run(store.schema())
-          .then(result => {
-            expect(result).toEqual(expect.anything())
-          }))
+        .run(store.schema())
+        .then(result => {
+          expect(result).toEqual(expect.anything())
+        }))
     })
   })
 })

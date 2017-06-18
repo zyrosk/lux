@@ -1,6 +1,6 @@
 /* @flow */
 
-import noop from '../../../../../utils/noop'
+import noop from 'utils/noop'
 import Logger from '../../../../logger'
 import { request, response } from '../../../../adapter/mock'
 import { createAction, createPageLinks } from '../index'
@@ -28,7 +28,7 @@ describe('module "router/route/action"', () => {
     beforeAll(async () => {
       app = await getTestApp()
 
-      // $FlowIgnore
+      // $FlowFixMe
       const controller: Controller = app.controllers.get('health')
       const action: Action<any> = controller.index
 
@@ -70,7 +70,7 @@ describe('module "router/route/action"', () => {
     const getOptions = ({
       total = 100,
       params = {}
-    }: {
+      }: {
       total?: number;
       params?: Object;
     } = {}) => ({

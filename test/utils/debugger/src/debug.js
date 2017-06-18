@@ -37,8 +37,8 @@ async function runCommand(command, args = [], messages = []) {
 
     run.once('exit', () => resolve(successMsg))
   })
-  .then(log)
-  .catch(err => log(err.toString()))
+    .then(log)
+    .catch(err => log(err.toString()))
 }
 
 // @async runInspector
@@ -83,8 +83,8 @@ function runInspector() {
     run.stdout.on('data', data => log(data.toString()))
     run.on('exit', (code) => log(`Child exited with code ${code}`))
   })
-  .then(msg => log(msg))
-  .catch(err => log(err.toString))
+    .then(msg => log(msg))
+    .catch(err => log(err.toString))
 }
 
 // @listener

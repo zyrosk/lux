@@ -23,6 +23,6 @@ export default function createServerError<T: Error>(
     value: statusCode,
   })
 
-  // $FlowIgnore
+  // $FlowFixMe
   return Target
 }

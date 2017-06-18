@@ -3,9 +3,8 @@
 import { camelize, singularize } from 'inflection'
 
 import Model from '../../../model'
-import entries from '../../../../../utils/entries'
-import underscore from '../../../../../utils/underscore'
-import promiseHash from '../../../../../utils/promise-hash'
+import underscore from 'utils/underscore'
+import promiseHash from 'utils/promise-hash'
 
 /**
  * @private
@@ -14,7 +13,7 @@ export default async function buildResults<T: Model>({
   model,
   records,
   relationships
-}: {
+  }: {
   model: Class<T>,
   records: Promise<Array<Object>>,
   relationships: Object
@@ -28,7 +27,8 @@ export default async function buildResults<T: Model>({
   }
 
   if (Object.keys(relationships).length) {
-    related = entries(relationships)
+    related = Object
+      .entries(relationships)
       .reduce((obj, entry) => {
         const [name, relationship] = entry
         let foreignKey = camelize(relationship.foreignKey, true)
@@ -83,7 +83,8 @@ export default async function buildResults<T: Model>({
 
   return results.map(record => {
     if (related) {
-      entries(related)
+      Object
+        .entries(related)
         .forEach(([name, relatedResults]: [string, Array<Model>]) => {
           const relationship = model.relationshipFor(name)
 
@@ -105,7 +106,8 @@ export default async function buildResults<T: Model>({
     }
 
     const instance = Reflect.construct(model, [
-      entries(record)
+      Object
+        .entries(record)
         .reduce((r, entry) => {
           let [key, value] = entry
 

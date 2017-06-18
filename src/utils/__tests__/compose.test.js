@@ -8,12 +8,12 @@ const log = console.log
 describe('util compose', () => {
   describe('.tap()', () => {
     beforeEach(() => {
-      // $FlowIgnore
+      // $FlowFixMe
       console.log = jest.fn()
     })
 
     afterEach(() => {
-      // $FlowIgnore
+      // $FlowFixMe
       console.log = log
       jest.resetAllMocks()
     })

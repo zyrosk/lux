@@ -1,8 +1,8 @@
 /* @flow */
 
-import omit from '../../../../../utils/omit'
-import merge from '../../../../../utils/merge'
-import createQueryString from '../../../../../utils/create-query-string'
+import omit from 'utils/omit'
+import merge from 'utils/merge'
+import createQueryString from 'utils/create-query-string'
 import type { Params } from '../../../../request'
 import type { Document } from '../../../../jsonapi'
 
@@ -62,7 +62,7 @@ function createLinkTemplate(options: Options) {
     }
   }
 
-  return () => null
+  return (..._) => null
 }
 
 /**

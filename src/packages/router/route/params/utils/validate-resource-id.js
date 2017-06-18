@@ -13,7 +13,7 @@ export default function validateResourceId({
       id: resourceId
     }
   }
-}: Request): true {
+  }: Request): true {
   if (id !== resourceId) {
     throw new ResourceMismatchError('data.id', String(id), String(resourceId))
   }

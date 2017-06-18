@@ -2,9 +2,9 @@
 
 import { worker, isMaster } from 'cluster'
 
-import { NODE_ENV } from '../../constants'
+import { NODE_ENV } from 'constants'
 import { createLoader } from '../loader'
-import { composeAsync } from '../../utils/compose'
+import { composeAsync } from 'utils/compose'
 
 import { ConfigMissingError, MigrationsPendingError } from './errors'
 import connect from './utils/connect'
@@ -32,7 +32,7 @@ export default async function initialize<T: Database>(
 
   const {
     debug = (NODE_ENV === 'development')
-  }: {
+    }: {
     debug: boolean
   } = config
 

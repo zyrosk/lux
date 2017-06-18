@@ -1,10 +1,10 @@
 import { EOL } from 'os'
 
-import { CWD } from '../../../constants'
+import { CWD } from 'constants'
 import Database, { pendingMigrations } from '../../database'
 import Logger, { sql } from '../../logger'
 import { createLoader } from '../../loader'
-import { composeAsync } from '../../../utils/compose'
+import { composeAsync } from 'utils/compose'
 
 /**
  * @private

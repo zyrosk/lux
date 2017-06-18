@@ -2,7 +2,7 @@
 
 import Controller from '../../../controller'
 import * as Adapters from '../../../adapter'
-import K from '../../../../utils/k'
+import K from 'utils/k'
 import { getTestApp } from '../../../../../test/utils/test-app'
 import Route from '../index'
 
@@ -24,7 +24,7 @@ describe('module "router/route"', () => {
       let controller: Controller
 
       beforeAll(() => {
-        // $FlowIgnore
+        // $FlowFixMe
         controller = app.controllers.get('posts')
       })
 
@@ -54,7 +54,7 @@ describe('module "router/route"', () => {
 
       test('throws when an an action is not provided', () => {
         expect(() => (
-          // $FlowIgnore
+          // $FlowFixMe
           new Route({
             controller,
             type: 'collection',
@@ -66,7 +66,7 @@ describe('module "router/route"', () => {
 
       test('throws when an an controller is not provided', () => {
         expect(() => (
-          // $FlowIgnore
+          // $FlowFixMe
           new Route({
             type: 'collection',
             path: 'posts',
@@ -82,7 +82,7 @@ describe('module "router/route"', () => {
       let dynamicRoute: Route
 
       beforeAll(() => {
-        // $FlowIgnore
+        // $FlowFixMe
         const controller: Controller = app.controllers.get('posts')
 
         staticRoute = new Route({
@@ -129,7 +129,7 @@ describe('module "router/route"', () => {
       describe('- with action only', () => {
         beforeAll(async () => {
           class TestController extends Controller {
-            // $FlowIgnore
+            // $FlowFixMe
             index = async () => ({
               meta: {
                 success: true
@@ -167,7 +167,7 @@ describe('module "router/route"', () => {
               })
             ];
 
-            // $FlowIgnore
+            // $FlowFixMe
             index = async () => ({
               meta: {
                 success: true
@@ -197,7 +197,7 @@ describe('module "router/route"', () => {
       describe('- with `afterAction`', () => {
         beforeAll(async () => {
           class TestController extends Controller {
-            // $FlowIgnore
+            // $FlowFixMe
             index = async () => ({
               meta: {
                 success: true,
@@ -243,7 +243,7 @@ describe('module "router/route"', () => {
               })
             ];
 
-            // $FlowIgnore
+            // $FlowFixMe
             index = async () => ({
               meta: {
                 success: true
@@ -280,7 +280,7 @@ describe('module "router/route"', () => {
       let controller: Controller
 
       beforeAll(() => {
-        // $FlowIgnore
+        // $FlowFixMe
         controller = app.controllers.get('posts')
       });
 

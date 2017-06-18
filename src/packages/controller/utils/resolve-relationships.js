@@ -1,7 +1,5 @@
 /* @flow */
 
-import entries from '../../../utils/entries'
-// eslint-disable-next-line no-unused-vars
 import type { Model } from '../../database'
 
 /**
@@ -11,7 +9,7 @@ export default function resolveRelationships<T: Model>(
   model: Class<T>,
   relationships: Object = {}
 ): Object {
-  return entries(relationships).reduce((obj, [key, value]) => {
+  return Object.entries(relationships).reduce((obj, [key, value]) => {
     let { data = null } = value || {}
 
     if (data) {

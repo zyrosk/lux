@@ -3,7 +3,7 @@
 import * as path from 'path'
 import { start as startRepl } from 'repl'
 
-import { CWD } from '../../../constants'
+import { CWD } from 'constants'
 import type Application from '../../application'
 
 export function repl(): Promise<void> {

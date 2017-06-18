@@ -124,7 +124,7 @@ describe('util transformKeys()', () => {
   })
 
   test('throws when something other than an object is passed in', () => {
-    // $FlowIgnore
+    // $FlowFixMe
     expect(() => transformKeys('', key => key, true)).toThrow()
   })
 

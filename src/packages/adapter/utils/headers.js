@@ -1,6 +1,5 @@
 /* @flow */
 
-import entries from '../../../utils/entries'
 import { FreezeableMap } from '../../freezeable'
 import type { ObjectMap } from '../../../interfaces'
 
@@ -8,7 +7,9 @@ type HandleChange = (type: 'SET' | 'DELETE', data: [string, ?string]) => void
 
 export class Headers extends FreezeableMap<string, string> {
   constructor(value: ObjectMap<string> = {}) {
-    super(entries(value))
+    super(Object
+      .entries(value)
+      .map(([a, b]) => [a, String(b)]))
   }
 
   get(key: string): void | string {

@@ -7,11 +7,11 @@ import EventEmitter from 'events'
 
 import { red, green } from 'chalk'
 
-import { NODE_ENV } from '../../../constants'
+import { NODE_ENV } from 'constants'
 import { line } from '../../logger'
-import omit from '../../../utils/omit'
-import range from '../../../utils/range'
-import { composeAsync } from '../../../utils/compose'
+import omit from 'utils/omit'
+import range from 'utils/range'
+import { composeAsync } from 'utils/compose'
 // eslint-disable-next-line no-duplicate-imports
 import type Logger from '../../logger'
 
@@ -99,7 +99,7 @@ class Cluster extends EventEmitter {
   fork(retry: boolean = true) {
     return new Promise(resolve => {
       if (this.workers.size < this.maxWorkers) {
-        // $FlowIgnore
+        // $FlowFixMe
         const worker: Worker = cluster.fork({
           NODE_ENV,
           PORT: this.port
@@ -235,7 +235,7 @@ class Cluster extends EventEmitter {
           return arr
         }, [])
 
-      // $FlowIgnore
+      // $FlowFixMe
       return composeAsync(...groups)()
     }
 

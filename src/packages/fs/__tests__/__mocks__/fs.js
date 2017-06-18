@@ -24,6 +24,7 @@ const walk = (dir, ...parts) => {
   return dir
 }
 
+// eslint-disable-next-line no-underscore-dangle
 export const __reset__ = () => {
   ROOT = new Map([
     ['tmp', new Map([
@@ -57,7 +58,7 @@ export const mkdir = (
       const name = path.basename(key)
 
       if (dir.has(name)) {
-        // $FlowIgnore
+        // $FlowFixMe
         const err = Object.assign(new Error(), {
           code: 'EEXIST',
         })
@@ -137,7 +138,7 @@ export const stat = (
       return
     }
 
-    // $FlowIgnore
+    // $FlowFixMe
     const err = Object.assign(new Error(), {
       code: 'ENOENT',
     })

@@ -17,7 +17,7 @@ function updateHasOne({
   value,
   opts,
   trx
-}: Params): Array<Object> {
+  }: Params): Array<Object> {
   const recordPrimaryKey = record.getPrimaryKey()
 
   if (value) {
@@ -60,7 +60,7 @@ function updateHasMany({
   value,
   opts,
   trx
-}: Params): Array<Object> {
+  }: Params): Array<Object> {
   const recordPrimaryKey = record.getPrimaryKey()
 
   if (Array.isArray(value) && value.length) {
@@ -99,7 +99,7 @@ function updateBelongsTo({
   value,
   opts,
   trx
-}: Params): Array<Object> {
+  }: Params): Array<Object> {
   if (value instanceof opts.model) {
     const inverseOpts = opts.model.relationshipFor(opts.inverse)
     const foreignKeyValue = value.getPrimaryKey()

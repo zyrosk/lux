@@ -2,7 +2,7 @@
 
 import Logger from '../../logger'
 import { request, response } from '../../adapter/mock'
-import noop from '../../../utils/noop'
+import noop from 'utils/noop'
 import setEnv from '../../../../test/utils/set-env'
 import * as responder from '../index'
 

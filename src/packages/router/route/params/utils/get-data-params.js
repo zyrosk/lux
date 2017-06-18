@@ -2,7 +2,7 @@
 
 import Parameter from '../parameter'
 import ParameterGroup from '../parameter-group'
-import isNull from '../../../../../utils/is-null'
+import isNull from 'utils/is-null'
 import { typeForColumn } from '../../../../database'
 import type Controller from '../../../../controller'
 import type { ParameterLike } from '../interfaces'
@@ -30,7 +30,7 @@ function getIDParam({ model }: Controller): [string, ParameterLike] {
  */
 function getTypeParam({
   model
-}: Controller): [string, ParameterLike] {
+  }: Controller): [string, ParameterLike] {
   return ['type', new Parameter({
     type: 'string',
     path: 'data.type',
@@ -45,7 +45,7 @@ function getTypeParam({
 function getAttributesParam({
   model,
   params
-}: Controller): [string, ParameterLike] {
+  }: Controller): [string, ParameterLike] {
   return ['attributes', new ParameterGroup(params.reduce((group, param) => {
     const col = model.columnFor(param)
 
@@ -73,7 +73,7 @@ function getAttributesParam({
 function getRelationshipsParam({
   model,
   params
-}: Controller): [string, ParameterLike] {
+  }: Controller): [string, ParameterLike] {
   return ['relationships', new ParameterGroup(params.reduce((group, param) => {
     const path = `data.relationships.${param}`
     const opts = model.relationshipFor(param)

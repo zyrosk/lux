@@ -2,7 +2,7 @@
 
 import { Model } from '../database'
 import { freezeProps } from '../freezeable'
-import getDomain from '../../utils/get-domain'
+import getDomain from 'utils/get-domain'
 import type Serializer from '../serializer'
 // eslint-disable-next-line no-duplicate-imports
 import type { Query } from '../database'
@@ -36,6 +36,8 @@ export type Options<T: Model> = {
   namespace?: string,
   serializer?: Serializer<T>,
 }
+
+export { BUILT_IN_ACTIONS } from './constants'
 
 /**
  * ## Overview
@@ -296,7 +298,7 @@ export type Options<T: Model> = {
  * @class Controller
  * @public
  */
-class Controller {
+export default class Controller {
   /**
    * An array of custom query parameter keys that are allowed to reach a
    * Controller instance from an incoming `HTTP` request.
@@ -720,6 +722,8 @@ class Controller {
       .then(() => 204)
   }
 
+  /* eslint-disable class-methods-use-this */
+
   /**
    * Respond to HEAD or OPTIONS requests.
    *
@@ -732,7 +736,6 @@ class Controller {
   preflight(): Promise<number> {
     return Promise.resolve(204)
   }
-}
 
-export default Controller
-export { BUILT_IN_ACTIONS } from './constants'
+  /* eslint-enable class-methods-use-this */
+}

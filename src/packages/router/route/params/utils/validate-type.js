@@ -2,9 +2,9 @@
 
 import ParameterTypeError from '../errors/parameter-type-error'
 import ParameterNotNullableError from '../errors/parameter-not-nullable-error'
-import isNull from '../../../../../utils/is-null'
-import isObject from '../../../../../utils/is-object'
-import isBuffer from '../../../../../utils/is-buffer'
+import isNull from 'utils/is-null'
+import isObject from 'utils/is-object'
+import isBuffer from 'utils/is-buffer'
 import type { Parameter, ParameterGroup } from '../index'
 
 /**

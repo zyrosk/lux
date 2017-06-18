@@ -34,12 +34,12 @@ describe('module "adapters/headers"', () => {
         })
 
         test('returns the correct value for the given key', () => {
-          // $FlowIgnore
+          // $FlowFixMe
           expect(subject[method](key)).toBe(value)
         })
 
         test('is not case sensitive', () => {
-          // $FlowIgnore
+          // $FlowFixMe
           expect(subject[method](key.toUpperCase())).toBe(value)
         })
       })

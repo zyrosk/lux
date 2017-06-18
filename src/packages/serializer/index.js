@@ -4,10 +4,10 @@ import { dasherize } from 'inflection'
 
 import { VERSION } from '../jsonapi'
 import { freezeProps } from '../freezeable'
-import uniq from '../../utils/uniq'
-import underscore from '../../utils/underscore'
-import promiseHash from '../../utils/promise-hash'
-import { dasherizeKeys } from '../../utils/transform-keys'
+import uniq from 'utils/uniq'
+import underscore from 'utils/underscore'
+import promiseHash from 'utils/promise-hash'
+import { dasherizeKeys } from 'utils/transform-keys'
 // eslint-disable-next-line no-unused-vars
 import type { Model } from '../database'
 // eslint-disable-next-line no-duplicate-imports
@@ -482,7 +482,7 @@ class Serializer<T: Model> {
     links,
     domain,
     include
-  }: {
+    }: {
     data: T | Array<T>;
     links: $PropertyType<Document, 'links'>;
     domain: string;
@@ -575,7 +575,7 @@ class Serializer<T: Model> {
     include,
     included,
     formatRelationships = true
-  }: {
+    }: {
     item: T;
     links?: boolean;
     domain: string;
@@ -616,11 +616,11 @@ class Serializer<T: Model> {
                     const {
                       data: relatedData
                     } = await this.formatRelationship({
-                      domain,
-                      included,
-                      item: relatedItem,
-                      include: include.includes(name)
-                    })
+                        domain,
+                        included,
+                        item: relatedItem,
+                        include: include.includes(name)
+                      })
 
                     return relatedData
                   })
@@ -697,7 +697,7 @@ class Serializer<T: Model> {
     domain,
     include,
     included
-  }: {
+    }: {
     item: Model;
     domain: string;
     include: boolean;

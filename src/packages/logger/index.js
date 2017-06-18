@@ -1,10 +1,10 @@
 /* @flow */
 
-import { LUX_CONSOLE } from '../../constants'
-import K from '../../utils/k'
+import { LUX_CONSOLE } from 'constants'
+import K from 'utils/k'
 
 import { LEVELS } from './constants'
-import { createWriter } from './writer'
+import * as writer from './writer'
 import { createRequestLogger } from './request-logger'
 import type { RequestLogger } from './request-logger'
 
@@ -206,11 +206,12 @@ class Logger {
   request: RequestLogger;
 
   constructor({ level, format, filter, enabled }: Config) {
-    let write = K
+    const mockWrite = writer.mock()
+    let write = mockWrite
     let request = K
 
     if (!LUX_CONSOLE && enabled) {
-      write = createWriter(format)
+      write = writer.create(format)
       request = createRequestLogger(this)
     }
 
@@ -255,23 +256,14 @@ class Logger {
           write({
             message,
             level: key,
-            timestamp: this.getTimestamp()
+            timestamp: new Date().toISOString(),
           })
-        } : K,
+        } : mockWrite,
         writable: false,
         enumerable: false,
         configurable: false,
       })
     })
-  }
-
-  /**
-   * @method getTimestamp
-   * @return {String} The current time as an ISO8601 string.
-   * @private
-   */
-  getTimestamp() {
-    return new Date().toISOString()
   }
 }
 

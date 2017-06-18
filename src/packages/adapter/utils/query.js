@@ -1,7 +1,6 @@
 /* @flow */
 
-import entries from '../../../utils/entries'
-import isObject from '../../../utils/is-object'
+import isObject from 'utils/is-object'
 import type { ObjectMap } from '../../../interfaces'
 
 const INT = /^\d+$/
@@ -46,7 +45,7 @@ export function fromString(source: string): any {
 }
 
 export function fromObject(source: ObjectMap<any>): ObjectMap<any> {
-  return entries(source).reduce((target, [k, v]) => {
+  return Object.entries(source).reduce((target, [k, v]) => {
     const key = camelize(k)
     let value = v
 
@@ -68,7 +67,7 @@ export function fromObject(source: ObjectMap<any>): ObjectMap<any> {
         return item
       })
     } else if (key === 'fields' && isObject(value)) {
-      value = entries(value).reduce((fields, [resource, names]) => {
+      value = Object.entries(value).reduce((fields, [resource, names]) => {
         // eslint-disable-next-line no-param-reassign
         fields[resource] = (
           Array.isArray(names) ? names : [names]

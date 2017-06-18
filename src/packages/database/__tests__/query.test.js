@@ -2,7 +2,7 @@
 
 import Query from '../query'
 import Model from '../model'
-import range from '../../../utils/range'
+import range from 'utils/range'
 import { getTestApp } from '../../../../test/utils/test-app'
 
 describe('module "database/query"', () => {

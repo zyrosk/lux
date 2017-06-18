@@ -2,8 +2,8 @@
 
 import { dasherize, singularize } from 'inflection'
 
-import { compose } from '../../../utils/compose'
-import underscore from '../../../utils/underscore'
+import { compose } from 'utils/compose'
+import underscore from 'utils/underscore'
 
 /**
  * @private

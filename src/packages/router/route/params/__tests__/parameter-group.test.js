@@ -43,7 +43,7 @@ describe('module "router/route/params"', () => {
 
     describe('#validate()', () => {
       test('returns null when then value is null', () => {
-        // $FlowIgnore
+        // $FlowFixMe
         expect(subject.validate(null)).toBeNull()
       })
 

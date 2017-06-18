@@ -4,7 +4,7 @@ import { posix } from 'path'
 
 import { deepFreezeProps } from '../../freezeable'
 import { closestAncestor } from '../../loader'
-import { tryCatchSync } from '../../../utils/try-catch'
+import { tryCatchSync } from 'utils/try-catch'
 import type Database from '../../database'
 import type Controller from '../../controller'
 import type Serializer from '../../serializer'

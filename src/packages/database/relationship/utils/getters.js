@@ -13,7 +13,7 @@ async function getHasManyThrough(owner: Model, {
   inverse,
   through,
   foreignKey: baseKey
-}: Relationship$opts): Promise<Array<Model>> {
+  }: Relationship$opts): Promise<Array<Model>> {
   const inverseOpts = model.relationshipFor(inverse)
   let value = []
 
@@ -43,7 +43,7 @@ async function getHasManyThrough(owner: Model, {
 export function getHasOne(owner: Model, {
   model,
   foreignKey
-}: Relationship$opts) {
+  }: Relationship$opts) {
   return model.first().where({
     [foreignKey]: owner.getPrimaryKey()
   })
@@ -66,7 +66,7 @@ export function getHasMany(owner: Model, opts: Relationship$opts) {
 export function getBelongsTo(owner: Model, {
   model,
   foreignKey
-}: Relationship$opts) {
+  }: Relationship$opts) {
   const foreignValue = Reflect.get(owner, foreignKey)
 
   return foreignValue ? model.find(foreignValue) : Promise.resolve(null)

@@ -34,7 +34,7 @@ class Database {
     config,
     logger,
     checkMigrations
-  }: Database$opts): Promise<Database> {
+    }: Database$opts): Promise<Database> {
     return initialize(this, {
       path,
       models,

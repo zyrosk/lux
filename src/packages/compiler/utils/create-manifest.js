@@ -2,13 +2,13 @@
 
 import { sep, posix, basename, join as joinPath } from 'path'
 
+import * as fs from 'mz/fs'
 import { camelize, capitalize, pluralize } from 'inflection'
 
-import { mkdir, writeFile, appendFile } from '../../fs'
-import chain from '../../../utils/chain'
-import tryCatch from '../../../utils/try-catch'
-import underscore from '../../../utils/underscore'
-import { compose } from '../../../utils/compose'
+import chain from 'utils/chain'
+import tryCatch from 'utils/try-catch'
+import underscore from 'utils/underscore'
+import { compose } from 'utils/compose'
 
 import formatName from './format-name'
 
@@ -51,7 +51,7 @@ function createWriter(file: string) {
         const path = joinPath('app', pluralize(type), item)
         const symbol = formatSymbol(item)
 
-        return appendFile(file, createExportStatement(symbol, path))
+        return fs.appendFile(file, createExportStatement(symbol, path))
       })
     )
   }
@@ -64,7 +64,7 @@ function createWriter(file: string) {
       const path = joinPath('app', 'models', item)
       const name = formatName(item)
 
-      return appendFile(file, createExportStatement(name, path))
+      return fs.appendFile(file, createExportStatement(name, path))
     }),
 
     migrations: writerFor('migration', async (item) => {
@@ -76,13 +76,13 @@ function createWriter(file: string) {
         .pipe(str => camelize(str, true))
         .value()
 
-      await appendFile(file, createExportStatement(
+      await fs.appendFile(file, createExportStatement(
         `up as ${name}Up`,
         path,
         false
       ))
 
-      await appendFile(file, createExportStatement(
+      await fs.appendFile(file, createExportStatement(
         `down as ${name}Down`,
         path,
         false
@@ -103,8 +103,8 @@ export default async function createManifest(
   const file = joinPath(dist, 'index.js')
   const writer = createWriter(file)
 
-  await tryCatch(() => mkdir(dist))
-  await writeFile(file, Buffer.from(useStrict ? '\'use strict\';\n\n' : ''))
+  await tryCatch(() => fs.mkdir(dist))
+  await fs.writeFile(file, Buffer.from(useStrict ? '\'use strict\';\n\n' : ''))
 
   await Promise.all(
     Array
@@ -115,7 +115,7 @@ export default async function createManifest(
         if (write) {
           return write(value)
         } else if (!write && typeof value === 'string') {
-          return appendFile(file, createExportStatement(key, value))
+          return fs.appendFile(file, createExportStatement(key, value))
         }
 
         return Promise.resolve()

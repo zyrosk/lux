@@ -6,7 +6,7 @@ import { MIME_TYPE } from '../../jsonapi'
 import Controller from '../index'
 import Serializer from '../../serializer'
 import * as Adapters from '../../adapter'
-import noop from '../../../utils/noop'
+import noop from 'utils/noop'
 import { getTestApp } from '../../../../test/utils/test-app'
 
 const HOST = 'localhost:4000'
@@ -377,7 +377,7 @@ describe('module "controller"', () => {
           },
         })
 
-        // $FlowIgnore
+        // $FlowFixMe
         expect(record.isPublic).toBe(!isPublic)
         assertRecord(await subject.update(request, response), {
           ...getDefaultProps(),
@@ -430,9 +430,9 @@ describe('module "controller"', () => {
         })
 
         const [user, comments] = await Promise.all([
-          // $FlowIgnore
+          // $FlowFixMe
           record.user,
-          // $FlowIgnore
+          // $FlowFixMe
           record.comments,
         ])
 
@@ -524,9 +524,9 @@ describe('module "controller"', () => {
         })
 
         const [user, comments] = await Promise.all([
-          // $FlowIgnore
+          // $FlowFixMe
           record.user,
-          // $FlowIgnore
+          // $FlowFixMe
           record.comments,
         ])
 

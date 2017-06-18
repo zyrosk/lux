@@ -3,7 +3,7 @@
 import { VERSION } from '../../../../jsonapi'
 import Logger from '../../../../logger'
 import { request, response } from '../../../../adapter/mock'
-import noop from '../../../../../utils/noop'
+import noop from 'utils/noop'
 import { getTestApp } from '../../../../../../test/utils/test-app'
 import resource from '../enhancers/resource'
 
@@ -89,7 +89,7 @@ describe('module "router/route/action"', () => {
 
       beforeAll(() => {
         const controller = app.controllers.get('posts')
-        // $FlowIgnore
+        // $FlowFixMe
         subject = resource(controller.index.bind(controller), controller)
       })
 
@@ -172,7 +172,7 @@ describe('module "router/route/action"', () => {
         beforeAll(() => {
           const controller = app.controllers.get('posts')
 
-          // $FlowIgnore
+          // $FlowFixMe
           subject = resource(controller.show.bind(controller), controller)
         })
 
@@ -194,7 +194,7 @@ describe('module "router/route/action"', () => {
         beforeAll(async () => {
           const controller = app.controllers.get('admin/posts')
 
-          // $FlowIgnore
+          // $FlowFixMe
           subject = resource(controller.show.bind(controller), controller)
         })
 
@@ -216,7 +216,7 @@ describe('module "router/route/action"', () => {
         beforeAll(() => {
           const controller = app.controllers.get('posts')
 
-          // $FlowIgnore
+          // $FlowFixMe
           subject = resource(() => Promise.resolve(null), controller)
         })
 

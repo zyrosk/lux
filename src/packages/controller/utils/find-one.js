@@ -1,6 +1,6 @@
 /* @flow */
 
-import merge from '../../../utils/merge'
+import merge from 'utils/merge'
 // eslint-disable-next-line no-unused-vars
 import type { Model, Query } from '../../database'
 import type Request from '../../request'

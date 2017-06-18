@@ -3,7 +3,7 @@
 import { posix } from 'path'
 
 import { deepFreezeProps } from '../../freezeable'
-import { tryCatchSync } from '../../../utils/try-catch'
+import { tryCatchSync } from 'utils/try-catch'
 import type Serializer from '../../serializer' // eslint-disable-line max-len, no-unused-vars
 import type { Application$factoryOpts } from '../index'
 

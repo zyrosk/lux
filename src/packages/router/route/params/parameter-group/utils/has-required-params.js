@@ -1,20 +1,17 @@
 /* @flow */
 
 import { ParameterRequiredError } from '../../errors'
+import hasOwnProperty from 'utils/has-own-property'
 import type ParameterGroup from '../index'
 
-/**
- * @private
- */
-export default function hasRequiredParams(
-  group: ParameterGroup,
-  params: Object
-): boolean {
-  for (const [key, { path, required }] of group) {
-    if (required && !Reflect.has(params, key)) {
+const hasRequiredParams = <T>(group: ParameterGroup, params: T): boolean => {
+  group.forEach(({ path, required }, key) => {
+    if (required && !hasOwnProperty(params, key)) {
       throw new ParameterRequiredError(path)
     }
-  }
+  })
 
   return true
 }
+
+export default hasRequiredParams

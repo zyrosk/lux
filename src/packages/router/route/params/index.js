@@ -22,7 +22,7 @@ export function paramsFor({
   method,
   controller,
   dynamicSegments
-}: Params$opts) {
+  }: Params$opts) {
   let params = getURLParams(dynamicSegments)
 
   if (type === 'member') {
@@ -68,7 +68,7 @@ export function paramsFor({
 export function defaultParamsFor({
   type,
   controller
-}: {
+  }: {
   type: string;
   controller: Controller
 }): Object {

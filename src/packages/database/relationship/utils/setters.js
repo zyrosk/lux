@@ -15,7 +15,7 @@ export function setHasMany(owner: Model, key: string, value: Array<Model>, {
   model,
   inverse,
   foreignKey
-}: Relationship$opts) {
+  }: Relationship$opts) {
   let { currentChangeSet: changeSet } = owner
 
   if (validateType(model, value)) {
@@ -57,7 +57,7 @@ export function setHasOne(owner: Model, key: string, value?: ?Model, {
   model,
   inverse,
   foreignKey
-}: Relationship$opts) {
+  }: Relationship$opts) {
   let valueToSet = value
 
   if (value && typeof value === 'object' && !model.isInstance(value)) {
@@ -99,7 +99,7 @@ export function setBelongsTo(owner: Model, key: string, value?: ?Model, {
   model,
   inverse,
   foreignKey
-}: Relationship$opts) {
+  }: Relationship$opts) {
   setHasOne(owner, key, value, {
     type,
     model,

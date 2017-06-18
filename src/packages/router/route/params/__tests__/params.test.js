@@ -19,7 +19,7 @@ describe('module "router/route/params"', () => {
     let getController
 
     beforeAll(() => {
-      // $FlowIgnore
+      // $FlowFixMe
       getController = (name: string): Controller => app.controllers.get(name)
     })
 
@@ -45,7 +45,7 @@ describe('module "router/route/params"', () => {
     let getController
 
     beforeAll(() => {
-      // $FlowIgnore
+      // $FlowFixMe
       getController = (name: string): Controller => app.controllers.get(name)
     })
 

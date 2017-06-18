@@ -10,7 +10,7 @@ import ControllerMissingError from '../../errors/controller-missing-error'
 import createController from './utils/create-controller'
 import createSerializer from './utils/create-serializer'
 
- // eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
 import type Application, { Options } from './index'
 
 /**
@@ -21,7 +21,7 @@ export default async function initialize<T: Application>(app: T, {
   adapter,
   logging,
   database,
-}: Options): Promise<T> {
+  }: Options): Promise<T> {
   const load = createLoader(path)
   const routes = load('routes')
   const models = load('models')

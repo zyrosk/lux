@@ -10,12 +10,11 @@ import {
   createStaticTransactionProxy,
   createInstanceTransactionProxy
 } from '../transaction'
-import pick from '../../../utils/pick'
-import entries from '../../../utils/entries'
-import underscore from '../../../utils/underscore'
-import { compose } from '../../../utils/compose'
-import { map as diffMap } from '../../../utils/diff'
-import mapToObject from '../../../utils/map-to-object'
+import pick from 'utils/pick'
+import underscore from 'utils/underscore'
+import { compose } from 'utils/compose'
+import { map as diffMap } from 'utils/diff'
+import mapToObject from 'utils/map-to-object'
 import type Logger from '../../logger'
 import type Database from '../../database'
 import type Serializer from '../../serializer'
@@ -1103,7 +1102,7 @@ class Model {
    */
   reload(): Query<this> {
     if (this.isNew) {
-      // $FlowIgnore
+      // $FlowFixMe
       return Promise.resolve(this)
     }
 
@@ -1176,7 +1175,7 @@ class Model {
   toObject(callee?: Model, prev?: Object): Object {
     const { currentChangeSet, constructor: { relationships } } = this
 
-    return entries(relationships).reduce((obj, [key, { type }]) => {
+    return Object.entries(relationships).reduce((obj, [key, { type }]) => {
       const value = currentChangeSet.get(key)
 
       /* eslint-disable no-param-reassign */

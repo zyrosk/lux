@@ -2,15 +2,16 @@
 
 import * as path from 'path'
 
+import * as fs from 'mz/fs'
+
 import template from '../../template'
-import { writeFile } from '../../fs'
 
 /**
  * @private
  */
 export default async function createBootScript(dir: string, {
   useStrict
-}: {
+  }: {
   useStrict: boolean;
 }): Promise<void> {
   let data = template`
@@ -75,5 +76,5 @@ export default async function createBootScript(dir: string, {
     data = `'use strict';\n\n${data}`
   }
 
-  await writeFile(path.join(dir, 'dist', 'boot.js'), Buffer.from(data))
+  await fs.writeFile(path.join(dir, 'dist', 'boot.js'), Buffer.from(data))
 }

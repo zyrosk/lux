@@ -2,8 +2,7 @@
 
 import { camelize } from 'inflection'
 
-import entries from '../../../utils/entries'
-import uniq from '../../../utils/uniq'
+import uniq from 'utils/uniq'
 import type Model from '../model'
 
 import scopesFor from './utils/scopes-for'
@@ -100,7 +99,7 @@ class Query<+T: any> extends Promise {
     Object.defineProperties(this, scopesFor(this))
   }
 
-  // $FlowIgnore
+  // $FlowFixMe
   static get [Symbol.species]() {
     return Promise
   }
@@ -186,7 +185,7 @@ class Query<+T: any> extends Promise {
       }
     } = this
 
-    const where = entries(conditions).reduce((obj, condition) => {
+    const where = Object.entries(conditions).reduce((obj, condition) => {
       let [key, value] = condition
       const columnName = this.model.columnNameFor(key)
 
@@ -239,7 +238,7 @@ class Query<+T: any> extends Promise {
       }
     } = this
 
-    entries(conditions).forEach((condition) => {
+    Object.entries(conditions).forEach((condition) => {
       let [key] = condition
       const [, value] = condition
       const columnName = this.model.columnNameFor(key)
@@ -344,25 +343,27 @@ class Query<+T: any> extends Promise {
 
     if (!this.shouldCount) {
       if (relationships.length === 1 && typeof relationships[0] === 'object') {
-        included = entries(relationships[0]).reduce((arr, relationship) => {
-          const [name] = relationship
-          const opts = this.model.relationshipFor(name)
-          let [, attrs] = relationship
+        included = Object
+          .entries(relationships[0])
+          .reduce((arr, relationship) => {
+            const [name] = relationship
+            const opts = this.model.relationshipFor(name)
+            let [, attrs] = relationship
 
-          if (opts) {
-            if (!attrs.length) {
-              attrs = opts.model.attributeNames
+            if (opts) {
+              if (!attrs.length) {
+                attrs = opts.model.attributeNames
+              }
+
+              return [...arr, {
+                name,
+                attrs,
+                relationship: opts
+              }]
             }
 
-            return [...arr, {
-              name,
-              attrs,
-              relationship: opts
-            }]
-          }
-
-          return arr
-        }, [])
+            return arr
+          }, [])
       } else {
         included = relationships.reduce((arr, name) => {
           let str = name
@@ -475,7 +476,7 @@ class Query<+T: any> extends Promise {
     return super.then(onFulfilled, onRejected)
   } // eslint-disable-line brace-style
 
-  // $FlowIgnore
+  // $FlowFixMe
   catch<U>(onRejected?: (error: Error) => ?Promise<U> | U): Promise<U> {
     runQuery(this)
     return super.catch(onRejected)

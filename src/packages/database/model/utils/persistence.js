@@ -1,7 +1,7 @@
 /* @flow */
 
 import { sql } from '../../../logger'
-import omit from '../../../../utils/omit'
+import omit from 'utils/omit'
 // eslint-disable-next-line no-duplicate-imports
 import type Logger from '../../../logger'
 import type Model from '../index'

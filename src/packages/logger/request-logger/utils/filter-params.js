@@ -1,7 +1,5 @@
 /* @flow */
 
-import entries from '../../../../utils/entries'
-
 /**
  * @private
  */
@@ -9,7 +7,8 @@ export default function filterParams(
   params: Object,
   ...filtered: Array<string>
 ): Object {
-  return entries(params)
+  return Object
+    .entries(params)
     .map(([key, value]) => [
       key,
       filtered.indexOf(key) >= 0 ? '[FILTERED]' : value

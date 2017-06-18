@@ -2,9 +2,8 @@
 
 import { classify, camelize, pluralize } from 'inflection'
 
-import chain from '../../../utils/chain'
-import entries from '../../../utils/entries'
-import underscore from '../../../utils/underscore'
+import chain from 'utils/chain'
+import underscore from 'utils/underscore'
 import template from '../../template'
 import indent from '../utils/indent'
 
@@ -21,7 +20,7 @@ export default (name: string, attrs: Array<string>): string => {
     normalized = pluralize(normalized)
   }
 
-  const body = entries(
+  const body = Object.entries(
     attrs
       .filter(attr => /^(\w|-)+:(\w|-)+$/g.test(attr))
       .map(attr => attr.split(':'))

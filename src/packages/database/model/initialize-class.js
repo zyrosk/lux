@@ -8,8 +8,7 @@ import {
   get as getRelationship,
   set as setRelationship
 } from '../relationship'
-import entries from '../../../utils/entries'
-import underscore from '../../../utils/underscore'
+import underscore from 'utils/underscore'
 import type Database, { Model } from '../index' // eslint-disable-line no-unused-vars, max-len
 
 const VALID_HOOKS = new Set([
@@ -30,7 +29,7 @@ const VALID_HOOKS = new Set([
  */
 function initializeProps(prototype, attributes, relationships) {
   Object.defineProperties(prototype, {
-    ...entries(attributes).reduce((obj, [key, value]) => ({
+    ...Object.entries(attributes).reduce((obj, [key, value]) => ({
       ...obj,
       [key]: createAttribute({
         key,
@@ -57,7 +56,7 @@ function initializeProps(prototype, attributes, relationships) {
  */
 function initializeHooks({ model, hooks, logger }) {
   return Object.freeze(
-    entries(hooks).reduce((obj, [key, value]) => {
+    Object.entries(hooks).reduce((obj, [key, value]) => {
       if (!VALID_HOOKS.has(key)) {
         logger.warn(line`
           Invalid hook '${key}' will not be added to Model '${model.name}'.
@@ -85,7 +84,7 @@ function initializeValidations(opts) {
   const attributeNames = Object.keys(attributes)
   let { validates } = opts
 
-  validates = entries(validates)
+  validates = Object.entries(validates)
     .filter(([key, value]) => {
       let isValid = attributeNames.indexOf(key) >= 0
 
@@ -123,7 +122,7 @@ export default async function initializeClass<T: Class<Model>>({
   store,
   table,
   model
-}: {
+  }: {
   store: Database,
   table: $PropertyType<T, 'table'>,
   model: T
@@ -133,7 +132,8 @@ export default async function initializeClass<T: Class<Model>>({
   const modelName = dasherize(underscore(model.name))
   const resourceName = pluralize(modelName)
 
-  const attributes = entries(await table().columnInfo())
+  const attributes = Object
+    .entries(await table().columnInfo())
     .reduce((obj, [columnName, value]) => ({
       ...obj,
       [camelize(columnName, true)]: {
@@ -143,7 +143,8 @@ export default async function initializeClass<T: Class<Model>>({
       }
     }), {})
 
-  const belongsTo = entries(model.belongsTo || {})
+  const belongsTo = Object
+    .entries(model.belongsTo || {})
     .reduce((obj, [relatedName, { inverse, model: relatedModel }]) => {
       const relationship = {}
 
@@ -183,7 +184,8 @@ export default async function initializeClass<T: Class<Model>>({
       }
     }, {})
 
-  const hasOne = entries(model.hasOne || {})
+  const hasOne = Object
+    .entries(model.hasOne || {})
     .reduce((obj, [relatedName, { inverse, model: relatedModel }]) => {
       const relationship = {}
 
@@ -223,7 +225,8 @@ export default async function initializeClass<T: Class<Model>>({
       }
     }, {})
 
-  const hasMany = entries(model.hasMany || {})
+  const hasMany = Object
+    .entries(model.hasMany || {})
     .reduce((hash, [relatedName, opts]) => {
       const { inverse } = opts
       const relationship = {}
@@ -431,15 +434,17 @@ export default async function initializeClass<T: Class<Model>>({
     },
 
     ...Object.freeze(
-      entries(scopes).reduce((obj, [name, scope]) => ({
-        ...obj,
-        [name]: {
-          value: scope,
-          writable: false,
-          enumerable: false,
-          configurable: false
-        }
-      }), {})
+      Object
+        .entries(scopes)
+        .reduce((obj, [name, scope]) => ({
+          ...obj,
+          [name]: {
+            value: scope,
+            writable: false,
+            enumerable: false,
+            configurable: false
+          }
+        }), {})
     )
   })
 

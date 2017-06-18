@@ -2,8 +2,7 @@
 
 import { FreezeableMap } from '../../../../freezeable'
 import { InvalidParameterError } from '../errors'
-import isNull from '../../../../../utils/is-null'
-import entries from '../../../../../utils/entries'
+import isNull from 'utils/is-null'
 import validateType from '../utils/validate-type'
 import type { ParameterLike, ParameterLike$opts } from '../index'
 
@@ -25,7 +24,7 @@ class ParameterGroup extends FreezeableMap<string, ParameterLike> {
     path,
     required,
     sanitize
-  }: ParameterLike$opts) {
+    }: ParameterLike$opts) {
     super(contents)
 
     Object.assign(this, {
@@ -53,7 +52,7 @@ class ParameterGroup extends FreezeableMap<string, ParameterLike> {
         path = `${path}.`
       }
 
-      for (const [key, value] of entries(params)) {
+      Object.entries(params).forEach(([key, value]) => {
         const match = this.get(key)
 
         if (match) {
@@ -61,10 +60,10 @@ class ParameterGroup extends FreezeableMap<string, ParameterLike> {
         } else if (!match && !sanitize) {
           throw new InvalidParameterError(`${path}${key}`)
         }
-      }
+      })
     }
 
-    // $FlowIgnore
+    // $FlowFixMe
     return validated
   }
 }

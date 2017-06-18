@@ -1,32 +1,29 @@
 /* @flow */
 
-import * as os from 'os'
 import * as path from 'path'
 
+import * as fs from 'mz/fs'
 import lux from 'rollup-plugin-lux'
 import json from 'rollup-plugin-json'
 import alias from 'rollup-plugin-alias'
 import babel from 'rollup-plugin-babel'
-import eslint from 'rollup-plugin-eslint'
 import resolve from 'rollup-plugin-node-resolve'
+import cleanup from 'rollup-plugin-cleanup'
 import { rollup } from 'rollup'
 
-import { rmrf, readdir, readdirRec, isJSFile } from '../fs'
-import template from '../template'
-import { NODE_ENV } from '../../constants'
+import { NODE_ENV } from 'constants'
+import { rmrf, readdirRec, readJson, isJSFile } from '../fs'
 
+import { BANNER, STD_LIB } from './constants'
 import onwarn from './utils/handle-warning'
-import isExternal from './utils/is-external'
 import createManifest from './utils/create-manifest'
-import readBabelConfig from './utils/read-babel-config'
 import createBootScript from './utils/create-boot-script'
 
 /**
  * @private
  */
 type Options = {
-  local?: string;
-  useStrict?: boolean;
+  useStrict?: boolean,
 }
 
 let cache
@@ -34,127 +31,105 @@ let cache
 /**
  * @private
  */
-export async function compile(
-  dir: string,
-  env: string,
-  opts: Options = {}
-): Promise<void> {
-  const { useStrict = false } = opts
-  const local = opts.local || path.join(__dirname, '..', 'src', 'index.js')
-  const entry = path.join(dir, 'dist', 'index.js')
-  const external = isExternal(dir)
-  let banner
+export const compile =
+  async (dir: string, env: string, opts: Options = {}): Promise<void> => {
+    const { useStrict = false } = opts
+    const entry = path.join(dir, 'dist', 'index.js')
+    let external = STD_LIB
+    let banner
 
-  const assets = await Promise.all([
-    readdir(path.join(dir, 'app', 'models')),
-    readdir(path.join(dir, 'db', 'migrate')),
-    readdirRec(path.join(dir, 'app', 'controllers')),
-    readdirRec(path.join(dir, 'app', 'serializers'))
-  ]).then(types => {
-    let [
-      models,
-      migrations,
-      controllers,
-      serializers
-    ] = types
+    const babelConfig = {
+      babelrc: false,
+    }
 
-    models = models.filter(isJSFile)
-    migrations = migrations.filter(isJSFile)
-    controllers = controllers.filter(isJSFile)
-    serializers = serializers.filter(isJSFile)
+    const assets = await Promise.all([
+      fs.readdir(path.join(dir, 'app', 'models')),
+      fs.readdir(path.join(dir, 'db', 'migrate')),
+      readdirRec(path.join(dir, 'app', 'controllers')),
+      readdirRec(path.join(dir, 'app', 'serializers')),
+      readJson(path.join(dir, 'package.json')),
+      readJson(path.join(dir, '.babelrc')),
+    ]).then(types => {
+      let [
+        models,
+        migrations,
+        controllers,
+        serializers,
+      ] = types
 
-    return new Map([
-      ['Application', path.join('app', 'index.js')],
-      ['config', path.join('config', 'environments', `${env}.js`)],
-      ['controllers', controllers],
-      ['database', path.join('config', 'database.js')],
-      ['migrations', migrations],
-      ['models', models],
-      ['routes', path.join('app', 'routes.js')],
-      ['seed', path.join('db', 'seed.js')],
-      ['serializers', serializers]
+      models = models.filter(isJSFile)
+      migrations = migrations.filter(isJSFile)
+      controllers = controllers.filter(isJSFile)
+      serializers = serializers.filter(isJSFile)
+
+      const [, , , , packageInfo, babelRc] = types
+
+      if (packageInfo.dependencies) {
+        external = Object.keys(packageInfo.dependencies).concat(external)
+      }
+
+      Object.assign(babelConfig, babelRc)
+
+      return new Map([
+        ['Application', path.join('app', 'index.js')],
+        ['config', path.join('config', 'environments', `${env}.js`)],
+        ['controllers', controllers],
+        ['database', path.join('config', 'database.js')],
+        ['migrations', migrations],
+        ['models', models],
+        ['routes', path.join('app', 'routes.js')],
+        ['seed', path.join('db', 'seed.js')],
+        ['serializers', serializers]
+      ])
+    })
+
+    await Promise.all([
+      createManifest(dir, assets, {
+        useStrict
+      }),
+      createBootScript(dir, {
+        useStrict
+      })
     ])
-  })
 
-  await Promise.all([
-    createManifest(dir, assets, {
-      useStrict
-    }),
-    createBootScript(dir, {
-      useStrict
+    const bundle = await rollup({
+      cache,
+      entry,
+      external,
+      onwarn,
+      plugins: [
+        alias({
+          app: path.posix.join('/', ...dir.split(path.sep).concat('app')),
+          resolve: ['.js'],
+        }),
+        json(),
+        resolve(),
+        babel(babelConfig),
+        lux(path.resolve(path.sep, dir, 'app')),
+        cleanup(),
+      ],
+      preferConst: true,
     })
-  ])
 
-  const aliases = {
-    app: path.posix.join('/', ...dir.split(path.sep), 'app'),
-    LUX_LOCAL: path.posix.join('/', ...local.split(path.sep))
-  }
+    if (NODE_ENV === 'development') {
+      cache = bundle
+    }
 
-  if (os.platform() === 'win32') {
-    const [volume] = dir
-    const prefix = `${volume}:/`
+    await rmrf(entry)
 
-    Object.assign(aliases, {
-      app: aliases.app.replace(prefix, ''),
-      LUX_LOCAL: aliases.LUX_LOCAL.replace(prefix, '')
+    banner = BANNER
+
+    if (useStrict) {
+      banner = `'use strict';\n\n${banner}`
+    }
+
+    return bundle.write({
+      banner,
+      dest: path.join(dir, 'dist', 'bundle.js'),
+      format: 'cjs',
+      sourceMap: true,
+      useStrict: false,
     })
   }
-
-  const bundle = await rollup({
-    entry,
-    onwarn,
-    external,
-    cache,
-    plugins: [
-      alias({
-        resolve: ['.js'],
-        ...aliases
-      }),
-      json(),
-      resolve(),
-      eslint({
-        cwd: dir,
-        parser: 'babel-eslint',
-        useEslintrc: false,
-        include: [
-          path.join(dir, 'app', '**'),
-        ],
-        exclude: [
-          path.join(dir, 'package.json'),
-          path.join(local, '..', '**')
-        ]
-      }),
-      babel({
-        ...(await readBabelConfig(dir)),
-        babelrc: false,
-      }),
-      lux(path.resolve(path.sep, dir, 'app'))
-    ]
-  })
-
-  if (NODE_ENV === 'development') {
-    cache = bundle
-  }
-
-  await rmrf(entry)
-
-  banner = template`
-    const srcmap = require('source-map-support').install({
-      environment: 'node'
-    });
-  `
-
-  if (useStrict) {
-    banner = `'use strict';\n\n${banner}`
-  }
-
-  return bundle.write({
-    banner,
-    dest: path.join(dir, 'dist', 'bundle.js'),
-    format: 'cjs',
-    sourceMap: true,
-    useStrict: false
-  })
-}
 
 export { default as onwarn } from './utils/handle-warning'

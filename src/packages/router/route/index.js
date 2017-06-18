@@ -55,7 +55,7 @@ class Route extends FreezeableSet<Action<any>> {
     action,
     method,
     controller
-  }: Options) {
+    }: Options) {
     const dynamicSegments = getDynamicSegments(path)
 
     if (action && controller) {
@@ -146,6 +146,7 @@ class Route extends FreezeableSet<Action<any>> {
     let calledFinal = false
     let data
 
+    // eslint-disable-next-line no-restricted-syntax
     for (const handler of this) {
       // eslint-disable-next-line no-await-in-loop
       data = await handler(req, res, data)

@@ -40,7 +40,7 @@ describe('util proxy', () => {
 
     describe('- properties', () => {
       test('captures and returns values defined in as traps', () => {
-        // $FlowIgnore
+        // $FlowFixMe
         expect(proxied.isProxied).toBe(true)
       })
 
@@ -51,7 +51,7 @@ describe('util proxy', () => {
 
     describe('- methods', () => {
       test('captures and returns values defined in as traps', () => {
-        // $FlowIgnore
+        // $FlowFixMe
         expect(proxied.shortArea()).toBe(314.16)
       })
 
@@ -62,7 +62,7 @@ describe('util proxy', () => {
 
     describe('#unwrap', () => {
       test('returns the proxy target', () => {
-        // $FlowIgnore
+        // $FlowFixMe
         expect(proxied.unwrap()).toBe(base)
       })
     })

@@ -1,6 +1,8 @@
+/* @flow */
+
 import Ora from 'ora'
 
-import { CWD, NODE_ENV } from '../../../constants'
+import { CWD, NODE_ENV } from 'constants'
 import { compile } from '../../compiler'
 
 export async function build(useStrict: boolean = false): Promise<void> {
