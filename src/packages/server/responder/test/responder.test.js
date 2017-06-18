@@ -9,6 +9,7 @@ import { createRequest } from '../../request';
 import { createResponse } from '../../response';
 import { createResponder } from '../index';
 
+import setEnv from '../../../../../test/utils/set-env';
 import { getTestApp } from '../../../../../test/utils/get-test-app';
 
 const DOMAIN = 'http://localhost:4100';
@@ -198,6 +199,14 @@ describe('module "server/responder"', () => {
       });
 
       describe('- responding with an error', () => {
+        beforeEach(() => {
+          setEnv('development');
+        });
+
+        afterEach(() => {
+          setEnv('test');
+        });
+
         it('works with vanilla errors', async () => {
           const result = await test((req, res) => {
             const respond = createResponder(req, res);

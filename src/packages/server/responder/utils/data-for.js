@@ -1,6 +1,7 @@
 // @flow
 import { VERSION } from '../../../jsonapi';
 import { STATUS_CODES } from '../../constants';
+import * as env from '../../../../utils/env';
 import type { JSONAPI$Document, JSONAPI$ErrorObject } from '../../../jsonapi'; // eslint-disable-line max-len, no-duplicate-imports
 
 /**
@@ -23,7 +24,7 @@ export default function dataFor(
     errData.title = title;
   }
 
-  if (err) {
+  if (err && env.isDevelopment()) {
     errData.detail = err.message;
   }
 
