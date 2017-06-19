@@ -2,7 +2,7 @@
 
 import { FreezeableMap } from '../../../../freezeable'
 import { InvalidParameterError } from '../errors'
-import isNull from 'utils/is-null'
+import isNull from '@utils/is-null'
 import validateType from '../utils/validate-type'
 import type { ParameterLike, ParameterLike$opts } from '../index'
 

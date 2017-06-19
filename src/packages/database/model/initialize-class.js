@@ -8,7 +8,7 @@ import {
   get as getRelationship,
   set as setRelationship
 } from '../relationship'
-import underscore from 'utils/underscore'
+import underscore from '@utils/underscore'
 import type Database, { Model } from '../index' // eslint-disable-line no-unused-vars, max-len
 
 const VALID_HOOKS = new Set([

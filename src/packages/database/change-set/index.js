@@ -1,7 +1,7 @@
 /* @flow */
 
 import type { Model } from '../index'
-import mapToObject from 'utils/map-to-object'
+import mapToObject from '@utils/map-to-object'
 
 class ChangeSet extends Map<string, any> {
   isPersisted: boolean;

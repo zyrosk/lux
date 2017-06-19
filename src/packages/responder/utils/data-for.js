@@ -1,8 +1,8 @@
 /* @flow */
 
 import { VERSION } from '../../jsonapi'
-import { STATUS_CODES } from 'constants'
-import * as env from 'utils/env'
+import { STATUS_CODES } from '@constants'
+import * as env from '@utils/env'
 // eslint-disable-next-line no-duplicate-imports
 import type { Document, ErrorData } from '../../jsonapi'
 

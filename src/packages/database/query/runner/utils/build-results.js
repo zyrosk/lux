@@ -3,8 +3,8 @@
 import { camelize, singularize } from 'inflection'
 
 import Model from '../../../model'
-import underscore from 'utils/underscore'
-import promiseHash from 'utils/promise-hash'
+import underscore from '@utils/underscore'
+import promiseHash from '@utils/promise-hash'
 
 /**
  * @private

@@ -1,7 +1,7 @@
 /* @flow */
 
-import isNull from 'utils/is-null'
-import isUndefined from 'utils/is-undefined'
+import isNull from '@utils/is-null'
+import isUndefined from '@utils/is-undefined'
 import type { Attribute$meta } from '../index'
 
 /**

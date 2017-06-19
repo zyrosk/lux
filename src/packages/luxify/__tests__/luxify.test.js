@@ -1,8 +1,8 @@
 /* @flow */
 
 import luxify from '../index'
-import K from 'utils/k'
-import setType from 'utils/set-type'
+import K from '@utils/k'
+import setType from '@utils/set-type'
 
 describe('module "luxify"', () => {
   describe('#luxify()', () => {

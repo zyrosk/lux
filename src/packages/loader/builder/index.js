@@ -2,7 +2,7 @@
 
 import { FreezeableMap } from '../../freezeable'
 import { resolve } from '../resolver'
-import chain from 'utils/chain'
+import chain from '@utils/chain'
 import type { Bundle$Namespace, Bundle$NamespaceGroup } from '../index' // eslint-disable-line max-len, no-unused-vars
 
 import createParentBuilder from './utils/create-parent-builder'

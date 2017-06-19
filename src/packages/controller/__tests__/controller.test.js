@@ -6,7 +6,7 @@ import { MIME_TYPE } from '../../jsonapi'
 import Controller from '../index'
 import Serializer from '../../serializer'
 import * as Adapters from '../../adapter'
-import noop from 'utils/noop'
+import noop from '@utils/noop'
 import { getTestApp } from '../../../../test/utils/test-app'
 
 const HOST = 'localhost:4000'

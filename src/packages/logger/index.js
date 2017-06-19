@@ -1,7 +1,7 @@
 /* @flow */
 
-import { LUX_CONSOLE } from 'constants'
-import K from 'utils/k'
+import { LUX_CONSOLE } from '@constants'
+import K from '@utils/k'
 
 import { LEVELS } from './constants'
 import * as writer from './writer'

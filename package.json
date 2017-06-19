@@ -58,6 +58,7 @@
     "rollup-plugin-json": "2.3.0",
     "rollup-plugin-lux": "3.0.0",
     "rollup-plugin-node-resolve": "3.0.0",
+    "slash": "^1.0.0",
     "source-map-support": "0.4.15"
   },
   "devDependencies": {
@@ -88,11 +89,11 @@
       "/node_modules/"
     ],
     "moduleNameMapper": {
-      "constants": "<rootDir>/src/constants",
-      "errors(.*)": "<rootDir>/src/errors$1",
-      "interfaces": "<rootDir>/src/interfaces",
-      "packages(.*)": "<rootDir>/src/packages$1",
-      "utils(.*)": "<rootDir>/src/utils$1"
+      "@constants": "<rootDir>/src/constants",
+      "@errors(.*)": "<rootDir>/src/errors$1",
+      "@interfaces": "<rootDir>/src/interfaces",
+      "@packages(.*)": "<rootDir>/src/packages$1",
+      "@utils(.*)": "<rootDir>/src/utils$1"
     },
     "setupFiles": [
       "./test/setup.js"

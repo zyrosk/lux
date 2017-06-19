@@ -2,7 +2,7 @@
 
 import { Model } from '../database'
 import { freezeProps } from '../freezeable'
-import getDomain from 'utils/get-domain'
+import getDomain from '@utils/get-domain'
 import type Serializer from '../serializer'
 // eslint-disable-next-line no-duplicate-imports
 import type { Query } from '../database'

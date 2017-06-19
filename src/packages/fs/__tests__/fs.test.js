@@ -3,6 +3,7 @@
 import * as path from 'path'
 // $FlowFixMe
 import { __reset__ } from 'fs'
+import { exists } from 'mz/fs'
 
 import * as fs from '../index'
 
@@ -15,49 +16,19 @@ describe('module "fs"', () => {
 
   afterEach(__reset__)
 
-  describe('#exists()', () => {
-    const tmp = path.join(path.sep, 'tmp', 'fs-test')
-
-    test('is true if "PATH" exists', async () => {
-      expect(await fs.exists(tmp)).toBe(true)
-    })
-
-    test('is false if "PATH" does not exist', async () => {
-      expect(await fs.exists('does-not-exist.tmp')).toBe(false)
-    })
-
-    test('is true if regexp "PATH" exists within "DIR"', async () => {
-      const result = await fs.existsInDir(
-        path.dirname(tmp),
-        new RegExp(path.basename(tmp)),
-      )
-
-      expect(result).toBe(true)
-    })
-
-    test('is false if regexp "PATH" does not exist within "DIR"', async () => {
-      const result = await fs.existsInDir(
-        path.dirname(tmp),
-        new RegExp('does-not-exist.tmp'),
-      )
-
-      expect(result).toBe(false)
-    })
-  })
-
   describe('#rmrf()', () => {
     const tmp = path.join(path.sep, 'tmp', 'rmrf-test', 'data.txt')
 
     test('removes a file', async () => {
       await fs.rmrf(tmp)
-      expect(await fs.exists(tmp)).toBe(false)
+      expect(await exists(tmp)).toBe(false)
     })
 
     test('removes a directory and its contents', async () => {
       const target = path.dirname(tmp)
 
       await fs.rmrf(target)
-      expect(await fs.exists(target)).toBe(false)
+      expect(await exists(target)).toBe(false)
     })
   })
 
@@ -112,13 +83,13 @@ describe('module "fs"', () => {
 
     test('creates a directory recursively', async () => {
       await fs.mkdirRec(tmp)
-      expect(await fs.exists(tmp)).toBe(true)
+      expect(await exists(tmp)).toBe(true)
     })
 
     test('does not throw when the directory already exists', async () => {
       await fs.mkdirRec(tmp)
       await fs.mkdirRec(tmp)
-      expect(await fs.exists(tmp)).toBe(true)
+      expect(await exists(tmp)).toBe(true)
     })
 
     test('properly rejects when a valid error occurs', async () => {

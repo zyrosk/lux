@@ -2,7 +2,7 @@
 
 import Resource from '../../resource'
 import Namespace from '../../namespace'
-import K from 'utils/k'
+import K from '@utils/k'
 import type { Router$Namespace } from '../../index' // eslint-disable-line max-len, no-unused-vars
 import type { Router$DefinitionBuilder } from '../interfaces'
 import ControllerMissingError

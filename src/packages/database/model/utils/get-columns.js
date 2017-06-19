@@ -1,6 +1,6 @@
 /* @flow */
 
-import pick from 'utils/pick'
+import pick from '@utils/pick'
 import type Model from '../index'
 
 /**

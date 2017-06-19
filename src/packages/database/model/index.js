@@ -10,11 +10,11 @@ import {
   createStaticTransactionProxy,
   createInstanceTransactionProxy
 } from '../transaction'
-import pick from 'utils/pick'
-import underscore from 'utils/underscore'
-import { compose } from 'utils/compose'
-import { map as diffMap } from 'utils/diff'
-import mapToObject from 'utils/map-to-object'
+import pick from '@utils/pick'
+import underscore from '@utils/underscore'
+import { compose } from '@utils/compose'
+import { map as diffMap } from '@utils/diff'
+import mapToObject from '@utils/map-to-object'
 import type Logger from '../../logger'
 import type Database from '../../database'
 import type Serializer from '../../serializer'

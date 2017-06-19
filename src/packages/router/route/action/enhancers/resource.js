@@ -1,7 +1,7 @@
 /* @flow */
 
 import { Query } from '../../../../database'
-import getDomain from 'utils/get-domain'
+import getDomain from '@utils/get-domain'
 import createPageLinks from '../utils/create-page-links'
 import type Controller from '../../../../controller'
 import type { Document } from '../../../../jsonapi'

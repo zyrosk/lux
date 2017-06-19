@@ -2,7 +2,7 @@
 
 import Controller from '../../../controller'
 import * as Adapters from '../../../adapter'
-import K from 'utils/k'
+import K from '@utils/k'
 import { getTestApp } from '../../../../../test/utils/test-app'
 import Route from '../index'
 

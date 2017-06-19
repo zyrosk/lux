@@ -4,7 +4,7 @@ import { EOL } from 'os'
 
 import { writeFile } from 'mz/fs'
 
-import { CWD, NODE_ENV, DATABASE_URL } from 'constants'
+import { CWD, NODE_ENV, DATABASE_URL } from '@constants'
 import { CONNECTION_STRING_MESSAGE } from '../constants'
 import DatabaseConfigMissingError from '../errors/database-config-missing'
 import { connect } from '../../database'

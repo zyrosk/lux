@@ -76,15 +76,11 @@ export default {
   format: 'cjs',
   plugins: [
     alias({
-      resolve: [
-        '.js',
-        'index.js',
-      ],
-      constants: createAlias('constants'),
-      errors: createAlias('errors'),
-      interfaces: createAlias('interfaces'),
-      packages: createAlias('packages'),
-      utils: createAlias('utils'),
+      '@constants': createAlias('constants'),
+      '@errors': createAlias('errors'),
+      '@interfaces': createAlias('interfaces'),
+      '@packages': createAlias('packages'),
+      '@utils': createAlias('utils'),
     }),
     json(),
     babel(),

@@ -6,8 +6,7 @@ import * as fs from 'mz/fs'
 import { red, green } from 'chalk'
 import { pluralize, singularize } from 'inflection'
 
-import { CWD } from 'constants'
-import * as fse from 'utils/fs-extras'
+import { CWD } from '@constants'
 
 /**
  * @private
@@ -52,7 +51,7 @@ export async function destroyType(type: string, name: string): Promise<void> {
       return
   }
 
-  if (await fse.exists(`${CWD}/${path}`)) {
+  if (await fs.exists(`${CWD}/${path}`)) {
     await fs.rmrf(`${CWD}/${path}`)
 
     process.stdout.write(`${red('remove')} ${path}`)

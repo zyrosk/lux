@@ -2,7 +2,7 @@
 
 import Response from '../../../response'
 import { ResponseHeaders } from '../../utils/headers'
-import noop from 'utils/noop'
+import noop from '@utils/noop'
 import type Logger from '../../../logger'
 
 type Options = {

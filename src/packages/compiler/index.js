@@ -11,7 +11,7 @@ import resolve from 'rollup-plugin-node-resolve'
 import cleanup from 'rollup-plugin-cleanup'
 import { rollup } from 'rollup'
 
-import { NODE_ENV } from 'constants'
+import { NODE_ENV } from '@constants'
 import { rmrf, readdirRec, readJson, isJSFile } from '../fs'
 
 import { BANNER, STD_LIB } from './constants'

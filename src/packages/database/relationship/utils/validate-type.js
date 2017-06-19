@@ -1,6 +1,6 @@
 /* @flow */
 
-import isNull from 'utils/is-null'
+import isNull from '@utils/is-null'
 import type { Model } from '../../index'
 
 function validateOne(model: Class<Model>, value: void | ?mixed) {

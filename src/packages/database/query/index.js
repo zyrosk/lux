@@ -2,7 +2,7 @@
 
 import { camelize } from 'inflection'
 
-import uniq from 'utils/uniq'
+import uniq from '@utils/uniq'
 import type Model from '../model'
 
 import scopesFor from './utils/scopes-for'

@@ -3,7 +3,7 @@
 import { VERSION } from '../../../../jsonapi'
 import Logger from '../../../../logger'
 import { request, response } from '../../../../adapter/mock'
-import noop from 'utils/noop'
+import noop from '@utils/noop'
 import { getTestApp } from '../../../../../../test/utils/test-app'
 import resource from '../enhancers/resource'
 

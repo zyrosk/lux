@@ -1,6 +1,6 @@
 /* @flow */
 
-import isObject from 'utils/is-object'
+import isObject from '@utils/is-object'
 import type Query from '../../index'
 
 export default function getFindParam({

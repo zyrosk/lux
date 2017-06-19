@@ -1,6 +1,6 @@
 /* @flow */
 
-import noop from 'utils/noop'
+import noop from '@utils/noop'
 import Logger from '../../../../logger'
 import { request, response } from '../../../../adapter/mock'
 import { createAction, createPageLinks } from '../index'

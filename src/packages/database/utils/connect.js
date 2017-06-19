@@ -4,7 +4,7 @@ import { join as joinPath } from 'path'
 
 import type Knex from 'knex'
 
-import { NODE_ENV, DATABASE_URL } from 'constants'
+import { NODE_ENV, DATABASE_URL } from '@constants'
 import { VALID_DRIVERS } from '../constants'
 import { InvalidDriverError } from '../errors'
 

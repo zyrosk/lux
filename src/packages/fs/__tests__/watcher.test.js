@@ -3,9 +3,11 @@
 import { tmpdir } from 'os'
 import { join as joinPath } from 'path'
 
-import { APPVEYOR } from 'constants'
+import * as fs from 'mz/fs'
+
+import { APPVEYOR } from '@constants'
 import Watcher from '../watcher'
-import { rmrf, mkdirRec, writeFile } from '../index'
+import { rmrf, mkdirRec } from '../index'
 
 describe('module "fs"', () => {
   const tmpDirPath = joinPath(tmpdir(), `lux-${Date.now()}`)
@@ -34,7 +36,7 @@ describe('module "fs"', () => {
               expect(files).toEqual(expect.any(Array))
             })
 
-            await writeFile(joinPath(tmpAppPath, 'index.js'), Buffer.from(''))
+            await fs.writeFile(joinPath(tmpAppPath, 'index.js'), Buffer.from(''))
           })
         })
 

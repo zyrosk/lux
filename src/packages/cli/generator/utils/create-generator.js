@@ -5,7 +5,7 @@ import { join as joinPath } from 'path'
 import * as fs from 'mz/fs'
 import { red, green, yellow } from 'chalk'
 
-import * as fse from 'utils/fs-extras'
+import * as fse from '@utils/fs-extras'
 import { rmrf, parsePath } from '../../../fs'
 import type { Generator, Generator$template } from '../index'
 
@@ -19,7 +19,7 @@ const FORWARD_SLASH = /\//g
 export default function createGenerator({
   dir,
   template,
-  hasConflict = fse.exists
+  hasConflict = fs.exists
   }: {
   dir: string;
   template: Generator$template;

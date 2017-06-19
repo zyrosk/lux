@@ -1,6 +1,6 @@
 /* @flow */
 
-import omit from 'utils/omit'
+import omit from '@utils/omit'
 import type { Model } from '../../database'
 import type Request from '../../request'
 

@@ -2,7 +2,7 @@
 
 import { cyan } from 'chalk'
 
-import { CWD, PORT, NODE_ENV } from 'constants'
+import { CWD, PORT, NODE_ENV } from '@constants'
 import Logger from '../../logger'
 import { createLoader } from '../../loader'
 import { createCluster } from '../../pm'

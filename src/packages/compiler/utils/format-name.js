@@ -4,8 +4,8 @@ import { posix, dirname, basename } from 'path'
 
 import { camelize } from 'inflection'
 
-import underscore from 'utils/underscore'
-import { compose } from 'utils/compose'
+import underscore from '@utils/underscore'
+import { compose } from '@utils/compose'
 
 const DOUBLE_COLON = /::/g
 

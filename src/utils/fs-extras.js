@@ -4,18 +4,23 @@ import * as path from 'path'
 
 import * as fs from 'mz/fs'
 
-import * as flatten from './flatten'
+import * as flatten from '@utils/flatten'
 
-const joinWith = a => b => path.join(a, b)
-
-export const exists = (target: string): Promise<boolean> =>
+export const rmrf = (target: string): Promise<boolean> =>
   fs.stat(target)
+    .then(stats =>
+      (stats.isDirectory() ?
+        fs.readdir(target)
+          .then(files => files.map(file => path.join(target, file)))
+          .then(files => files.map(rmrf))
+          .then(promises => Promise.all(promises))
+        : fs.unlink(target))
+    )
     .then(() => true)
     .catch(err => {
       if (err.code === 'ENOENT') {
-        return false
+        return true
       }
-
       return err
     })
 
@@ -33,32 +38,41 @@ export const readJson = (target: string): Promise<Object> =>
 /**
  * Recursively read a directory.
  */
-export const readdirRec = (target: string): Promise<Array<string>> =>
-  fs.readdir(target)
-    .then(files => {
-      const promises = files
-        .map(joinWith(target))
-        .map(file =>
-          fs.stat(file)
-            .then(stats => [file, stats])
-        )
-
-      return Promise.all(promises)
-    })
-    .then(files => {
-      const promises = files.map(([file, stats]) => {
-        if (stats.isDirectory()) {
-          return readdirRec(file)
-        }
-
-        return file
-      })
-
-      return Promise.all(promises)
-    })
-    .then(flatten.deep)
-    .then(files =>
-      files.map(file =>
-        file.replace(path.dirname(target) + path.sep, '')
+export const readdirRec =
+  (target: string, stripPath?: boolean = true): Promise<Array<string>> =>
+    fs.readdir(target)
+      .then(files =>
+        files.map(file => path.join(target, file))
+          .map(file =>
+            fs.stat(file)
+              .then(stats => [file, stats])
+          )
       )
+      .then(promises => Promise.all(promises))
+      .then(files =>
+        files.map(([file, stats]) => {
+          if (stats.isDirectory()) {
+            return readdirRec(file, false)
+          }
+          return file
+        })
+      )
+      .then(promises => Promise.all(promises))
+      .then(flatten.shallow)
+      .then(files =>
+        (stripPath
+          ? files.map(file => path.relative(path.dirname(target), file))
+          : files)
+      )
+
+export const mkdirRec = (target: string) =>
+  fs.mkdir(path.dirname(target))
+    .catch(err => {
+      if (err.code === 'ENOENT') {
+        return mkdirRec(path.dirname(target))
+      }
+      return err
+    })
+    .then(() =>
+      fs.mkdir(target)
     )

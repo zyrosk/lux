@@ -58,4 +58,4 @@ class Request {
 }
 
 export default Request
-export * from 'constants'
+export * from '@constants'

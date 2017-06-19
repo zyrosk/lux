@@ -5,7 +5,7 @@ import { WriteStream } from 'tty'
 import { dim, red, yellow } from 'chalk'
 
 import { WARN, ERROR } from '../constants'
-import omit from 'utils/omit'
+import omit from '@utils/omit'
 import type { Format } from '../index'
 
 import { STDOUT, STDERR } from './constants'

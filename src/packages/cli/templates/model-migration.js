@@ -3,9 +3,9 @@
 import { pluralize } from 'inflection'
 
 import template from '../../template'
-import chain from 'utils/chain'
+import chain from '@utils/chain'
 import indent from '../utils/indent'
-import underscore from 'utils/underscore'
+import underscore from '@utils/underscore'
 
 /**
  * @private

@@ -2,8 +2,8 @@
 
 import { camelize } from 'inflection'
 
-import chain from 'utils/chain'
-import underscore from 'utils/underscore'
+import chain from '@utils/chain'
+import underscore from '@utils/underscore'
 import template from '../../template'
 
 /**

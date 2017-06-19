@@ -6,8 +6,8 @@ import type { FSWatcher } from 'fs' // eslint-disable-line no-duplicate-imports
 
 import { Client as Watchman } from 'fb-watchman'
 
-import exec from 'utils/exec'
-import tryCatch from 'utils/try-catch'
+import exec from '@utils/exec'
+import tryCatch from '@utils/try-catch'
 import isJSFile from '../utils/is-js-file'
 import { freezeProps } from '../../freezeable'
 

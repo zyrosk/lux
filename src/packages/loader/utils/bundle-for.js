@@ -5,8 +5,8 @@ import { join as joinPath } from 'path'
 import { Migration } from '../../database'
 import { FreezeableMap } from '../../freezeable'
 import { createDefaultConfig } from '../../config'
-import merge from 'utils/merge'
-import chain from 'utils/chain'
+import merge from '@utils/merge'
+import chain from '@utils/chain'
 
 import formatKey from './format-key'
 

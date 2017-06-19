@@ -2,7 +2,7 @@
 
 import * as path from 'path'
 
-import { CWD } from 'constants'
+import { CWD } from '@constants'
 
 type ParsedPath = {
   absolute: string;

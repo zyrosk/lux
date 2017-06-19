@@ -2,7 +2,7 @@ import { EOL } from 'os'
 
 import { readdir } from 'mz/fs'
 
-import { CWD } from 'constants'
+import { CWD } from '@constants'
 import Database from '../../database'
 import Logger, { sql } from '../../logger'
 import { createLoader } from '../../loader'

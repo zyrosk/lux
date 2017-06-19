@@ -6,8 +6,8 @@ import { classify, camelize } from 'inflection'
 
 import template from '../../template'
 import indent from '../utils/indent'
-import chain from 'utils/chain'
-import underscore from 'utils/underscore'
+import chain from '@utils/chain'
+import underscore from '@utils/underscore'
 
 const VALID_ATTR = /^(\w|-)+:(\w|-)+$/
 const RELATIONSHIP = /^belongs-to|has-(one|many)$/

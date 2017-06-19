@@ -1,6 +1,6 @@
 /* @flow */
 
-import isNull from 'utils/is-null'
+import isNull from '@utils/is-null'
 import { ParameterValueError, ResourceMismatchError } from '../../errors'
 import type Parameter from '../index'
 

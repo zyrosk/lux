@@ -7,11 +7,11 @@ import EventEmitter from 'events'
 
 import { red, green } from 'chalk'
 
-import { NODE_ENV } from 'constants'
+import { NODE_ENV } from '@constants'
 import { line } from '../../logger'
-import omit from 'utils/omit'
-import range from 'utils/range'
-import { composeAsync } from 'utils/compose'
+import omit from '@utils/omit'
+import range from '@utils/range'
+import { composeAsync } from '@utils/compose'
 // eslint-disable-next-line no-duplicate-imports
 import type Logger from '../../logger'
 

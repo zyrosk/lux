@@ -4,10 +4,10 @@ import { dasherize } from 'inflection'
 
 import { VERSION } from '../jsonapi'
 import { freezeProps } from '../freezeable'
-import uniq from 'utils/uniq'
-import underscore from 'utils/underscore'
-import promiseHash from 'utils/promise-hash'
-import { dasherizeKeys } from 'utils/transform-keys'
+import uniq from '@utils/uniq'
+import underscore from '@utils/underscore'
+import promiseHash from '@utils/promise-hash'
+import { dasherizeKeys } from '@utils/transform-keys'
 // eslint-disable-next-line no-unused-vars
 import type { Model } from '../database'
 // eslint-disable-next-line no-duplicate-imports

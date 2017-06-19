@@ -5,7 +5,7 @@ import type { IncomingMessage } from 'http'
 
 import qs from 'qs'
 
-import { HAS_BODY } from 'constants'
+import { HAS_BODY } from '@constants'
 import Request from '../../../request'
 import type Logger from '../../../logger'
 import * as query from '../../utils/query'

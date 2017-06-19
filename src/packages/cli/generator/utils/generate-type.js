@@ -6,7 +6,6 @@ import * as fs from 'mz/fs'
 import { green } from 'chalk'
 import { pluralize, singularize } from 'inflection'
 
-import * as fse from 'utils/fs-extras'
 import { NAMESPACED_RESOURCE_MESSAGE } from '../constants'
 import { generateTimestamp } from '../../../database'
 import modelTemplate from '../../templates/model'
@@ -16,7 +15,7 @@ import emptyMigrationTemplate from '../../templates/empty-migration'
 import modelMigrationTemplate from '../../templates/model-migration'
 import middlewareTemplate from '../../templates/middleware'
 import utilTemplate from '../../templates/util'
-import chain from 'utils/chain'
+import chain from '@utils/chain'
 import type { Generator$opts } from '../index'
 
 import log from './log'
@@ -49,7 +48,7 @@ export async function controller(opts: Generator$opts): Promise<void> {
   const namespace = posix.dirname(name)
 
   if (namespace !== '.') {
-    const hasParent = await fse.exists(
+    const hasParent = await fs.exists(
       joinPath(cwd, dir, ...[...namespace.split('/'), 'application.js'])
     )
 

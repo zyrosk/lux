@@ -2,7 +2,7 @@
 
 import Parameter from '../parameter'
 import ParameterGroup from '../parameter-group'
-import isNull from 'utils/is-null'
+import isNull from '@utils/is-null'
 import { typeForColumn } from '../../../../database'
 import type Controller from '../../../../controller'
 import type { ParameterLike } from '../interfaces'

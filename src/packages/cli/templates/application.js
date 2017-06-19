@@ -3,8 +3,8 @@
 import { classify } from 'inflection'
 
 import template from '../../template'
-import chain from 'utils/chain'
-import underscore from 'utils/underscore'
+import chain from '@utils/chain'
+import underscore from '@utils/underscore'
 
 /**
  * @private

@@ -2,7 +2,7 @@
 
 import { MIME_TYPE } from '../../jsonapi'
 import { STATUS_CODES } from '../../response'
-import stringify from 'utils/stringify'
+import stringify from '@utils/stringify'
 
 import dataFor from './data-for'
 
