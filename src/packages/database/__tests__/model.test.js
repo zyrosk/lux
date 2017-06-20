@@ -31,24 +31,24 @@ describe('module "database/model"', () => {
 
         static belongsTo = {
           user: {
-            inverse: 'posts'
-          }
+            inverse: 'posts',
+          },
         };
 
         static hasMany = {
           comments: {
-            inverse: 'post'
+            inverse: 'post',
           },
 
           reactions: {
             inverse: 'post',
-            model: 'reaction'
+            model: 'reaction',
           },
 
           tags: {
             inverse: 'posts',
-            through: 'categorization'
-          }
+            through: 'categorization',
+          },
         };
 
         static hooks = [
@@ -64,15 +64,15 @@ describe('module "database/model"', () => {
         static scopes = {
           isPublic() {
             return this.where({
-              isPublic: true
+              isPublic: true,
             })
           },
 
           isDraft() {
             return this.where({
-              isPublic: false
+              isPublic: false,
             })
-          }
+          },
         };
 
         static validates = {
@@ -85,7 +85,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -146,7 +146,7 @@ describe('module "database/model"', () => {
           .forEach(key => {
             const desc = Reflect.getOwnPropertyDescriptor(
               Subject.prototype,
-              key
+              key,
             )
 
             expect(typeof desc.get).toBe('function')
@@ -182,7 +182,7 @@ describe('module "database/model"', () => {
             expect.objectContaining({
               get: expect.any(Function),
               set: expect.any(Function),
-            })
+            }),
           )
         })
       })
@@ -251,15 +251,15 @@ describe('module "database/model"', () => {
 
         static belongsTo = {
           user: {
-            inverse: 'posts'
-          }
+            inverse: 'posts',
+          },
         };
       }
 
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -277,7 +277,7 @@ describe('module "database/model"', () => {
             user,
             body,
             title,
-            isPublic: true
+            isPublic: true,
           })
 
           // $FlowFixMe
@@ -318,7 +318,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -341,7 +341,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -360,7 +360,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -379,7 +379,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -398,7 +398,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -417,7 +417,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -436,7 +436,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -455,7 +455,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -474,13 +474,13 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
       test('returns an instance of `Query`', () => {
         const result = Subject.where({
-          isPublic: true
+          isPublic: true,
         })
 
         expect(result instanceof Query).toBe(true)
@@ -495,13 +495,13 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
       test('returns an instance of `Query`', () => {
         const result = Subject.not({
-          isPublic: true
+          isPublic: true,
         })
 
         expect(result instanceof Query).toBe(true)
@@ -515,13 +515,13 @@ describe('module "database/model"', () => {
 
       beforeAll(async () => {
         await Subject.initialize(store, () =>
-          store.connection(Subject.tableName)
+          store.connection(Subject.tableName),
         )
       })
 
       it('returns an instance of `Query`', () => {
         const result = Subject.whereBetween({
-          userId: [1, 10]
+          userId: [1, 10],
         })
 
         expect(result instanceof Query).toBe(true)
@@ -535,14 +535,14 @@ describe('module "database/model"', () => {
 
       beforeAll(async () => {
         await Subject.initialize(store, () =>
-          store.connection(Subject.tableName)
+          store.connection(Subject.tableName),
         )
       })
 
       it('returns an instance of `Query`', () => {
         const result = Subject.whereRaw(
           '"title" LIKE ?',
-          ['%Test%']
+          ['%Test%'],
         )
 
         expect(result instanceof Query).toBe(true)
@@ -556,7 +556,7 @@ describe('module "database/model"', () => {
 
       beforeAll(async () => {
         await Subject.initialize(store, () =>
-          store.connection(Subject.tableName)
+          store.connection(Subject.tableName),
         )
       })
 
@@ -575,7 +575,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -594,7 +594,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -613,7 +613,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -630,21 +630,21 @@ describe('module "database/model"', () => {
 
         static hasMany = {
           comments: {
-            inverse: 'post'
-          }
+            inverse: 'post',
+          },
         };
 
         static belongsTo = {
           user: {
-            inverse: 'posts'
-          }
+            inverse: 'posts',
+          },
         };
       }
 
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -662,16 +662,16 @@ describe('module "database/model"', () => {
         static scopes = {
           isPublic() {
             return this.where({
-              isPublic: true
+              isPublic: true,
             })
-          }
+          },
         };
       }
 
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -687,7 +687,7 @@ describe('module "database/model"', () => {
         static scopes = {
           mostRecent() {
             return this.order('createdAt', 'DESC')
-          }
+          },
         };
       }
 
@@ -716,11 +716,11 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await SubjectA.initialize(
           store,
-          () => store.connection(SubjectA.tableName)
+          () => store.connection(SubjectA.tableName),
         )
         await SubjectB.initialize(
           store,
-          () => store.connection(SubjectB.tableName)
+          () => store.connection(SubjectB.tableName),
         )
       })
 
@@ -747,7 +747,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -758,7 +758,7 @@ describe('module "database/model"', () => {
             docName: 'is-public',
             type: expect.any(String),
             nullable: expect.any(Boolean),
-          })
+          }),
         )
       })
     })
@@ -771,7 +771,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -788,15 +788,15 @@ describe('module "database/model"', () => {
 
         static belongsTo = {
           user: {
-            inverse: 'posts'
-          }
+            inverse: 'posts',
+          },
         };
       }
 
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -827,7 +827,7 @@ describe('module "database/model"', () => {
 
               await Subject.initialize(
                 store,
-                () => store.connection(tableName)
+                () => store.connection(tableName),
               )
 
               if (store.hasPool) {
@@ -902,7 +902,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 
@@ -912,7 +912,7 @@ describe('module "database/model"', () => {
 
         beforeEach(() => {
           instance = new Subject({
-            title: ogTitle
+            title: ogTitle,
           })
         })
 
@@ -966,38 +966,38 @@ describe('module "database/model"', () => {
 
           static hasOne = {
             image: {
-              inverse: 'post'
-            }
+              inverse: 'post',
+            },
           };
 
           static hasMany = {
             comments: {
-              inverse: 'post'
-            }
+              inverse: 'post',
+            },
           };
 
           static belongsTo = {
             user: {
-              inverse: 'posts'
-            }
+              inverse: 'posts',
+            },
           };
 
           static validates = {
-            title: str => str.split(' ').length > 1
+            title: str => str.split(' ').length > 1,
           };
         }
 
         beforeAll(async () => {
           await Subject.initialize(
             store,
-            () => store.connection(Subject.tableName)
+            () => store.connection(Subject.tableName),
           )
         })
 
         beforeEach(async () => {
           instance = await Subject.create({
             title: 'Test Post',
-            isPublic: false
+            isPublic: false,
           })
         })
 
@@ -1042,7 +1042,7 @@ describe('module "database/model"', () => {
               comments: [
                 comment,
               ],
-              isPublic: true
+              isPublic: true,
             })
           } else {
             // $FlowFixMe
@@ -1053,7 +1053,7 @@ describe('module "database/model"', () => {
               comments: [
                 comment,
               ],
-              isPublic: true
+              isPublic: true,
             })
 
             await instance.save()
@@ -1067,7 +1067,7 @@ describe('module "database/model"', () => {
             .include(
               'user',
               'image',
-              'comments'
+              'comments',
             )
 
           result = result.toObject()
@@ -1078,13 +1078,13 @@ describe('module "database/model"', () => {
           expect(result.user).toEqual(
             expect.objectContaining({
               id: user.getPrimaryKey(),
-            })
+            }),
           )
 
           expect(result.image).toEqual(
             expect.objectContaining({
               id: image.getPrimaryKey(),
-            })
+            }),
           )
 
           expect(result.comments).toEqual(expect.any(Array))
@@ -1123,11 +1123,11 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
 
         instance = await Subject.create({
-          title: 'Test Post'
+          title: 'Test Post',
         })
       })
 
@@ -1155,13 +1155,13 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
 
         instance = await Subject.create({
           body: 'Lots of content...',
           title: 'Test Post',
-          isPublic: true
+          isPublic: true,
         })
       })
 
@@ -1207,13 +1207,13 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
 
         instance = await Subject.create({
           body: 'Lots of content...',
           title: 'Test Post',
-          isPublic: true
+          isPublic: true,
         })
       })
 
@@ -1246,13 +1246,13 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
 
         instance = await Subject.create({
           body: 'Lots of content...',
           title: 'Test Post',
-          isPublic: true
+          isPublic: true,
         })
       })
 
@@ -1265,7 +1265,7 @@ describe('module "database/model"', () => {
 
         expect(result).toEqual({
           body: 'Lots of content...',
-          title: 'Test Post'
+          title: 'Test Post',
         })
       })
     })
@@ -1280,11 +1280,11 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
 
         instance = await Subject.create({
-          title: 'Test Post'
+          title: 'Test Post',
         })
       })
 
@@ -1307,7 +1307,7 @@ describe('module "database/model"', () => {
       beforeAll(async () => {
         await Subject.initialize(
           store,
-          () => store.connection(Subject.tableName)
+          () => store.connection(Subject.tableName),
         )
       })
 

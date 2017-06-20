@@ -23,7 +23,7 @@ export default {
   plugins: [
     json(),
     babel(),
-    resolve()
+    resolve(),
   ],
   external: id => !(
     id.startsWith('.')
@@ -34,5 +34,5 @@ export default {
     || id === 'babelHelpers'
     || id === '\u0000babelHelpers'
   ),
-  sourceMap: true
+  sourceMap: true,
 }

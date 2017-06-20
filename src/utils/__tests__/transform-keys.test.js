@@ -4,7 +4,7 @@ import {
   transformKeys,
   camelizeKeys,
   dasherizeKeys,
-  underscoreKeys
+  underscoreKeys,
 } from '../transform-keys'
 
 describe('util camelizeKeys()', () => {

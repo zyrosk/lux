@@ -1,27 +1,23 @@
 /* @flow */
 
-import Database from '../database'
-import Logger from '../logger'
-import Router from '../router'
-import { build, createLoader, closestChild } from '../loader'
-import { freezeProps, deepFreezeProps } from '../freezeable'
-import ControllerMissingError from '../../errors/controller-missing-error'
+import Database from '@lux/packages/database'
+import Logger from '@lux/packages/logger'
+import Router from '@lux/packages/router'
+import { build, createLoader, closestChild } from '@lux/packages/loader'
+import { freezeProps, deepFreezeProps } from '@lux/packages/freezeable'
+import ControllerMissingError from '@lux/errors/controller-missing-error'
+import type Application, { Options } from '@lux/packages/application'
 
 import createController from './utils/create-controller'
 import createSerializer from './utils/create-serializer'
 
-// eslint-disable-next-line no-unused-vars
-import type Application, { Options } from './index'
-
 /**
  * @private
  */
-export default async function initialize<T: Application>(app: T, {
-  path,
-  adapter,
-  logging,
-  database,
-  }: Options): Promise<T> {
+export default async function initialize<T: Application>(
+  app: T,
+  { path, adapter, logging, database }: Options,
+): Promise<T> {
   const load = createLoader(path)
   const routes = load('routes')
   const models = load('models')
@@ -32,16 +28,15 @@ export default async function initialize<T: Application>(app: T, {
     models,
     logger,
     config: database,
-    checkMigrations: true
+    checkMigrations: true,
   })
 
-  const serializers = build(
-    load('serializers'),
-    (key, value, parent) => createSerializer(value, {
+  const serializers = build(load('serializers'), (key, value, parent) =>
+    createSerializer(value, {
       key,
       store,
-      parent
-    })
+      parent,
+    }),
   )
 
   models.forEach(model => {
@@ -49,18 +44,17 @@ export default async function initialize<T: Application>(app: T, {
       value: closestChild(serializers, model.resourceName),
       writable: false,
       enumerable: false,
-      configurable: false
+      configurable: false,
     })
   })
 
-  const controllers = build(
-    load('controllers'),
-    (key, value, parent) => createController(value, {
+  const controllers = build(load('controllers'), (key, value, parent) =>
+    createController(value, {
       key,
       store,
       parent,
-      serializers
-    })
+      serializers,
+    }),
   )
 
   controllers.forEach(controller => {
@@ -68,7 +62,7 @@ export default async function initialize<T: Application>(app: T, {
       value: controllers,
       writable: true,
       enumerable: false,
-      configurable: false
+      configurable: false,
     })
   })
 
@@ -81,7 +75,7 @@ export default async function initialize<T: Application>(app: T, {
   const router = new Router({
     routes,
     controllers,
-    controller: ApplicationController
+    controller: ApplicationController,
   })
 
   Object.assign(app, {
@@ -91,12 +85,7 @@ export default async function initialize<T: Application>(app: T, {
     serializers,
   })
 
-  deepFreezeProps(app, true,
-    'logger',
-    'models',
-    'controllers',
-    'serializers'
-  )
+  deepFreezeProps(app, true, 'logger', 'models', 'controllers', 'serializers')
 
   Object.assign(app, {
     path,
@@ -104,11 +93,7 @@ export default async function initialize<T: Application>(app: T, {
     router,
   })
 
-  freezeProps(app, false,
-    'path',
-    'store',
-    'router'
-  )
+  freezeProps(app, false, 'path', 'store', 'router')
 
   Object.assign(app, { adapter: adapter(app) })
   freezeProps(app, false, 'adapter')

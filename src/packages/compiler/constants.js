@@ -1,6 +1,6 @@
 /* @flow */
 
-import template from '../template'
+import template from '@lux/packages/template'
 
 export const BANNER: string = template`
   const srcmap = require('source-map-support').install({

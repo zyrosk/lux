@@ -36,7 +36,7 @@ export const debugTemplate = ({
   endTime,
   statusCode,
   statusMessage,
-  remoteAddress
+  remoteAddress,
   }: any) => `\
 ${line`
   Processed ${cyan(`${method}`)} "${path}" from ${remoteAddress}
@@ -84,7 +84,7 @@ export const infoTemplate = ({
   endTime,
   statusCode,
   statusMessage,
-  remoteAddress
+  remoteAddress,
   }: any) => line`
 Processed ${cyan(`${method}`)} "${path}" ${magenta('Params')} ${
   JSON.stringify(params)} from ${remoteAddress

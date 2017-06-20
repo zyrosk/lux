@@ -2,7 +2,7 @@
 
 import Query from '../query'
 import Model from '../model'
-import range from '@utils/range'
+import range from '@lux/utils/range'
 import { getTestApp } from '../../../../test/utils/test-app'
 
 describe('module "database/query"', () => {
@@ -26,31 +26,31 @@ describe('module "database/query"', () => {
 
       static belongsTo = {
         user: {
-          inverse: 'posts'
-        }
+          inverse: 'posts',
+        },
       };
 
       static hasMany = {
         comments: {
-          inverse: 'post'
+          inverse: 'post',
         },
 
         reactions: {
-          inverse: 'post'
+          inverse: 'post',
         },
 
         tags: {
           inverse: 'posts',
-          through: 'categorization'
-        }
+          through: 'categorization',
+        },
       };
 
       static scopes = {
         isPublic() {
           return this.where({
-            isPublic: true
+            isPublic: true,
           })
-        }
+        },
       };
     }
 
@@ -92,10 +92,10 @@ describe('module "database/query"', () => {
             'user',
             'tags',
             'comments',
-            'reactions'
+            'reactions',
           )
           .where({
-            isPublic: true
+            isPublic: true,
           })
       })
 
@@ -135,7 +135,7 @@ describe('module "database/query"', () => {
 
       test('properly handles null conditions', () => {
         const result = subject.where({
-          isPublic: null
+          isPublic: null,
         })
 
         expect(result.snapshots).toMatchSnapshot()
@@ -151,7 +151,7 @@ describe('module "database/query"', () => {
 
       test('returns `this`', () => {
         const result = subject.not({
-          isPublic: true
+          isPublic: true,
         })
 
         expect(result).toBe(subject)
@@ -159,29 +159,29 @@ describe('module "database/query"', () => {
 
       test('properly modifies #snapshots', () => {
         const result = subject.not({
-          isPublic: true
+          isPublic: true,
         })
 
         expect(result.snapshots).toEqual([
-          ['whereNot', { 'posts.is_public': true }]
+          ['whereNot', { 'posts.is_public': true }],
         ])
       })
 
       test('properly handles array conditions', () => {
         const result = subject.not({
           id: [1, 2, 3],
-          isPublic: true
+          isPublic: true,
         })
 
         expect(result.snapshots).toEqual([
           ['whereNotIn', ['posts.id', [1, 2, 3]]],
-          ['whereNot', { 'posts.is_public': true }]
+          ['whereNot', { 'posts.is_public': true }],
         ])
       })
 
       test('resolves with the correct array of `Model` instances', async () => {
         const result = await subject.not({
-          isPublic: true
+          isPublic: true,
         })
 
         expect(result).toEqual(expect.any(Array))
@@ -213,7 +213,7 @@ describe('module "database/query"', () => {
 
         expect(result.snapshots).toEqual([
           ['where', { 'posts.id': 1 }],
-          ['limit', 1]
+          ['limit', 1],
         ])
       })
 
@@ -235,7 +235,7 @@ describe('module "database/query"', () => {
         const result = subject.find(1)
 
         expect(result.snapshots).toEqual([
-          ['where', { 'posts.id': 1 }]
+          ['where', { 'posts.id': 1 }],
         ])
       })
 
@@ -246,7 +246,7 @@ describe('module "database/query"', () => {
         expect(result).toEqual(
           expect.objectContaining({
             id: 1,
-          })
+          }),
         )
       })
     })
@@ -269,7 +269,7 @@ describe('module "database/query"', () => {
 
         expect(result.snapshots).toEqual([
           ['limit', 25],
-          ['offset', 25]
+          ['offset', 25],
         ])
       })
 
@@ -307,7 +307,7 @@ describe('module "database/query"', () => {
         const result = subject.limit(5)
 
         expect(result.snapshots).toEqual([
-          ['limit', 5]
+          ['limit', 5],
         ])
       })
 
@@ -368,7 +368,7 @@ describe('module "database/query"', () => {
 
       test('returns `this`', () => {
         const result = subject.where({
-          isPublic: true
+          isPublic: true,
         })
 
         expect(result).toBe(subject)
@@ -376,29 +376,29 @@ describe('module "database/query"', () => {
 
       test('properly modifies #snapshots', () => {
         const result = subject.where({
-          isPublic: true
+          isPublic: true,
         })
 
         expect(result.snapshots).toEqual([
-          ['where', { 'posts.is_public': true }]
+          ['where', { 'posts.is_public': true }],
         ])
       })
 
       test('properly handles array conditions', () => {
         const result = subject.where({
           id: [1, 2, 3],
-          isPublic: true
+          isPublic: true,
         })
 
         expect(result.snapshots).toEqual([
           ['whereIn', ['posts.id', [1, 2, 3]]],
-          ['where', { 'posts.is_public': true }]
+          ['where', { 'posts.is_public': true }],
         ])
       })
 
       test('resolves with the correct array of `Model` instances', async () => {
         const result = await subject.where({
-          isPublic: true
+          isPublic: true,
         })
 
         expect(result).toEqual(expect.any(Array))
@@ -421,7 +421,7 @@ describe('module "database/query"', () => {
 
       test('returns `this`', () => {
         const result = subject.whereBetween({
-          userId: [1, 10]
+          userId: [1, 10],
         })
 
         expect(result).toBe(subject)
@@ -429,7 +429,7 @@ describe('module "database/query"', () => {
 
       test('properly modifies #snapshots', () => {
         const result = subject.whereBetween({
-          userId: [1, 10]
+          userId: [1, 10],
         })
 
         expect(result.snapshots).toMatchSnapshot()
@@ -437,7 +437,7 @@ describe('module "database/query"', () => {
 
       test('resolves with the correct array of `Model` instances', async () => {
         const result = await subject.whereBetween({
-          userId: [1, 10]
+          userId: [1, 10],
         })
 
         expect(result).toEqual(expect.any(Array))
@@ -461,7 +461,7 @@ describe('module "database/query"', () => {
       test('returns `this`', () => {
         const result = subject.whereRaw(
           '"title" LIKE ?',
-          ['%Test%']
+          ['%Test%'],
         )
 
         expect(result).toBe(subject)
@@ -470,7 +470,7 @@ describe('module "database/query"', () => {
       test('properly modifies #snapshots', () => {
         const result = subject.whereRaw(
           '"title" LIKE ?',
-          ['%Test%']
+          ['%Test%'],
         )
 
         expect(result.snapshots).toMatchSnapshot()
@@ -479,7 +479,7 @@ describe('module "database/query"', () => {
       test('resolves with the correct array of `Model` instances', async () => {
         const result = await subject.whereRaw(
           '"title" LIKE ?',
-          ['%Test%']
+          ['%Test%'],
         )
 
         expect(result).toEqual(expect.any(Array))
@@ -511,7 +511,7 @@ describe('module "database/query"', () => {
 
         expect(result.snapshots).toEqual([
           ['orderByRaw', 'posts.id ASC'],
-          ['limit', 1]
+          ['limit', 1],
         ])
       })
 
@@ -526,7 +526,7 @@ describe('module "database/query"', () => {
 
         expect(result.snapshots).toEqual([
           ['orderByRaw', 'posts.created_at DESC, posts.id DESC'],
-          ['limit', 1]
+          ['limit', 1],
         ])
       })
 
@@ -545,7 +545,7 @@ describe('module "database/query"', () => {
         expect(result).toEqual(
           expect.objectContaining({
             id: 1,
-          })
+          }),
         )
       })
     })
@@ -738,14 +738,14 @@ describe('module "database/query"', () => {
         const result = subject.include({
           user: [
             'id',
-            'name'
+            'name',
           ],
           comments: [
             'id',
             'name',
             'edited',
-            'updatedAt'
-          ]
+            'updatedAt',
+          ],
         })
 
         expect([

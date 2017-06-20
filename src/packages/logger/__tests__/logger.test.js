@@ -49,7 +49,7 @@ describe('module "logger"', () => {
         level: 'INFO',
         format: 'json',
         enabled: true,
-        filter: { params: [] }
+        filter: { params: [] },
       }
       jsonLogger = new Logger(baseConfig)
       const disabledConfig = Object.assign({}, baseConfig, { enabled: false })

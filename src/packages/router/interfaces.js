@@ -1,25 +1,23 @@
 /* @flow */
 
-import type Route from './route';
-import type Controller from '../controller';
-import type { FreezeableSet } from '../freezeable';
+import type Route from './route'
+import type Controller from '@lux/packages/controller'
+import type { FreezeableSet } from '@lux/packages/freezeable'
 
 export type Router$opts = {
-  controller: Controller;
-  controllers: Map<string, Controller>;
+  controller: Controller,
+  controllers: Map<string, Controller>,
 
-  routes(): void;
-};
+  routes(): void,
+}
 
-type Router$NS$content =
-  | Route
-  | Router$Namespace;
+type Router$NS$content = Route | Router$Namespace
 
 export interface Router$Namespace extends FreezeableSet<Router$NS$content> {
-  name: string;
-  path: string;
-  isRoot: boolean;
-  namespace: Router$Namespace;
-  controller: Controller;
-  controllers: Map<string, Controller>;
+  name: string,
+  path: string,
+  isRoot: boolean,
+  namespace: Router$Namespace,
+  controller: Controller,
+  controllers: Map<string, Controller>,
 }

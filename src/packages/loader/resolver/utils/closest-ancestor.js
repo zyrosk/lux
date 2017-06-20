@@ -6,7 +6,7 @@ import type { Bundle$Namespace } from '../../index'
 
 export default function closestAncestor<T>(
   source: Bundle$Namespace<T>,
-  key: string
+  key: string,
 ): void | T {
   const name = posix.basename(key)
   let namespace = posix.dirname(key)
@@ -25,6 +25,6 @@ export default function closestAncestor<T>(
 
   return closestAncestor(
     source,
-    posix.join(posix.dirname(namespace), name)
+    posix.join(posix.dirname(namespace), name),
   )
 }

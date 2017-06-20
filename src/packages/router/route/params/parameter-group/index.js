@@ -1,8 +1,8 @@
 /* @flow */
 
-import { FreezeableMap } from '../../../../freezeable'
+import { FreezeableMap } from '@lux/packages/freezeable'
 import { InvalidParameterError } from '../errors'
-import isNull from '@utils/is-null'
+import isNull from '@lux/utils/is-null'
 import validateType from '../utils/validate-type'
 import type { ParameterLike, ParameterLike$opts } from '../index'
 
@@ -12,26 +12,25 @@ import hasRequiredParams from './utils/has-required-params'
  * @private
  */
 class ParameterGroup extends FreezeableMap<string, ParameterLike> {
-  type: string;
+  type: string
 
-  path: string;
+  path: string
 
-  required: boolean;
+  required: boolean
 
-  sanitize: boolean;
+  sanitize: boolean
 
-  constructor(contents: Array<any>, {
-    path,
-    required,
-    sanitize
-    }: ParameterLike$opts) {
+  constructor(
+    contents: Array<any>,
+    { path, required, sanitize }: ParameterLike$opts,
+  ) {
     super(contents)
 
     Object.assign(this, {
       path,
       type: 'object',
       required: Boolean(required),
-      sanitize: Boolean(sanitize)
+      sanitize: Boolean(sanitize),
     })
 
     this.freeze()

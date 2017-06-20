@@ -58,7 +58,7 @@ function runInspector() {
       runCommand(
         'osascript',
         ['-e', `tell application "Google Chrome" to open location "${target}"`],
-        ['Opening in Google Chrome (OSX Users only)']
+        ['Opening in Google Chrome (OSX Users only)'],
       )
     }
 

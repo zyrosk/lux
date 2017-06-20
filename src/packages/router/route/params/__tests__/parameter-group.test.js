@@ -12,13 +12,13 @@ describe('module "router/route/params"', () => {
         ['id', new Parameter({
           type: 'number',
           path: 'id',
-          required: true
+          required: true,
         })],
         ['meta', new ParameterGroup([
           ['date', new Parameter({
             type: 'string',
             path: 'meta.date',
-            required: true
+            required: true,
           })],
           ['vowel', new Parameter({
             type: 'string',
@@ -28,16 +28,16 @@ describe('module "router/route/params"', () => {
               'e',
               'i',
               'o',
-              'u'
-            ]
+              'u',
+            ],
           })],
         ], {
           path: 'meta',
-          sanitize: true
-        })]
+          sanitize: true,
+        })],
       ], {
         path: '',
-        required: true
+        required: true,
       })
     })
 
@@ -58,8 +58,8 @@ describe('module "router/route/params"', () => {
           subject.validate({
             id: '1',
             meta: {
-              date: Date.now()
-            }
+              date: Date.now(),
+            },
           })
         }).toThrow()
       })
@@ -70,8 +70,8 @@ describe('module "router/route/params"', () => {
             id: 1,
             meta: {
               date: new Date().toISOString(),
-              vowel: 'p'
-            }
+              vowel: 'p',
+            },
           })
         }).toThrow()
       })
@@ -81,8 +81,8 @@ describe('module "router/route/params"', () => {
           id: 1,
           meta: {
             date: Date(),
-            vowel: 'a'
-          }
+            vowel: 'a',
+          },
         }
 
         expect(subject.validate(params)).toEqual(params)
@@ -98,14 +98,14 @@ describe('module "router/route/params"', () => {
           meta: {
             date: Date(),
             colors: ['red', 'green', 'blue'],
-          }
+          },
         }
 
         expect(subject.validate(params)).toEqual({
           id: 1,
           meta: {
-            date: params.meta.date
-          }
+            date: params.meta.date,
+          },
         })
       })
     })

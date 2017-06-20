@@ -6,7 +6,8 @@
   ],
   "extends": [
     "airbnb-base",
-    "plugin:flowtype/recommended"
+    "plugin:flowtype/recommended",
+    "prettier"
   ],
   "env": {
     "jest/globals": true,
@@ -18,8 +19,15 @@
     }
   },
   "rules": {
+    "import/first": "off",
     "arrow-parens":"off",
-    "comma-dangle": [2, "only-multiline"],
+    "comma-dangle": ["error", {
+      "arrays": "always-multiline",
+      "exports": "always-multiline",
+      "functions": "always-multiline",
+      "imports": "always-multiline",
+      "objects": "always-multiline"
+    }],
     "max-len": ["error", 80],
     "no-unused-vars": ["error", {
       "argsIgnorePattern": "_",

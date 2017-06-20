@@ -1,19 +1,18 @@
 /* @flow */
 
-import { NODE_ENV } from '@constants'
-import { mock, http } from '../adapter'
-// eslint-disable-next-line no-duplicate-imports
-import type { AdapterFactory } from '../adapter'
-import type { Config as LoggerConfig } from '../logger'
+import { NODE_ENV } from '@lux/constants'
+import { mock, http } from '@lux/packages/adapter'
+import type { AdapterFactory } from '@lux/packages/adapter'
+import type { Config as LoggerConfig } from '@lux/packages/logger'
 
 export type Config = {
   server: {
     cors: {
-      enabled: boolean;
-    };
-  };
-  adapter: AdapterFactory;
-  logging: LoggerConfig;
+      enabled: boolean,
+    },
+  },
+  adapter: AdapterFactory,
+  logging: LoggerConfig,
 }
 
 export function createDefaultConfig(): Config {

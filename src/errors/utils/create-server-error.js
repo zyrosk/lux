@@ -9,7 +9,7 @@ type ServerError<T: Error> = T & {
  */
 export default function createServerError<T: Error>(
   Source: Class<T>,
-  statusCode: number
+  statusCode: number,
 ): Class<ServerError<T>> {
   const Target = class extends Source {
     statusCode: number;

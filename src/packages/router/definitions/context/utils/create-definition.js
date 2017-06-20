@@ -2,16 +2,20 @@
 
 import { Route } from '../../../index'
 import { normalizeName, normalizePath } from '../../../namespace'
-import type { Method } from '../../../../request'
+import type { Method } from '@lux/packages/request'
 import type { Router$Namespace, Route$type } from '../../../index' // eslint-disable-line max-len, no-duplicate-imports
 
 /**
  * @private
  */
-export default function createDefinition({ type, method, namespace }: {
-  type: Route$type;
-  method: Method;
-  namespace: Router$Namespace;
+export default function createDefinition({
+  type,
+  method,
+  namespace,
+}: {
+  type: Route$type,
+  method: Method,
+  namespace: Router$Namespace,
 }) {
   return function define(name: string, action?: string = normalizeName(name)) {
     const normalized = normalizeName(name)
@@ -31,22 +35,26 @@ export default function createDefinition({ type, method, namespace }: {
       path,
       action,
       method,
-      controller
+      controller,
     }
 
     namespace
       .add(new Route(opts))
-      .add(new Route({
-        ...opts,
-        type: 'custom',
-        method: 'HEAD',
-        action: 'preflight'
-      }))
-      .add(new Route({
-        ...opts,
-        type: 'custom',
-        method: 'OPTIONS',
-        action: 'preflight'
-      }))
+      .add(
+        new Route({
+          ...opts,
+          type: 'custom',
+          method: 'HEAD',
+          action: 'preflight',
+        }),
+      )
+      .add(
+        new Route({
+          ...opts,
+          type: 'custom',
+          method: 'OPTIONS',
+          action: 'preflight',
+        }),
+      )
   }
 }

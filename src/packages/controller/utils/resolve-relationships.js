@@ -1,13 +1,13 @@
 /* @flow */
 
-import type { Model } from '../../database'
+import type { Model } from '@lux/packages/database'
 
 /**
  * @private
  */
 export default function resolveRelationships<T: Model>(
   model: Class<T>,
-  relationships: Object = {}
+  relationships: Object = {},
 ): Object {
   return Object.entries(relationships).reduce((obj, [key, value]) => {
     let { data = null } = value || {}
@@ -26,7 +26,7 @@ export default function resolveRelationships<T: Model>(
 
     return {
       ...obj,
-      [key]: data
+      [key]: data,
     }
   }, {})
 }

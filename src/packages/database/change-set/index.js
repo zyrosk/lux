@@ -1,10 +1,10 @@
 /* @flow */
 
 import type { Model } from '../index'
-import mapToObject from '@utils/map-to-object'
+import mapToObject from '@lux/utils/map-to-object'
 
 class ChangeSet extends Map<string, any> {
-  isPersisted: boolean;
+  isPersisted: boolean
 
   constructor(data?: Object = {}): this {
     super(Object.entries(data))

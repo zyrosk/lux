@@ -165,8 +165,8 @@ describe('module "serializer"', () => {
           domain: DOMAIN,
           include: [],
           links: {
-            self: linkFor('posts')
-          }
+            self: linkFor('posts'),
+          },
         })
 
         result.data.forEach(sortRelationships)

@@ -5,7 +5,7 @@ import { WriteStream } from 'tty'
 import { dim, red, yellow } from 'chalk'
 
 import { WARN, ERROR } from '../constants'
-import omit from '@utils/omit'
+import omit from '@lux/utils/omit'
 import type { Format } from '../index'
 
 import { STDOUT, STDERR } from './constants'
@@ -28,14 +28,14 @@ export const create = (format: Format): Writer => data => {
         timestamp,
         level,
         message: message.message,
-        ...omit(message, 'message')
+        ...omit(message, 'message'),
       }
     } else {
       output = {
         timestamp,
         level,
         message,
-        ...etc
+        ...etc,
       }
     }
 

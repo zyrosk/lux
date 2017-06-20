@@ -1,8 +1,8 @@
 /* @flow */
 
-import Controller from '../../../controller'
-import * as Adapters from '../../../adapter'
-import K from '@utils/k'
+import Controller from '@lux/packages/controller'
+import * as Adapters from '@lux/packages/adapter'
+import K from '@lux/utils/k'
 import { getTestApp } from '../../../../../test/utils/test-app'
 import Route from '../index'
 
@@ -34,46 +34,49 @@ describe('module "router/route"', () => {
           type: 'collection',
           path: 'posts',
           action: 'index',
-          method: 'GET'
+          method: 'GET',
         })
 
         expect(result).toBeInstanceOf(Route)
       })
 
       test('throws when a handler is not found', () => {
-        expect(() => (
-          new Route({
-            controller,
-            type: 'collection',
-            path: 'posts',
-            action: 'invalidHandler',
-            method: 'GET'
-          })
-        )).toThrow()
+        expect(
+          () =>
+            new Route({
+              controller,
+              type: 'collection',
+              path: 'posts',
+              action: 'invalidHandler',
+              method: 'GET',
+            }),
+        ).toThrow()
       })
 
       test('throws when an an action is not provided', () => {
-        expect(() => (
-          // $FlowFixMe
-          new Route({
-            controller,
-            type: 'collection',
-            path: 'posts',
-            method: 'GET'
-          })
-        )).toThrow()
+        expect(
+          () =>
+            // $FlowFixMe
+            new Route({
+              controller,
+              type: 'collection',
+              path: 'posts',
+              method: 'GET',
+            }),
+        ).toThrow()
       })
 
       test('throws when an an controller is not provided', () => {
-        expect(() => (
-          // $FlowFixMe
-          new Route({
-            type: 'collection',
-            path: 'posts',
-            action: 'index',
-            method: 'GET'
-          })
-        )).toThrow()
+        expect(
+          () =>
+            // $FlowFixMe
+            new Route({
+              type: 'collection',
+              path: 'posts',
+              action: 'index',
+              method: 'GET',
+            }),
+        ).toThrow()
       })
     })
 
@@ -117,14 +120,13 @@ describe('module "router/route"', () => {
     describe('#execHandlers()', () => {
       let subject: Route
 
-      const mockArgs = () => (
+      const mockArgs = () =>
         adapter({
           url: '/tests',
           method: 'GET',
           headers: {},
           resolve: K,
         })
-      )
 
       describe('- with action only', () => {
         beforeAll(async () => {
@@ -132,9 +134,9 @@ describe('module "router/route"', () => {
             // $FlowFixMe
             index = async () => ({
               meta: {
-                success: true
-              }
-            });
+                success: true,
+              },
+            })
           }
 
           subject = new Route({
@@ -143,8 +145,8 @@ describe('module "router/route"', () => {
             action: 'index',
             method: 'GET',
             controller: new TestController({
-              namespace: ''
-            })
+              namespace: '',
+            }),
           })
         })
 
@@ -162,17 +164,17 @@ describe('module "router/route"', () => {
             beforeAction = [
               async () => ({
                 meta: {
-                  beforeSuccess: true
-                }
-              })
-            ];
+                  beforeSuccess: true,
+                },
+              }),
+            ]
 
             // $FlowFixMe
             index = async () => ({
               meta: {
-                success: true
-              }
-            });
+                success: true,
+              },
+            })
           }
 
           subject = new Route({
@@ -181,8 +183,8 @@ describe('module "router/route"', () => {
             action: 'index',
             method: 'GET',
             controller: new TestController({
-              namespace: ''
-            })
+              namespace: '',
+            }),
           })
         })
 
@@ -201,9 +203,9 @@ describe('module "router/route"', () => {
             index = async () => ({
               meta: {
                 success: true,
-                afterSuccess: true
-              }
-            });
+                afterSuccess: true,
+              },
+            })
           }
 
           subject = new Route({
@@ -212,8 +214,8 @@ describe('module "router/route"', () => {
             action: 'index',
             method: 'GET',
             controller: new TestController({
-              namespace: ''
-            })
+              namespace: '',
+            }),
           })
         })
 
@@ -232,23 +234,23 @@ describe('module "router/route"', () => {
           beforeAction = jest.fn()
 
           class TestController extends Controller {
-            beforeAction = [beforeAction];
+            beforeAction = [beforeAction]
 
             afterAction = [
               async (req, res, { meta }) => ({
                 meta: {
                   ...meta,
-                  afterSuccess: true
-                }
-              })
-            ];
+                  afterSuccess: true,
+                },
+              }),
+            ]
 
             // $FlowFixMe
             index = async () => ({
               meta: {
-                success: true
-              }
-            });
+                success: true,
+              },
+            })
           }
 
           subject = new Route({
@@ -257,8 +259,8 @@ describe('module "router/route"', () => {
             action: 'index',
             method: 'GET',
             controller: new TestController({
-              namespace: ''
-            })
+              namespace: '',
+            }),
           })
         })
 
@@ -282,9 +284,9 @@ describe('module "router/route"', () => {
       beforeAll(() => {
         // $FlowFixMe
         controller = app.controllers.get('posts')
-      });
+      })
 
-      ['GET', 'OPTIONS'].forEach(method => {
+      ;['GET', 'OPTIONS'].forEach(method => {
         describe(`- method "${method}"`, () => {
           let subject
 
@@ -307,7 +309,7 @@ describe('module "router/route"', () => {
               controller,
               type: 'collection',
               path: 'posts',
-              action: 'preflight'
+              action: 'preflight',
             })
           })
 

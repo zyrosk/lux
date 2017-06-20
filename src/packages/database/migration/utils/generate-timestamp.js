@@ -6,7 +6,7 @@ function formatInt(int: number): string {
 
 export function* padding(
   char: string,
-  amount: number
+  amount: number,
 ): Generator<string, void, void> {
   for (let i = 0; i < amount; i += 1) {
     yield char

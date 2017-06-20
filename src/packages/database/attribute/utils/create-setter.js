@@ -1,7 +1,7 @@
 /* @flow */
 
-import isNull from '@utils/is-null'
-import isUndefined from '@utils/is-undefined'
+import isNull from '@lux/utils/is-null'
+import isUndefined from '@lux/utils/is-undefined'
 import type { Attribute$meta } from '../index'
 
 /**
@@ -11,9 +11,9 @@ export default function createSetter({
   key,
   nullable,
   normalize,
-  defaultValue
-  }: Attribute$meta & {
-  normalize: (value: any) => any
+  defaultValue,
+}: Attribute$meta & {
+  normalize: (value: any) => any,
 }): (value?: any) => void {
   return function setter(nextValue) {
     if (!nullable) {

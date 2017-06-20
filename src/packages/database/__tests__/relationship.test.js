@@ -141,7 +141,7 @@ describe('module "database/relationship"', () => {
           expect(result.toObject()).toEqual(
             expect.objectContaining({
               post: expect.objectContaining(record.getAttributes()),
-            })
+            }),
           )
         }
       })
@@ -158,8 +158,8 @@ describe('module "database/relationship"', () => {
             expect.objectContaining({
               posts: expect.arrayContaining([
                 expect.objectContaining(record.getAttributes()),
-              ])
-            })
+              ]),
+            }),
           )
         }
       })
@@ -176,9 +176,9 @@ describe('module "database/relationship"', () => {
             expect(comment.toObject()).toEqual(
               expect.objectContaining({
                 post: expect.objectContaining(
-                  record.getAttributes()
+                  record.getAttributes(),
                 ),
-              })
+              }),
             )
           })
         }
@@ -196,9 +196,9 @@ describe('module "database/relationship"', () => {
             expect(tag.toObject()).toEqual(
               expect.objectContaining({
                 post: expect.objectContaining(
-                  record.getAttributes()
+                  record.getAttributes(),
                 ),
-              })
+              }),
             )
           })
         }
@@ -231,7 +231,7 @@ describe('module "database/relationship"', () => {
         expect(image.toObject()).toEqual(
           expect.objectContaining({
             post: expect.objectContaining(
-              record.getAttributes()
+              record.getAttributes(),
             ),
           }),
         )
@@ -270,9 +270,9 @@ describe('module "database/relationship"', () => {
               expect.objectContaining({
                 ...record.getAttributes(),
                 user: expect.objectContaining(
-                  user.getAttributes()
+                  user.getAttributes(),
                 ),
-              })
+              }),
             ]),
           }),
         )
@@ -313,11 +313,11 @@ describe('module "database/relationship"', () => {
               ...record.getAttributes(),
               comments: expect.arrayContaining([
                 expect.objectContaining(
-                  comment.getAttributes()
+                  comment.getAttributes(),
                 ),
               ]),
             }),
-          })
+          }),
         )
       })
 
@@ -328,7 +328,7 @@ describe('module "database/relationship"', () => {
         expect(record.toObject()).toEqual(
           expect.objectContaining({
             comments: [],
-          })
+          }),
         )
       })
     })

@@ -4,12 +4,12 @@ import * as path from 'path'
 
 import slash from 'slash'
 import * as fs from 'mz/fs'
-import { camelize, capitalize } from 'inflection'
+import { camelize, capitalize, pluralize } from 'inflection'
 
-import chain from '@utils/chain'
-import underscore from '@utils/underscore'
-import { compose } from '@utils/compose'
-import noop from '@utils/noop'
+import chain from '@lux/utils/chain'
+import underscore from '@lux/utils/underscore'
+import { compose } from '@lux/utils/compose'
+import noop from '@lux/utils/noop'
 
 import formatName from './format-name'
 
@@ -22,17 +22,12 @@ const createExporter = dist => (name, absolute, isNamedExport) => {
   }
 
   return Buffer.from(
-    `export {\n  default as ${name}\n} from '${normalized}';\n\n`
+    `export {\n  default as ${name}\n} from '${normalized}';\n\n`,
   )
 }
 
 const writerForType = (type, file, exporter, handleWrite) => value => {
-  const formatIdentifier = compose(
-    str => str + capitalize(type),
-    formatName,
-    str => str.substr(type.length + 2),
-    //     ^^^ TODO: Make this less hacky
-  )
+  const formatIdentifier = compose(str => str + capitalize(type), formatName)
 
   return Promise.all(
     value.map(item => {
@@ -40,23 +35,26 @@ const writerForType = (type, file, exporter, handleWrite) => value => {
         return handleWrite(item)
       }
 
-      const id = path.join('app', item)
+      const data = exporter(
+        formatIdentifier(item),
+        path.join('app', pluralize(type), item),
+      )
 
-      return fs.appendFile(file, exporter(formatIdentifier(item), id))
-    })
+      return fs.appendFile(file, data)
+    }),
   )
 }
 
 const createWriter = (file, exporter) => ({
   controllers: writerForType('controller', file, exporter),
   serializers: writerForType('serializer', file, exporter),
-  models: writerForType('model', file, exporter, async item => {
+  models: writerForType('model', file, exporter, item => {
     const id = path.join('app', 'models', item)
     const name = formatName(item)
 
     return fs.appendFile(file, exporter(name, id))
   }),
-  migrations: writerForType('migration', file, exporter, async (item) => {
+  migrations: writerForType('migration', file, exporter, item => {
     const id = path.join('db', 'migrate', item)
     const name = chain(item)
       .pipe(str => path.basename(str, '.js'))
@@ -65,17 +63,17 @@ const createWriter = (file, exporter) => ({
       .pipe(str => camelize(str, true))
       .value()
 
-    await Promise.all([
+    return Promise.all([
       fs.appendFile(file, exporter(`up as ${name}Up`, id, true)),
       fs.appendFile(file, exporter(`down as ${name}Down`, id, true)),
     ])
-  })
+  }),
 })
 
 export default async function createManifest(
   dir: string,
   assets: Map<string, Array<string> | string>,
-  { useStrict }: { useStrict: boolean }
+  { useStrict }: { useStrict: boolean },
 ): Promise<void> {
   const dist = path.join(dir, 'dist')
   const file = path.join(dist, 'index.js')
@@ -83,21 +81,19 @@ export default async function createManifest(
   const writer = createWriter(file, exporter)
 
   await fs.mkdir(dist).catch(noop)
-  await fs.writeFile(file, Buffer.from(useStrict ? '\'use strict\';\n\n' : ''))
+  await fs.writeFile(file, Buffer.from(useStrict ? "'use strict';\n\n" : ''))
 
-  const promises = Array
-    .from(assets)
-    .map(([key, value]) => {
-      const write = Reflect.get(writer, key)
+  const promises = Array.from(assets).map(([key, value]) => {
+    const write = Reflect.get(writer, key)
 
-      if (write) {
-        return write(value)
-      } else if (!write && typeof value === 'string') {
-        return fs.appendFile(file, exporter(key, value))
-      }
+    if (write) {
+      return write(value)
+    } else if (!write && typeof value === 'string') {
+      return fs.appendFile(file, exporter(key, value))
+    }
 
-      return Promise.resolve()
-    })
+    return Promise.resolve()
+  })
 
   await Promise.all(promises)
 }

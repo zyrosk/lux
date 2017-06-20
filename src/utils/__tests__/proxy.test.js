@@ -29,12 +29,12 @@ describe('util proxy', () => {
 
         shortArea(target) {
           return Math.round(target.area() * 100) / 100
-        }
+        },
       }
 
       base = new Circle(10)
       proxied = new Proxy(base, {
-        get: proxy.trapGet(traps)
+        get: proxy.trapGet(traps),
       })
     })
 

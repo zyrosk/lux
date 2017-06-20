@@ -1,34 +1,30 @@
 /* @flow */
 
-import omit from '@utils/omit'
-import type { Model } from '../../database'
-import type Request from '../../request'
+import omit from '@lux/utils/omit'
+import type { Model } from '@lux/packages/database'
+import type Request from '@lux/packages/request'
 
 /**
  * @private
  */
-export default function paramsToQuery(model: Class<Model>, {
-  id,
-  page,
-  sort,
-  filter,
-  fields,
-  include
-  }: $PropertyType<Request, 'params'>): Object {
+export default function paramsToQuery(
+  model: Class<Model>,
+  { id, page, sort, filter, fields, include }: $PropertyType<Request, 'params'>,
+): Object {
   const relationships = Object.entries(model.relationships)
   let includedFields = omit(fields, model.resourceName)
 
   let query = {
     id,
     filter,
-    select: [model.primaryKey, ...Reflect.get(fields, model.resourceName)]
+    select: [model.primaryKey, ...Reflect.get(fields, model.resourceName)],
   }
 
   if (page) {
     query = {
       ...query,
       page: page.number,
-      limit: page.size
+      limit: page.size,
     }
   }
 
@@ -36,12 +32,12 @@ export default function paramsToQuery(model: Class<Model>, {
     if (sort.startsWith('-')) {
       query = {
         ...query,
-        sort: [sort.substr(1), 'DESC']
+        sort: [sort.substr(1), 'DESC'],
       }
     } else {
       query = {
         ...query,
-        sort: [sort, 'ASC']
+        sort: [sort, 'ASC'],
       }
     }
   }
@@ -50,12 +46,10 @@ export default function paramsToQuery(model: Class<Model>, {
     const [key] = field
     let [, value] = field
 
-    const [
-      name,
-      relationship
-    ] = relationships.find(([, { model: related }]) => (
-        key === related.resourceName
-      )) || []
+    const [name, relationship] =
+      relationships.find(
+        ([, { model: related }]) => key === related.resourceName,
+      ) || []
 
     if (!name || !relationship) {
       return result
@@ -73,12 +67,12 @@ export default function paramsToQuery(model: Class<Model>, {
 
     return {
       ...result,
-      [name]: value
+      [name]: value,
     }
   }, {})
 
   return {
     ...query,
-    include: includedFields
+    include: includedFields,
   }
 }

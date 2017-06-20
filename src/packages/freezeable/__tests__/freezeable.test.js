@@ -11,7 +11,7 @@ describe('module "freezeable"', () => {
         subject = new FreezeableMap([
           ['a', 1],
           ['b', 2],
-          ['c', 3]
+          ['c', 3],
         ])
       })
 
@@ -39,14 +39,14 @@ describe('module "freezeable"', () => {
         const d = {
           a: 1,
           b: 2,
-          c: 3
+          c: 3,
         }
 
         subject = new FreezeableMap([
           ['a', 1],
           ['b', 2],
           ['c', 3],
-          ['d', d]
+          ['d', d],
         ])
       })
 
@@ -110,7 +110,7 @@ describe('module "freezeable"', () => {
       const obj = {
         a: 1,
         b: 2,
-        c: 3
+        c: 3,
       }
 
       beforeEach(() => {

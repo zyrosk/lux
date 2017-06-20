@@ -4,16 +4,19 @@ import * as path from 'path'
 
 import * as fs from 'mz/fs'
 
-import template from '../../template'
+import template from '@lux/packages/template'
 
 /**
  * @private
  */
-export default async function createBootScript(dir: string, {
-  useStrict
+export default async function createBootScript(
+  dir: string,
+  {
+    useStrict,
   }: {
-  useStrict: boolean;
-}): Promise<void> {
+    useStrict: boolean,
+  },
+): Promise<void> {
   let data = template`
     const http = require('http');
 

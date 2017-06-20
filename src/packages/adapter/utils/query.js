@@ -1,6 +1,6 @@
 /* @flow */
 
-import isObject from '@utils/is-object'
+import isObject from '@lux/utils/is-object'
 import type { ObjectMap } from '../../../interfaces'
 
 const INT = /^\d+$/
@@ -12,21 +12,19 @@ const TRUE = /^true$/
 const DELIMITER = /[_-\s]+/
 
 export function camelize(source: string): string {
-  return source
-    .split(DELIMITER)
-    .reduce((result, part, idx) => {
-      if (part[0]) {
-        const [first] = part
+  return source.split(DELIMITER).reduce((result, part, idx) => {
+    if (part[0]) {
+      const [first] = part
 
-        return (
-          result
-          + (idx === 0 ? first.toLowerCase() : first.toUpperCase())
-          + part.slice(1).toLowerCase()
-        )
-      }
+      return (
+        result +
+        (idx === 0 ? first.toLowerCase() : first.toUpperCase()) +
+        part.slice(1).toLowerCase()
+      )
+    }
 
-      return result
-    }, '')
+    return result
+  }, '')
 }
 
 export function fromString(source: string): any {
@@ -69,9 +67,9 @@ export function fromObject(source: ObjectMap<any>): ObjectMap<any> {
     } else if (key === 'fields' && isObject(value)) {
       value = Object.entries(value).reduce((fields, [resource, names]) => {
         // eslint-disable-next-line no-param-reassign
-        fields[resource] = (
-          Array.isArray(names) ? names : [names]
-        ).map(item => {
+        fields[resource] = (Array.isArray(names)
+          ? names
+          : [names]).map(item => {
           if (typeof item === 'string') {
             return camelize(item)
           }

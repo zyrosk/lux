@@ -14,13 +14,10 @@ export default function createQueryString(src: Object, prop?: string): string {
     }
 
     if (prop) {
-      result += (
-        `${prop
-        + encodeURIComponent('[')
-        + key
-        + encodeURIComponent(']')
-        }=`
-      )
+      result += `${prop +
+        encodeURIComponent('[') +
+        key +
+        encodeURIComponent(']')}=`
     } else {
       result += `${key}=`
     }
@@ -29,10 +26,9 @@ export default function createQueryString(src: Object, prop?: string): string {
       if (Array.isArray(value)) {
         result += value.map(encodeURIComponent).join()
       } else {
-        result = (
-          result.substr(0, result.length - (key.length + 1))
-          + createQueryString(value, key)
-        )
+        result =
+          result.substr(0, result.length - (key.length + 1)) +
+          createQueryString(value, key)
       }
     } else if (!value && typeof value !== 'number') {
       result += 'null'

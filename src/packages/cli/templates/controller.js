@@ -2,19 +2,16 @@
 
 import { classify, camelize, pluralize } from 'inflection'
 
-import template from '../../template'
+import template from '@lux/packages/template'
 import indent from '../utils/indent'
-import chain from '@utils/chain'
-import underscore from '@utils/underscore'
+import chain from '@lux/utils/chain'
+import underscore from '@lux/utils/underscore'
 
 /**
  * @private
  */
 export default (name: string, attrs: Array<string>): string => {
-  let normalized = chain(name)
-    .pipe(underscore)
-    .pipe(classify)
-    .value()
+  let normalized = chain(name).pipe(underscore).pipe(classify).value()
 
   if (!normalized.endsWith('Application')) {
     normalized = pluralize(normalized)
@@ -24,13 +21,16 @@ export default (name: string, attrs: Array<string>): string => {
     attrs
       .filter(attr => /^(\w|-)+:(\w|-)+$/g.test(attr))
       .map(attr => attr.split(':')[0])
-      .reduce((obj, attr) => ({
-        ...obj,
-        params: [
-          ...obj.params,
-          `${indent(8)}'${camelize(underscore(attr), true)}'`
-        ]
-      }), { params: [] })
+      .reduce(
+        (obj, attr) => ({
+          ...obj,
+          params: [
+            ...obj.params,
+            `${indent(8)}'${camelize(underscore(attr), true)}'`,
+          ],
+        }),
+        { params: [] },
+      ),
   ).reduce((result, group, index) => {
     const [key] = group
     let [, value] = group
@@ -43,7 +43,8 @@ export default (name: string, attrs: Array<string>): string => {
         str += '\n\n'
       }
 
-      str += `${indent(index === 0 ? 2 : 6)}${key} = ` +
+      str +=
+        `${indent(index === 0 ? 2 : 6)}${key} = ` +
         `[\n${value}\n${indent(6)}];`
     }
 

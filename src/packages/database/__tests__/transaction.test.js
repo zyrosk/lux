@@ -4,7 +4,7 @@ import Model from '../model'
 import {
   createTransactionResultProxy,
   createStaticTransactionProxy,
-  createInstanceTransactionProxy
+  createInstanceTransactionProxy,
 } from '../transaction'
 import { getTestApp } from '../../../../test/utils/test-app'
 
@@ -24,7 +24,7 @@ describe('module "database/transaction"', () => {
 
     await Subject.initialize(
       store,
-      () => store.connection(tableName)
+      () => store.connection(tableName),
     )
   })
 

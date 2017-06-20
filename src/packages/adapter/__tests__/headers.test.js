@@ -1,6 +1,6 @@
 /* @flow */
 
-import { MIME_TYPE } from '../../jsonapi'
+import { MIME_TYPE } from '@lux/packages/jsonapi'
 import { Headers, ResponseHeaders } from '../utils/headers'
 
 describe('module "adapters/headers"', () => {
@@ -22,9 +22,9 @@ describe('module "adapters/headers"', () => {
       test('creates an instance of Headers', () => {
         expect(subject).toMatchSnapshot()
       })
-    });
+    })
 
-    ['get', 'has'].forEach(method => {
+    ;['get', 'has'].forEach(method => {
       describe(`#${method}()`, () => {
         const key = 'Accept'
         const value = method === 'get' ? MIME_TYPE : true

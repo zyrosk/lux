@@ -18,22 +18,22 @@ class Validation<T> {
         value: opts.key,
         writable: false,
         enumerable: true,
-        configurable: false
+        configurable: false,
       },
 
       value: {
         value: opts.value,
         writable: false,
         enumerable: true,
-        configurable: false
+        configurable: false,
       },
 
       validator: {
         value: opts.validator,
         writable: false,
         enumerable: false,
-        configurable: false
-      }
+        configurable: false,
+      },
     })
   }
 

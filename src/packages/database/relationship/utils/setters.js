@@ -14,7 +14,7 @@ export function setHasMany(owner: Model, key: string, value: Array<Model>, {
   type,
   model,
   inverse,
-  foreignKey
+  foreignKey,
   }: Relationship$opts) {
   let { currentChangeSet: changeSet } = owner
 
@@ -44,7 +44,7 @@ export function setHasMany(owner: Model, key: string, value: Array<Model>, {
       model,
       inverse,
       foreignKey,
-      inverseModel: model
+      inverseModel: model,
     })
   }
 }
@@ -56,7 +56,7 @@ export function setHasOne(owner: Model, key: string, value?: ?Model, {
   type,
   model,
   inverse,
-  foreignKey
+  foreignKey,
   }: Relationship$opts) {
   let valueToSet = value
 
@@ -87,7 +87,7 @@ export function setHasOne(owner: Model, key: string, value?: ?Model, {
     model,
     inverse,
     foreignKey,
-    inverseModel: model
+    inverseModel: model,
   })
 }
 
@@ -98,13 +98,13 @@ export function setBelongsTo(owner: Model, key: string, value?: ?Model, {
   type,
   model,
   inverse,
-  foreignKey
+  foreignKey,
   }: Relationship$opts) {
   setHasOne(owner, key, value, {
     type,
     model,
     inverse,
-    foreignKey
+    foreignKey,
   })
 
   if (value) {

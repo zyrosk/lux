@@ -25,8 +25,8 @@ export async function runGenerator({ cwd, type, name, attrs }: {
     name,
     attrs,
     onConflict: path => prompt.question(
-      `${green('?')} ${red('Overwrite')} ${path}? (Y/n)\r`
-    )
+      `${green('?')} ${red('Overwrite')} ${path}? (Y/n)\r`,
+    ),
   })
 
   prompt.close()
@@ -35,5 +35,5 @@ export async function runGenerator({ cwd, type, name, attrs }: {
 export type {
   Generator,
   Generator$opts,
-  Generator$template
+  Generator$template,
 } from './interfaces'

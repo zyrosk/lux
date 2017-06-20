@@ -2,10 +2,10 @@ import { EOL } from 'os'
 
 import { readdir } from 'mz/fs'
 
-import { CWD } from '@constants'
-import Database from '../../database'
-import Logger, { sql } from '../../logger'
-import { createLoader } from '../../loader'
+import { CWD } from '@lux/constants'
+import Database from '@lux/packages/database'
+import Logger, { sql } from '@lux/packages/logger'
+import { createLoader } from '@lux/packages/loader'
 
 /**
  * @private
@@ -24,8 +24,8 @@ export async function dbrollback() {
     checkMigrations: false,
 
     logger: new Logger({
-      enabled: false
-    })
+      enabled: false,
+    }),
   })
 
   const migrationFiles = await readdir(`${CWD}/db/migrate`)
@@ -54,9 +54,11 @@ export async function dbrollback() {
           process.stdout.write(EOL)
         })
 
-        await connection('migrations').where({
-          version
-        }).del()
+        await connection('migrations')
+          .where({
+            version,
+          })
+          .del()
       }
     }
   }

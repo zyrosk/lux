@@ -24,8 +24,6 @@ if (Object.values === undefined) {
 }
 `
 
-const createAlias = name => path.join(__dirname, 'src', name)
-
 export default {
   banner: BANNER,
   external: Object.keys(dependencies).concat([
@@ -76,11 +74,7 @@ export default {
   format: 'cjs',
   plugins: [
     alias({
-      '@constants': createAlias('constants'),
-      '@errors': createAlias('errors'),
-      '@interfaces': createAlias('interfaces'),
-      '@packages': createAlias('packages'),
-      '@utils': createAlias('utils'),
+      '@lux': path.join(__dirname, 'src'),
     }),
     json(),
     babel(),

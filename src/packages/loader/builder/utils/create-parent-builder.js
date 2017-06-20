@@ -7,7 +7,7 @@ import type { Builder$Construct, Builder$ParentBuilder } from '../interfaces'
 import sortByNamespace from './sort-by-namespace'
 
 export default function createParentBuilder<T>(
-  construct: Builder$Construct<T>
+  construct: Builder$Construct<T>,
 ): Builder$ParentBuilder<T> {
   return target => Array
     .from(target)
@@ -40,7 +40,7 @@ export default function createParentBuilder<T>(
       return [...result, {
         key,
         value,
-        parent
+        parent,
       }]
     }, [])
 }

@@ -23,11 +23,7 @@ esproposal.class_instance_fields=enable
 
 experimental.const_params=true
 
-module.name_mapper='^@constants\(.*\)' -> '<PROJECT_ROOT>/src/constants'
-module.name_mapper='^@errors\(.*\)' -> '<PROJECT_ROOT>/src/errors/\1'
-module.name_mapper='^@interfaces\(.*\)' -> '<PROJECT_ROOT>/src/interfaces'
-module.name_mapper='^@packages\(.*\)' -> '<PROJECT_ROOT>/src/packages/\1'
-module.name_mapper='^@utils\(.*\)' -> '<PROJECT_ROOT>/src/utils/\1'
+module.name_mapper='^@lux\(.*\)' -> '<PROJECT_ROOT>/src\1'
 module.name_mapper='rollup-plugin-lux' -> '<PROJECT_ROOT>/node_modules/rollup-plugin-lux/src/index.js'
 
 unsafe.enable_getters_and_setters=true

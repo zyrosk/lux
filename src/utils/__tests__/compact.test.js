@@ -17,13 +17,13 @@ describe('util compact()', () => {
       b: 'a',
       c: 1,
       d: {},
-      e: false
+      e: false,
     }
 
     const result = compact({
       ...values,
       f: null,
-      g: undefined
+      g: undefined,
     })
 
     expect(result).toEqual(values)

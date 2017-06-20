@@ -2,16 +2,14 @@
 
 import { dasherize } from 'inflection'
 
-import { VERSION } from '../jsonapi'
-import { freezeProps } from '../freezeable'
-import uniq from '@utils/uniq'
-import underscore from '@utils/underscore'
-import promiseHash from '@utils/promise-hash'
-import { dasherizeKeys } from '@utils/transform-keys'
-// eslint-disable-next-line no-unused-vars
-import type { Model } from '../database'
-// eslint-disable-next-line no-duplicate-imports
-import type { Document, Resource, Relationship } from '../jsonapi'
+import { VERSION } from '@lux/packages/jsonapi'
+import { freezeProps } from '@lux/packages/freezeable'
+import uniq from '@lux/utils/uniq'
+import underscore from '@lux/utils/underscore'
+import promiseHash from '@lux/utils/promise-hash'
+import { dasherizeKeys } from '@lux/utils/transform-keys'
+import type { Model } from '@lux/packages/database'
+import type { Document, Resource, Relationship } from '@lux/packages/jsonapi'
 import type { ObjectMap } from '../../interfaces'
 
 type Options<T> = {
@@ -357,7 +355,7 @@ class Serializer<T: Model> {
    * @default []
    * @public
    */
-  hasOne: Array<string> = [];
+  hasOne: Array<string> = []
 
   /**
    * An Array of the `hasMany` relationships on a Serializer instance's Model to
@@ -376,7 +374,7 @@ class Serializer<T: Model> {
    * @default []
    * @public
    */
-  hasMany: Array<string> = [];
+  hasMany: Array<string> = []
 
   /**
    * An array of the `attributes` on a Serializer instance's Model to include in
@@ -396,7 +394,7 @@ class Serializer<T: Model> {
    * @default []
    * @public
    */
-  attributes: Array<string> = [];
+  attributes: Array<string> = []
 
   /**
    * The resolved Model that a Serializer instance represents.
@@ -405,7 +403,7 @@ class Serializer<T: Model> {
    * @type {Model}
    * @private
    */
-  model: Class<T>;
+  model: Class<T>
 
   /**
    * A reference to the root Serializer for the namespace that a Serializer
@@ -415,7 +413,7 @@ class Serializer<T: Model> {
    * @type {?Serializer}
    * @private
    */
-  parent: ?Serializer<*>;
+  parent: ?Serializer<*>
 
   /**
    * The namespace that a Serializer instance is a member of.
@@ -424,7 +422,7 @@ class Serializer<T: Model> {
    * @type {String}
    * @private
    */
-  namespace: string;
+  namespace: string
 
   constructor(options: Options<T> = {}) {
     const { model, parent } = options
@@ -440,11 +438,7 @@ class Serializer<T: Model> {
       namespace,
     })
 
-    freezeProps(this, true,
-      'model',
-      'parent',
-      'namespace'
-    )
+    freezeProps(this, true, 'model', 'parent', 'namespace')
   }
 
   /**
@@ -481,12 +475,12 @@ class Serializer<T: Model> {
     data,
     links,
     domain,
-    include
-    }: {
-    data: T | Array<T>;
-    links: $PropertyType<Document, 'links'>;
-    domain: string;
-    include: Array<string>;
+    include,
+  }: {
+    data: T | Array<T>,
+    links: $PropertyType<Document, 'links'>,
+    domain: string,
+    include: Array<string>,
   }): Promise<Document> {
     let serialized = {}
     const included: Array<Resource> = []
@@ -494,13 +488,15 @@ class Serializer<T: Model> {
     if (Array.isArray(data)) {
       serialized = {
         data: await Promise.all(
-          data.map(item => this.formatOne({
-            item,
-            domain,
-            include,
-            included
-          }))
-        )
+          data.map(item =>
+            this.formatOne({
+              item,
+              domain,
+              include,
+              included,
+            }),
+          ),
+        ),
       }
     } else {
       serialized = {
@@ -509,15 +505,15 @@ class Serializer<T: Model> {
           include,
           included,
           item: data,
-          links: false
-        })
+          links: false,
+        }),
       }
     }
 
     if (included.length) {
       serialized = {
         ...serialized,
-        included: uniq(included, 'id', 'type')
+        included: uniq(included, 'id', 'type'),
       }
     }
 
@@ -526,8 +522,8 @@ class Serializer<T: Model> {
       links,
 
       jsonapi: {
-        version: VERSION
-      }
+        version: VERSION,
+      },
     }
   }
 
@@ -574,14 +570,14 @@ class Serializer<T: Model> {
     domain,
     include,
     included,
-    formatRelationships = true
-    }: {
-    item: T;
-    links?: boolean;
-    domain: string;
-    include: Array<string>;
-    included: Array<Resource>;
-    formatRelationships?: boolean
+    formatRelationships = true,
+  }: {
+    item: T,
+    links?: boolean,
+    domain: string,
+    include: Array<string>,
+    included: Array<Resource>,
+    formatRelationships?: boolean,
   }): Promise<Resource> {
     const { resourceName: type } = item
     const id = String(item.getPrimaryKey())
@@ -589,10 +585,10 @@ class Serializer<T: Model> {
 
     const attributes = dasherizeKeys(
       item.getAttributes(
-        ...Object
-          .keys(item.rawColumnData)
-          .filter(key => this.attributes.includes(key))
-      )
+        ...Object.keys(item.rawColumnData).filter(key =>
+          this.attributes.includes(key),
+        ),
+      ),
     )
 
     const serialized: Resource = {
@@ -603,43 +599,46 @@ class Serializer<T: Model> {
 
     if (formatRelationships) {
       relationships = await promiseHash(
-        [...this.hasOne, ...this.hasMany].reduce((hash, name) => ({
-          ...hash,
+        [...this.hasOne, ...this.hasMany].reduce(
+          (hash, name) => ({
+            ...hash,
 
-          [dasherize(underscore(name))]: (async () => {
-            const related = await Reflect.get(item, name)
+            [dasherize(underscore(name))]: (async () => {
+              const related = await Reflect.get(item, name)
 
-            if (Array.isArray(related)) {
-              return {
-                data: await Promise.all(
-                  related.map(async (relatedItem) => {
-                    const {
-                      data: relatedData
-                    } = await this.formatRelationship({
+              if (Array.isArray(related)) {
+                return {
+                  data: await Promise.all(
+                    related.map(async relatedItem => {
+                      const {
+                        data: relatedData,
+                      } = await this.formatRelationship({
                         domain,
                         included,
                         item: relatedItem,
-                        include: include.includes(name)
+                        include: include.includes(name),
                       })
 
-                    return relatedData
-                  })
-                )
+                      return relatedData
+                    }),
+                  ),
+                }
+              } else if (related && related.id) {
+                return this.formatRelationship({
+                  domain,
+                  included,
+                  item: related,
+                  include: include.includes(name),
+                })
               }
-            } else if (related && related.id) {
-              return this.formatRelationship({
-                domain,
-                included,
-                item: related,
-                include: include.includes(name)
-              })
-            }
 
-            return {
-              data: null
-            }
-          })()
-        }), {})
+              return {
+                data: null,
+              }
+            })(),
+          }),
+          {},
+        ),
       )
     }
 
@@ -652,11 +651,11 @@ class Serializer<T: Model> {
 
       if (namespace) {
         serialized.links = {
-          self: `${domain}/${namespace}/${type}/${id}`
+          self: `${domain}/${namespace}/${type}/${id}`,
         }
       } else {
         serialized.links = {
-          self: `${domain}/${type}/${id}`
+          self: `${domain}/${type}/${id}`,
         }
       }
     }
@@ -696,12 +695,12 @@ class Serializer<T: Model> {
     item,
     domain,
     include,
-    included
-    }: {
-    item: Model;
-    domain: string;
-    include: boolean;
-    included: Array<Resource>;
+    included,
+  }: {
+    item: Model,
+    domain: string,
+    include: boolean,
+    included: Array<Resource>,
   }): Promise<Relationship> {
     const { namespace } = this
     const { resourceName: type, constructor: { serializer } } = item
@@ -710,11 +709,11 @@ class Serializer<T: Model> {
 
     if (namespace) {
       links = {
-        self: `${domain}/${namespace}/${type}/${id}`
+        self: `${domain}/${namespace}/${type}/${id}`,
       }
     } else {
       links = {
-        self: `${domain}/${type}/${id}`
+        self: `${domain}/${type}/${id}`,
       }
     }
 
@@ -725,17 +724,17 @@ class Serializer<T: Model> {
           domain,
           include: [],
           included: [],
-          formatRelationships: false
-        })
+          formatRelationships: false,
+        }),
       )
     }
 
     return {
       data: {
         id,
-        type
+        type,
       },
-      links
+      links,
     }
   }
 }

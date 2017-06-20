@@ -8,12 +8,12 @@ describe('util mapToObject()', () => {
       new Map([
         ['x', 1],
         ['y', 2],
-        ['z', 3]
-      ])
+        ['z', 3],
+      ]),
     )).toEqual({
       x: 1,
       y: 2,
-      z: 3
+      z: 3,
     })
   })
 })

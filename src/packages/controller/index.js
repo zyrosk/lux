@@ -1,13 +1,12 @@
 /* @flow */
 
-import { Model } from '../database'
-import { freezeProps } from '../freezeable'
-import getDomain from '@utils/get-domain'
-import type Serializer from '../serializer'
-// eslint-disable-next-line no-duplicate-imports
-import type { Query } from '../database'
-import type Request from '../request'
-import type Response from '../response'
+import { Model } from '@lux/packages/database'
+import { freezeProps } from '@lux/packages/freezeable'
+import getDomain from '@lux/utils/get-domain'
+import type Serializer from '@lux/packages/serializer'
+import type { Query } from '@lux/packages/database'
+import type Request from '@lux/packages/request'
+import type Response from '@lux/packages/response'
 
 import findOne from './utils/find-one'
 import findMany from './utils/find-many'
@@ -577,19 +576,19 @@ export default class Controller {
       serializer,
       hasModel: Boolean(model),
       hasNamespace: Boolean(namespace),
-      hasSerializer: Boolean(serializer)
+      hasSerializer: Boolean(serializer),
     })
 
     freezeProps(this, true,
       'model',
       'namespace',
-      'serializer'
+      'serializer',
     )
 
     freezeProps(this, false,
       'hasModel',
       'hasNamespace',
-      'hasSerializer'
+      'hasSerializer',
     )
   }
 
@@ -641,24 +640,24 @@ export default class Controller {
 
     const {
       url: {
-        pathname
+        pathname,
       },
       params: {
         data: {
           attributes,
-          relationships
-        }
-      }
+          relationships,
+        },
+      },
     } = req
 
     const record = await model.create({
       ...attributes,
-      ...resolveRelationships(model, relationships)
+      ...resolveRelationships(model, relationships),
     })
 
     res.setHeader(
       'Location',
-      `${getDomain(req) + (pathname || '')}/${record.getPrimaryKey()}`
+      `${getDomain(req) + (pathname || '')}/${record.getPrimaryKey()}`,
     )
 
     Reflect.set(res, 'statusCode', 201)
@@ -694,7 +693,7 @@ export default class Controller {
     Object.assign(
       record,
       attributes,
-      resolveRelationships(model, relationships)
+      resolveRelationships(model, relationships),
     )
 
     if (record.isDirty) {

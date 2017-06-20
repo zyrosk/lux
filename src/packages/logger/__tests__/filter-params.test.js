@@ -7,12 +7,12 @@ describe('module "logger"', () => {
     const params = {
       id: 1,
       username: 'test',
-      password: 'test'
+      password: 'test',
     }
 
     const filter = [
       'username',
-      'password'
+      'password',
     ]
 
     test('replaces the value of filtered params', () => {

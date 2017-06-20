@@ -12,7 +12,7 @@ export function getTestApp(): Promise<Application> {
   const {
     config,
     database,
-    Application: TestApp
+    Application: TestApp,
     }: {
     config: Object;
     database: Object;

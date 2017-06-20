@@ -7,43 +7,42 @@ import EventEmitter from 'events'
 
 import { red, green } from 'chalk'
 
-import { NODE_ENV } from '@constants'
-import { line } from '../../logger'
-import omit from '@utils/omit'
-import range from '@utils/range'
-import { composeAsync } from '@utils/compose'
-// eslint-disable-next-line no-duplicate-imports
-import type Logger from '../../logger'
+import { NODE_ENV } from '@lux/constants'
+import { line } from '@lux/packages/logger'
+import omit from '@lux/utils/omit'
+import range from '@lux/utils/range'
+import { composeAsync } from '@lux/utils/compose'
+import type Logger from '@lux/packages/logger'
 
 export type Worker = EventEmitter & {
-  id: string;
-  process: Process;
-  suicide: boolean;
-  kill(signal?: string): void;
-  send(message: any): void;
-  disconnect(): void;
+  id: string,
+  process: Process,
+  suicide: boolean,
+  kill(signal?: string): void,
+  send(message: any): void,
+  disconnect(): void,
 }
 
 export type Options = {
-  path: string;
-  port: number;
-  logger: Logger;
-  maxWorkers?: number;
+  path: string,
+  port: number,
+  logger: Logger,
+  maxWorkers?: number,
 }
 
 /**
  * @private
  */
 class Cluster extends EventEmitter {
-  path: string;
+  path: string
 
-  port: number;
+  port: number
 
-  logger: Logger;
+  logger: Logger
 
-  workers: Set<Worker>;
+  workers: Set<Worker>
 
-  maxWorkers: number;
+  maxWorkers: number
 
   constructor(options: Options) {
     super()
@@ -53,39 +52,39 @@ class Cluster extends EventEmitter {
         value: options.path,
         writable: false,
         enumerable: true,
-        configurable: false
+        configurable: false,
       },
       port: {
         value: options.port,
         writable: false,
         enumerable: true,
-        configurable: false
+        configurable: false,
       },
       logger: {
         value: options.logger,
         writable: false,
         enumerable: true,
-        configurable: false
+        configurable: false,
       },
       workers: {
         value: new Set(),
         writable: false,
         enumerable: true,
-        configurable: false
+        configurable: false,
       },
       maxWorkers: {
         value: options.maxWorkers || os.cpus().length,
         writable: false,
         enumerable: true,
-        configurable: false
-      }
+        configurable: false,
+      },
     })
 
     cluster.setupMaster({
       exec: path.join(options.path, 'dist', 'boot.js'),
     })
 
-    process.on('update', (changed) => {
+    process.on('update', changed => {
       changed.forEach(({ name: filename }) => {
         options.logger.info(`${green('update')} ${filename}`)
       })
@@ -102,7 +101,7 @@ class Cluster extends EventEmitter {
         // $FlowFixMe
         const worker: Worker = cluster.fork({
           NODE_ENV,
-          PORT: this.port
+          PORT: this.port,
         })
 
         const timeout = setTimeout(() => {
@@ -220,20 +219,18 @@ class Cluster extends EventEmitter {
 
   reload() {
     if (this.workers.size) {
-      const groups = Array
-        .from(this.workers)
-        .reduce((arr, item, idx, src) => {
-          if ((idx + 1) % 2) {
-            const group = src.slice(idx, idx + 2)
+      const groups = Array.from(this.workers).reduce((arr, item, idx, src) => {
+        if ((idx + 1) % 2) {
+          const group = src.slice(idx, idx + 2)
 
-            return [
-              ...arr,
-              () => Promise.all(group.map(worker => this.shutdown(worker)))
-            ]
-          }
+          return [
+            ...arr,
+            () => Promise.all(group.map(worker => this.shutdown(worker))),
+          ]
+        }
 
-          return arr
-        }, [])
+        return arr
+      }, [])
 
       // $FlowFixMe
       return composeAsync(...groups)()

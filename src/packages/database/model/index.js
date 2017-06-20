@@ -8,16 +8,16 @@ import { updateRelationship } from '../relationship'
 import {
   createTransactionResultProxy,
   createStaticTransactionProxy,
-  createInstanceTransactionProxy
+  createInstanceTransactionProxy,
 } from '../transaction'
-import pick from '@utils/pick'
-import underscore from '@utils/underscore'
-import { compose } from '@utils/compose'
-import { map as diffMap } from '@utils/diff'
-import mapToObject from '@utils/map-to-object'
-import type Logger from '../../logger'
-import type Database from '../../database'
-import type Serializer from '../../serializer'
+import pick from '@lux/utils/pick'
+import underscore from '@lux/utils/underscore'
+import { compose } from '@lux/utils/compose'
+import { map as diffMap } from '@lux/utils/diff'
+import mapToObject from '@lux/utils/map-to-object'
+import type Logger from '@lux/packages/logger'
+import type Database from '@lux/packages/database'
+import type Serializer from '@lux/packages/serializer'
 /* eslint-disable no-duplicate-imports */
 import type { Relationship$opts } from '../relationship'
 import type { Transaction$ResultProxy } from '../transaction'
@@ -662,20 +662,20 @@ class Model {
         value: [new ChangeSet()],
         writable: false,
         enumerable: false,
-        configurable: false
+        configurable: false,
       },
       rawColumnData: {
         value: attrs,
         writable: false,
         enumerable: false,
-        configurable: false
+        configurable: false,
       },
       prevAssociations: {
         value: new Set(),
         writable: false,
         enumerable: false,
-        configurable: false
-      }
+        configurable: false,
+      },
     })
 
     const { constructor: { attributeNames, relationshipNames } } = this
@@ -688,7 +688,7 @@ class Model {
         value: true,
         writable: false,
         enumerable: false,
-        configurable: false
+        configurable: false,
       })
     }
 
@@ -803,8 +803,8 @@ class Model {
     const {
       dirtyProperties,
       constructor: {
-        relationshipNames
-      }
+        relationshipNames,
+      },
     } = this
 
     dirtyProperties.forEach((prop, key) => {
@@ -825,8 +825,8 @@ class Model {
     const {
       dirtyProperties,
       constructor: {
-        attributeNames
-      }
+        attributeNames,
+      },
     } = this
 
     Array
@@ -1005,7 +1005,7 @@ class Model {
    */
   update(
     props: Object = {},
-    transaction?: Object
+    transaction?: Object,
   ): Promise<Transaction$ResultProxy<this, *>> {
     const run = async (trx: Object) => {
       const { constructor: { hooks, logger } } = this
@@ -1026,7 +1026,7 @@ class Model {
         hadDirtyAssoc = true
         statements = associations.reduce((arr, key) => [
           ...arr,
-          ...updateRelationship(this, key, trx)
+          ...updateRelationship(this, key, trx),
         ], [])
       }
 
@@ -1040,7 +1040,7 @@ class Model {
         await runHooks(this, trx,
           hooks.afterValidation,
           hooks.beforeUpdate,
-          hooks.beforeSave
+          hooks.beforeSave,
         )
 
         promise = update(this, trx)
@@ -1054,7 +1054,7 @@ class Model {
       if (hadDirtyAttrs) {
         await runHooks(this, trx,
           hooks.afterUpdate,
-          hooks.afterSave
+          hooks.afterSave,
         )
       }
 
@@ -1209,7 +1209,7 @@ class Model {
    */
   static create(
     props: Object = {},
-    transaction?: Object
+    transaction?: Object,
   ): Promise<Transaction$ResultProxy<this, true>> {
     const run = async (trx: Object) => {
       const { hooks, logger, primaryKey } = this
@@ -1225,7 +1225,7 @@ class Model {
       if (associations.length) {
         statements = associations.reduce((arr, key) => [
           ...arr,
-          ...updateRelationship(instance, key, trx)
+          ...updateRelationship(instance, key, trx),
         ], [])
       }
 
@@ -1236,7 +1236,7 @@ class Model {
       await runHooks(instance, trx,
         hooks.afterValidation,
         hooks.beforeCreate,
-        hooks.beforeSave
+        hooks.beforeSave,
       )
 
       const runner = createRunner(logger, statements)
@@ -1249,14 +1249,14 @@ class Model {
         value: true,
         writable: false,
         enumerable: false,
-        configurable: false
+        configurable: false,
       })
 
       instance.currentChangeSet.persist(instance.changeSets)
 
       await runHooks(instance, trx,
         hooks.afterCreate,
-        hooks.afterSave
+        hooks.afterSave,
       )
 
       return createTransactionResultProxy(instance, true)
@@ -1484,21 +1484,21 @@ class Model {
         value: tableName,
         writable: false,
         enumerable: true,
-        configurable: false
+        configurable: false,
       })
 
       Reflect.defineProperty(this.prototype, 'tableName', {
         value: tableName,
         writable: false,
         enumerable: false,
-        configurable: false
+        configurable: false,
       })
     }
 
     return initializeClass({
       store,
       table,
-      model: this
+      model: this,
     })
   }
 

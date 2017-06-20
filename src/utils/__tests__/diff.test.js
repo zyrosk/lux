@@ -7,17 +7,17 @@ describe('util diff', () => {
     test('returns a map containing the difference between two maps', () => {
       const result = diff.map(
         new Map([
-          ['x', 1]
+          ['x', 1],
         ]),
         new Map([
           ['x', 1],
-          ['y', 2]
-        ])
+          ['y', 2],
+        ]),
       )
 
       expect(result instanceof Map).toBe(true)
       expect([...result]).toEqual([
-        ['y', 2]
+        ['y', 2],
       ])
     })
   })

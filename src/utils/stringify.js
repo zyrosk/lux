@@ -38,14 +38,18 @@ export function circular(value?: ?mixed, spaces?: number): string {
       return 'undefined'
 
     default:
-      return JSON.stringify(value, (key, val) => {
-        if (isObject(val)) {
-          if (cache.has(val)) {
-            return undefined
+      return JSON.stringify(
+        value,
+        (key, val) => {
+          if (isObject(val)) {
+            if (cache.has(val)) {
+              return undefined
+            }
+            cache.add(val)
           }
-          cache.add(val)
-        }
-        return val
-      }, spaces)
+          return val
+        },
+        spaces,
+      )
   }
 }

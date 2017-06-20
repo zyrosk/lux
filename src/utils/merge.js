@@ -1,21 +1,23 @@
 /* @flow */
 
-import isObject from './is-object'
+// $FlowFixMe
+type Merge<T, U> = { ...T, ...U }
 
-type Merge<T: Object, U: Object> = {
-  ...T,
-  ...U,
-}
-
-const merge = <T: Object, U: Object>(dest: T, source: U): Merge<T, U> =>
-  Object
-    .entries(dest)
+const merge = <T, U>(dest: T, source: U): Merge<T, U> =>
+  Object.entries(dest)
     .concat(Object.entries(source))
     .reduce((prev, [key, value]) => {
       const currentValue = prev[key]
       const next = prev
 
-      if (isObject(currentValue) && isObject(value)) {
+      if (
+        currentValue &&
+        typeof currentValue === 'object' &&
+        !Array.isArray(currentValue) &&
+        value &&
+        typeof value === 'object' &&
+        !Array.isArray(value)
+      ) {
         next[key] = merge(currentValue, value)
       } else {
         next[key] = value

@@ -6,7 +6,7 @@ import * as fs from 'mz/fs'
 import { red, green } from 'chalk'
 import { pluralize, singularize } from 'inflection'
 
-import { CWD } from '@constants'
+import { CWD } from '@lux/constants'
 
 /**
  * @private
@@ -27,7 +27,7 @@ export async function destroyType(type: string, name: string): Promise<void> {
       migrations = await fs.readdir(`${CWD}/db/migrate`)
 
       normalizedName = migrations.find(
-        file => `${String(normalizedName)}.js` === file.substr(17)
+        file => `${String(normalizedName)}.js` === file.substr(17),
       )
 
       path = `db/migrate/${String(normalizedName)}`
@@ -62,10 +62,7 @@ export async function destroyType(type: string, name: string): Promise<void> {
 /**
  * @private
  */
-export async function destroy({ type, name }: {
-  type: string;
-  name: string;
-}) {
+export async function destroy({ type, name }: { type: string, name: string }) {
   if (type === 'resource') {
     let routes = await fs.readFile(`${CWD}/app/routes.js`)
 
@@ -74,7 +71,7 @@ export async function destroy({ type, name }: {
       .split('\n')
       .reduce((lines, line) => {
         const pattern = new RegExp(
-          `\\s*this.resource\\(('|"|\`)${pluralize(name)}('|"|\`)\\);?`
+          `\\s*this.resource\\(('|"|\`)${pluralize(name)}('|"|\`)\\);?`,
         )
 
         return pattern.test(line) ? lines : [...lines, line]
@@ -85,7 +82,7 @@ export async function destroy({ type, name }: {
       destroyType('model', name),
       destroyType('migration', `create-${pluralize(name)}`),
       destroyType('serializer', name),
-      destroyType('controller', name)
+      destroyType('controller', name),
     ])
 
     await fs.writeFile(`${CWD}/app/routes.js`, routes)
@@ -95,7 +92,7 @@ export async function destroy({ type, name }: {
   } else if (type === 'model') {
     await Promise.all([
       destroyType(type, name),
-      destroyType('migration', `create-${pluralize(name)}`)
+      destroyType('migration', `create-${pluralize(name)}`),
     ])
   } else {
     await destroyType(type, name)

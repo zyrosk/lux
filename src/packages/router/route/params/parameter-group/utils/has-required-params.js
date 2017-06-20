@@ -1,7 +1,7 @@
 /* @flow */
 
 import { ParameterRequiredError } from '../../errors'
-import hasOwnProperty from '@utils/has-own-property'
+import hasOwnProperty from '@lux/utils/has-own-property'
 import type ParameterGroup from '../index'
 
 const hasRequiredParams = <T>(group: ParameterGroup, params: T): boolean => {

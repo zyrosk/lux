@@ -22,7 +22,9 @@ describe('module "compiler"', () => {
   describe('#compile()', () => {
     describe('- with strict mode', () => {
       test('creates an instance with the correct config', async () => {
-        await compile(APP_PATH, 'test', {
+        await compile({
+          directory: APP_PATH,
+          environment: 'test',
           useStrict: true,
         })
 
@@ -32,8 +34,9 @@ describe('module "compiler"', () => {
 
     describe('- without strict mode', () => {
       test('creates an instance with the correct config', async () => {
-        await compile(APP_PATH, 'test', {
-          useStrict: false,
+        await compile({
+          directory: APP_PATH,
+          environment: 'test',
         })
 
         expect(rollup.mock.calls).toMatchSnapshot()

@@ -2,11 +2,11 @@
 
 import faker from 'faker'
 
-import { MIME_TYPE } from '../../jsonapi'
+import { MIME_TYPE } from '@lux/packages/jsonapi'
 import Controller from '../index'
-import Serializer from '../../serializer'
-import * as Adapters from '../../adapter'
-import noop from '@utils/noop'
+import Serializer from '@lux/packages/serializer'
+import * as Adapters from '@lux/packages/adapter'
+import noop from '@lux/utils/noop'
 import { getTestApp } from '../../../../test/utils/test-app'
 
 const HOST = 'localhost:4000'
@@ -54,7 +54,7 @@ describe('module "controller"', () => {
 
       if (item instanceof Post) {
         expect(item.toObject()).toEqual(
-          expect.objectContaining(props)
+          expect.objectContaining(props),
         )
       }
     }
@@ -69,8 +69,8 @@ describe('module "controller"', () => {
         serializer: new Serializer({
           model: Post,
           parent: null,
-          namespace: ''
-        })
+          namespace: '',
+        }),
       })
 
       subject.controllers = app.controllers
@@ -209,7 +209,7 @@ describe('module "controller"', () => {
         const { id, title } = getDefaultProps()
         const [request, response] = await mockArgs(
           1,
-          '?fields[posts]=id,title'
+          '?fields[posts]=id,title',
         )
 
         assertRecord(await subject.show(request, response), {
@@ -312,7 +312,7 @@ describe('module "controller"', () => {
         result = await subject.create(request, response)
 
         expect(
-          response.headers.get('location')
+          response.headers.get('location'),
         ).toBe(`http://${HOST}/posts/${result.getPrimaryKey()}`)
       })
     })
@@ -449,11 +449,11 @@ describe('module "controller"', () => {
           ...getDefaultProps(),
           id,
           user: expect.objectContaining(
-            newUser.getAttributes('id', 'name', 'email')
+            newUser.getAttributes('id', 'name', 'email'),
           ),
           comments: expect.arrayContaining([
             expect.objectContaining(
-              newComment.getAttributes('id', 'message')
+              newComment.getAttributes('id', 'message'),
             ),
           ]),
         })
@@ -540,8 +540,8 @@ describe('module "controller"', () => {
             newUser.getAttributes(
               'id',
               'name',
-              'email'
-            )
+              'email',
+            ),
           ),
         })
 
@@ -575,7 +575,7 @@ describe('module "controller"', () => {
 
       beforeAll(async () => {
         record = await Post.create({
-          title: '#destroy() Test'
+          title: '#destroy() Test',
         })
       })
 

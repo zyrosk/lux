@@ -2,13 +2,13 @@
 
 import { camelize, dasherize, pluralize, singularize } from 'inflection'
 
-import { line } from '../../logger'
+import { line } from '@lux/packages/logger'
 import { createAttribute } from '../attribute'
 import {
   get as getRelationship,
-  set as setRelationship
+  set as setRelationship,
 } from '../relationship'
-import underscore from '@utils/underscore'
+import underscore from '@lux/utils/underscore'
 import type Database, { Model } from '../index' // eslint-disable-line no-unused-vars, max-len
 
 const VALID_HOOKS = new Set([
@@ -21,7 +21,7 @@ const VALID_HOOKS = new Set([
   'beforeDestroy',
   'beforeSave',
   'beforeUpdate',
-  'beforeValidation'
+  'beforeValidation',
 ])
 
 /**
@@ -33,8 +33,8 @@ function initializeProps(prototype, attributes, relationships) {
       ...obj,
       [key]: createAttribute({
         key,
-        ...value
-      })
+        ...value,
+      }),
     }), {}),
 
     ...Object.keys(relationships).reduce((obj, key) => ({
@@ -45,9 +45,9 @@ function initializeProps(prototype, attributes, relationships) {
         },
         set(val) {
           setRelationship(this, key, val)
-        }
-      }
-    }), {})
+        },
+      },
+    }), {}),
   })
 }
 
@@ -70,9 +70,9 @@ function initializeHooks({ model, hooks, logger }) {
         ...obj,
         [key]: async (instance, transaction) => {
           await Reflect.apply(value, model, [instance, transaction])
-        }
+        },
       }
-    }, {})
+    }, {}),
   )
 }
 
@@ -109,7 +109,7 @@ function initializeValidations(opts) {
     })
     .reduce((obj, [key, value]) => ({
       ...obj,
-      [key]: value
+      [key]: value,
     }), {})
 
   return Object.freeze(validates)
@@ -121,7 +121,7 @@ function initializeValidations(opts) {
 export default async function initializeClass<T: Class<Model>>({
   store,
   table,
-  model
+  model,
   }: {
   store: Database,
   table: $PropertyType<T, 'table'>,
@@ -139,8 +139,8 @@ export default async function initializeClass<T: Class<Model>>({
       [camelize(columnName, true)]: {
         ...value,
         columnName,
-        docName: dasherize(columnName)
-      }
+        docName: dasherize(columnName),
+      },
     }), {})
 
   const belongsTo = Object
@@ -153,34 +153,34 @@ export default async function initializeClass<T: Class<Model>>({
           value: store.modelFor(relatedModel || relatedName),
           writable: false,
           enumerable: true,
-          configurable: false
+          configurable: false,
         },
 
         inverse: {
           value: inverse,
           writable: false,
           enumerable: true,
-          configurable: false
+          configurable: false,
         },
 
         type: {
           value: 'belongsTo',
           writable: false,
           enumerable: false,
-          configurable: false
+          configurable: false,
         },
 
         foreignKey: {
           value: `${underscore(relatedName)}_id`,
           writable: false,
           enumerable: false,
-          configurable: false
-        }
+          configurable: false,
+        },
       })
 
       return {
         ...obj,
-        [relatedName]: relationship
+        [relatedName]: relationship,
       }
     }, {})
 
@@ -194,34 +194,34 @@ export default async function initializeClass<T: Class<Model>>({
           value: store.modelFor(relatedModel || relatedName),
           writable: false,
           enumerable: true,
-          configurable: false
+          configurable: false,
         },
 
         inverse: {
           value: inverse,
           writable: false,
           enumerable: true,
-          configurable: false
+          configurable: false,
         },
 
         type: {
           value: 'hasOne',
           writable: false,
           enumerable: false,
-          configurable: false
+          configurable: false,
         },
 
         foreignKey: {
           value: `${underscore(inverse)}_id`,
           writable: false,
           enumerable: false,
-          configurable: false
-        }
+          configurable: false,
+        },
       })
 
       return {
         ...obj,
-        [relatedName]: relationship
+        [relatedName]: relationship,
       }
     }, {})
 
@@ -251,41 +251,41 @@ export default async function initializeClass<T: Class<Model>>({
           value: relatedModel,
           writable: false,
           enumerable: true,
-          configurable: false
+          configurable: false,
         },
 
         inverse: {
           value: inverse,
           writable: false,
           enumerable: true,
-          configurable: false
+          configurable: false,
         },
 
         through: {
           value: through,
           writable: false,
           enumerable: Boolean(through),
-          configurable: false
+          configurable: false,
         },
 
         type: {
           value: 'hasMany',
           writable: false,
           enumerable: false,
-          configurable: false
+          configurable: false,
         },
 
         foreignKey: {
           value: foreignKey,
           writable: false,
           enumerable: false,
-          configurable: false
-        }
+          configurable: false,
+        },
       })
 
       return {
         ...hash,
-        [relatedName]: relationship
+        [relatedName]: relationship,
       }
     }, {})
 
@@ -296,7 +296,7 @@ export default async function initializeClass<T: Class<Model>>({
   const relationships = Object.freeze({
     ...hasOne,
     ...hasMany,
-    ...belongsTo
+    ...belongsTo,
   })
 
   if (!hooks) {
@@ -316,88 +316,88 @@ export default async function initializeClass<T: Class<Model>>({
       value: store,
       writable: false,
       enumerable: false,
-      configurable: false
+      configurable: false,
     },
 
     table: {
       value: table,
       writable: false,
       enumerable: false,
-      configurable: false
+      configurable: false,
     },
 
     logger: {
       value: logger,
       writable: false,
       enumerable: false,
-      configurable: false
+      configurable: false,
     },
 
     attributes: {
       value: Object.freeze(attributes),
       writable: false,
       enumerable: false,
-      configurable: false
+      configurable: false,
     },
 
     attributeNames: {
       value: Object.freeze(Object.keys(attributes)),
       writable: false,
       enumerable: false,
-      configurable: false
+      configurable: false,
     },
 
     hasOne: {
       value: hasOne,
       writable: false,
       enumerable: Boolean(Object.keys(hasOne).length),
-      configurable: false
+      configurable: false,
     },
 
     hasMany: {
       value: hasMany,
       writable: false,
       enumerable: Boolean(Object.keys(hasMany).length),
-      configurable: false
+      configurable: false,
     },
 
     belongsTo: {
       value: belongsTo,
       writable: false,
       enumerable: Boolean(Object.keys(belongsTo).length),
-      configurable: false
+      configurable: false,
     },
 
     relationships: {
       value: relationships,
       writable: false,
       enumerable: false,
-      configurable: false
+      configurable: false,
     },
 
     relationshipNames: {
       value: Object.freeze(Object.keys(relationships)),
       writable: false,
       enumerable: false,
-      configurable: false
+      configurable: false,
     },
 
     hooks: {
       value: initializeHooks({
         model,
         hooks,
-        logger
+        logger,
       }),
       writable: false,
       enumerable: Boolean(Object.keys(hooks).length),
-      configurable: false
+      configurable: false,
     },
 
     scopes: {
       value: scopes,
       writable: false,
       enumerable: Boolean(Object.keys(scopes).length),
-      configurable: false
+      configurable: false,
     },
 
     validates: {
@@ -405,32 +405,32 @@ export default async function initializeClass<T: Class<Model>>({
         model,
         logger,
         validates,
-        attributes
+        attributes,
       }),
       writable: false,
       enumerable: Boolean(Object.keys(validates).length),
-      configurable: false
+      configurable: false,
     },
 
     modelName: {
       value: modelName,
       writable: false,
       enumerable: true,
-      configurable: false
+      configurable: false,
     },
 
     resourceName: {
       value: resourceName,
       writable: false,
       enumerable: true,
-      configurable: false
+      configurable: false,
     },
 
     initialized: {
       value: true,
       writable: false,
       enumerable: false,
-      configurable: false
+      configurable: false,
     },
 
     ...Object.freeze(
@@ -442,16 +442,16 @@ export default async function initializeClass<T: Class<Model>>({
             value: scope,
             writable: false,
             enumerable: false,
-            configurable: false
-          }
-        }), {})
-    )
+            configurable: false,
+          },
+        }), {}),
+    ),
   })
 
   initializeProps(model.prototype, attributes, {
     ...hasOne,
     ...hasMany,
-    ...belongsTo
+    ...belongsTo,
   })
 
   Object.defineProperties(model.prototype, {
@@ -459,20 +459,20 @@ export default async function initializeClass<T: Class<Model>>({
       value: modelName,
       writable: false,
       enumerable: true,
-      configurable: false
+      configurable: false,
     },
     resourceName: {
       value: resourceName,
       writable: false,
       enumerable: true,
-      configurable: false
+      configurable: false,
     },
     isModelInstance: {
       value: true,
       writable: false,
       enumerable: false,
-      configurable: false
-    }
+      configurable: false,
+    },
   })
 
   return model

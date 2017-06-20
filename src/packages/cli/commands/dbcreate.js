@@ -4,11 +4,11 @@ import { EOL } from 'os'
 
 import { writeFile } from 'mz/fs'
 
-import { CWD, NODE_ENV, DATABASE_URL } from '@constants'
+import { CWD, NODE_ENV, DATABASE_URL } from '@lux/constants'
 import { CONNECTION_STRING_MESSAGE } from '../constants'
 import DatabaseConfigMissingError from '../errors/database-config-missing'
-import { connect } from '../../database'
-import { createLoader } from '../../loader'
+import { connect } from '@lux/packages/database'
+import { createLoader } from '@lux/packages/loader'
 
 /**
  * @private
@@ -24,7 +24,7 @@ export function dbcreate() {
   if (config.driver === 'sqlite3') {
     return writeFile(
       `${CWD}/db/${config.database}_${NODE_ENV}.sqlite`,
-      Buffer.from('')
+      Buffer.from(''),
     )
   }
 

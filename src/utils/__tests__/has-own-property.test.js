@@ -8,8 +8,8 @@ describe('util hasOwnProperty()', () => {
   beforeEach(() => {
     subject = Object.create({ y: 'y' }, {
       x: {
-        value: 'x'
-      }
+        value: 'x',
+      },
     })
   })
 

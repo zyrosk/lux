@@ -35,8 +35,8 @@ describe('module "logger/request-logger"', () => {
             level: 'INFO',
             enabled: true,
             filter: {
-              params: []
-            }
+              params: [],
+            },
           })
 
           subject = createRequestLogger(logger)

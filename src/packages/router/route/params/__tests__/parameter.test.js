@@ -11,20 +11,20 @@ describe('module "router/route/params"', () => {
           type: 'boolean',
           valid: true,
           falsy: false,
-          invalid: 'true'
+          invalid: 'true',
         },
         {
           type: 'string',
           valid: 'test',
           falsy: '',
-          invalid: 1
+          invalid: 1,
         },
         {
           type: 'number',
           valid: 1,
           falsy: 0,
-          invalid: '1'
-        }
+          invalid: '1',
+        },
       ]
 
       describe('- type "array"', () => {
@@ -35,7 +35,7 @@ describe('module "router/route/params"', () => {
                 required,
                 type: 'array',
                 path: 'meta.test',
-                values: [1, 'test', false]
+                values: [1, 'test', false],
               })
             })
 
@@ -60,7 +60,7 @@ describe('module "router/route/params"', () => {
             test('returns the value when the type and value match', () => {
               expect(subject.validate(['test', false])).toEqual([
                 'test',
-                false
+                false,
               ])
             })
           })
@@ -77,7 +77,7 @@ describe('module "router/route/params"', () => {
               subject = new Parameter({
                 required,
                 type: 'buffer',
-                path: 'meta.test'
+                path: 'meta.test',
               })
             })
 
@@ -112,7 +112,7 @@ describe('module "router/route/params"', () => {
               subject = new Parameter({
                 required,
                 type: 'object',
-                path: 'meta.test'
+                path: 'meta.test',
               })
             })
 
@@ -147,7 +147,7 @@ describe('module "router/route/params"', () => {
               subject = new Parameter({
                 required,
                 type: 'date',
-                path: 'meta.test'
+                path: 'meta.test',
               })
             })
 
@@ -180,7 +180,7 @@ describe('module "router/route/params"', () => {
                 subject = new Parameter({
                   type,
                   required,
-                  path: 'meta.test'
+                  path: 'meta.test',
                 })
               })
 

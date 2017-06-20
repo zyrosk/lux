@@ -4,11 +4,11 @@ import { EOL } from 'os'
 
 import { unlink } from 'mz/fs'
 
-import { CWD, NODE_ENV, DATABASE_URL } from '@constants'
+import { CWD, NODE_ENV, DATABASE_URL } from '@lux/constants'
 import { CONNECTION_STRING_MESSAGE } from '../constants'
 import DatabaseConfigMissingError from '../errors/database-config-missing'
-import { connect } from '../../database'
-import { createLoader } from '../../loader'
+import { connect } from '@lux/packages/database'
+import { createLoader } from '@lux/packages/loader'
 
 /**
  * @private

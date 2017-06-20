@@ -1,18 +1,14 @@
 /* @flow */
 
-import type Controller from '../../../../controller'
+import type Controller from '@lux/packages/controller'
 
 /**
  * @private
  */
 export default function getDefaultMemberParams({
   model,
-  serializer: {
-    hasOne,
-    hasMany,
-    attributes
-  }
-  }: Controller): Object {
+  serializer: { hasOne, hasMany, attributes },
+}: Controller): Object {
   return {
     fields: {
       [model.resourceName]: attributes,
@@ -25,9 +21,9 @@ export default function getDefaultMemberParams({
 
         return {
           ...include,
-          [opts.model.resourceName]: [opts.model.primaryKey]
+          [opts.model.resourceName]: [opts.model.primaryKey],
         }
-      }, {})
-    }
+      }, {}),
+    },
   }
 }

@@ -7,7 +7,7 @@ import { readdir } from 'mz/fs'
  */
 export default async function pendingMigrations(
   appPath: string,
-  table: () => Object
+  table: () => Object,
 ): Promise<Array<string>> {
   const migrations: Array<string> = await readdir(`${appPath}/db/migrate`)
   const versions: Array<string> = await table()
@@ -15,6 +15,6 @@ export default async function pendingMigrations(
     .then(data => data.map(({ version }) => version))
 
   return migrations.filter(migration => versions.indexOf(
-    migration.replace(/^(\d{16})-.+$/g, '$1')
+    migration.replace(/^(\d{16})-.+$/g, '$1'),
   ) < 0)
 }

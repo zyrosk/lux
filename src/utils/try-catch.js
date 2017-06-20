@@ -33,9 +33,9 @@ import K from './k'
  *
  * @private
  */
-export default async function tryCatch<T, F:() => Promise<T>>(
+export default async function tryCatch<T, F: () => Promise<T>>(
   fn: F,
-  rescue: Function = K
+  rescue: Function = K,
 ): Promise<void | T> {
   let result
 
@@ -70,9 +70,9 @@ export default async function tryCatch<T, F:() => Promise<T>>(
  *
  * @private
  */
-export function tryCatchSync<T, F:() => T>(
+export function tryCatchSync<T, F: () => T>(
   fn: F,
-  rescue: Function = K
+  rescue: Function = K,
 ): void | T {
   let result
 

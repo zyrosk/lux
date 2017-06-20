@@ -9,15 +9,14 @@ import type { Relationship$opts } from '../index'
 export function setHasManyInverse(owner: Model, value: Array<Model>, {
   inverse,
   foreignKey,
-  inverseModel
+  inverseModel,
   }: Relationship$opts & {
   inverseModel: Class<Model>;
 }) {
   const primaryKey = Reflect.get(owner, owner.constructor.primaryKey)
   const { type: inverseType } = inverseModel.relationshipFor(inverse)
 
-  // eslint-disable-next-line no-restricted-syntax
-  for (const record of value) {
+  value.forEach(record => {
     let { currentChangeSet: changeSet } = record
 
     if (owner !== changeSet.get(inverse)) {
@@ -31,7 +30,7 @@ export function setHasManyInverse(owner: Model, value: Array<Model>, {
         Reflect.set(record, foreignKey, primaryKey)
       }
     }
-  }
+  })
 }
 
 /**
@@ -40,7 +39,7 @@ export function setHasManyInverse(owner: Model, value: Array<Model>, {
 export function setHasOneInverse(owner: Model, value?: ?Model, {
   inverse,
   foreignKey,
-  inverseModel
+  inverseModel,
   }: Relationship$opts & {
   inverseModel: Class<Model>;
 }) {

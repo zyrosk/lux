@@ -6,7 +6,7 @@ import type { Bundle$Namespace } from '../../index'
 
 export default function closestChild<T>(
   source: Bundle$Namespace<T>,
-  key: string
+  key: string,
 ): void | T {
   const [[, result] = []] = Array
     .from(source)

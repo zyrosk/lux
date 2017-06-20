@@ -30,7 +30,7 @@ describe('util compose', () => {
     test('returns a composed function', () => {
       const shout = compose(
         str => `${str}!`,
-        str => str.toUpperCase()
+        str => str.toUpperCase(),
       )
 
       expect(shout).toHaveLength(1)
@@ -43,7 +43,7 @@ describe('util compose', () => {
     test('returns a composed asyncfunction', () => {
       const shout = composeAsync(
         str => Promise.resolve(`${str}!`),
-        str => Promise.resolve(str.toUpperCase())
+        str => Promise.resolve(str.toUpperCase()),
       )
 
       expect(shout).toEqual(expect.any(Function))
