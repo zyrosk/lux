@@ -37,15 +37,13 @@ export const debugTemplate = ({
   statusCode,
   statusMessage,
   remoteAddress,
-  }: any) => `\
+}: any) => `\
 ${line`
   Processed ${cyan(`${method}`)} "${path}" from ${remoteAddress}
   with ${Reflect.apply(colorStr, null, [`${statusCode}`])}
-  ${Reflect.apply(colorStr, null, [`${statusMessage}`])} by ${
-  route
-    ? `${yellow(route.controller.constructor.name)}#${blue(route.action)}`
-    : null
-}
+  ${Reflect.apply(colorStr, null, [`${statusMessage}`])} by ${route
+  ? `${yellow(route.controller.constructor.name)}#${blue(route.action)}`
+  : null}
 `}
 
 ${magenta('Params')}
@@ -54,7 +52,8 @@ ${JSON.stringify(params, null, 2)}
 
 ${magenta('Stats')}
 
-${stats.map(stat => {
+${stats
+  .map(stat => {
     const { type, duration, controller } = stat
     let { name } = stat
 
@@ -65,10 +64,13 @@ ${stats.map(stat => {
     }
 
     return `${pad(startTime, endTime, duration)} ms ${name}`
-  }).join('\n')}
-${pad(startTime,
-    endTime,
-    stats.reduce((total, { duration }) => total + duration, 0))} ms Total
+  })
+  .join('\n')}
+${pad(
+  startTime,
+  endTime,
+  stats.reduce((total, { duration }) => total + duration, 0),
+)} ms Total
 ${(endTime - startTime).toString()} ms Actual\
   `
 
@@ -85,12 +87,11 @@ export const infoTemplate = ({
   statusCode,
   statusMessage,
   remoteAddress,
-  }: any) => line`
-Processed ${cyan(`${method}`)} "${path}" ${magenta('Params')} ${
-  JSON.stringify(params)} from ${remoteAddress
-} in ${(endTime - startTime).toString()} ms with ${
-  Reflect.apply(colorStr, null, [`${statusCode}`])
-} ${
-  Reflect.apply(colorStr, null, [`${statusMessage}`])
-}
+}: any) => line`
+Processed ${cyan(`${method}`)} "${path}" ${magenta('Params')} ${JSON.stringify(
+  params,
+)} from ${remoteAddress} in ${(endTime -
+  startTime).toString()} ms with ${Reflect.apply(colorStr, null, [
+  `${statusCode}`,
+])} ${Reflect.apply(colorStr, null, [`${statusMessage}`])}
   `

@@ -43,10 +43,8 @@ export const compile = async (options: Options): Promise<void> => {
     fs.readdir(path.join(directory, 'db', 'migrate')),
     fse.readdirRec(path.join(directory, 'app', 'controllers')),
     fse.readdirRec(path.join(directory, 'app', 'serializers')),
-    fs.readFile(path.join(directory, 'package.json'))
-      .then(JSON.parse),
-    fs.readFile(path.join(directory, '.babelrc'))
-      .then(JSON.parse),
+    fs.readFile(path.join(directory, 'package.json')).then(JSON.parse),
+    fs.readFile(path.join(directory, '.babelrc')).then(JSON.parse),
   ]).then(types => {
     let [models, migrations, controllers, serializers] = types
 

@@ -1,42 +1,36 @@
 /* @flow */
 
-import { classify, camelize, pluralize } from 'inflection'
+import { pluralize } from 'inflection'
 
 import template from '@lux/packages/template'
+import { classify, camelize } from '@lux/packages/inflector'
+
 import indent from '../utils/indent'
-import chain from '@lux/utils/chain'
-import underscore from '@lux/utils/underscore'
+
+const parseAttrs = attrs =>
+  attrs
+    .filter(attr => /^(\w|-)+:(\w|-)+$/g.test(attr))
+    .map(attr => attr.split(':')[0])
+    .map(camelize)
 
 /**
  * @private
  */
 export default (name: string, attrs: Array<string>): string => {
-  let normalized = chain(name).pipe(underscore).pipe(classify).value()
+  let normalized = classify(name)
 
   if (!normalized.endsWith('Application')) {
     normalized = pluralize(normalized)
   }
 
   const body = Object.entries(
-    attrs
-      .filter(attr => /^(\w|-)+:(\w|-)+$/g.test(attr))
-      .map(attr => attr.split(':')[0])
-      .reduce(
-        (obj, attr) => ({
-          ...obj,
-          params: [
-            ...obj.params,
-            `${indent(8)}'${camelize(underscore(attr), true)}'`,
-          ],
-        }),
-        { params: [] },
-      ),
+    parseAttrs(attrs),
   ).reduce((result, group, index) => {
     const [key] = group
     let [, value] = group
     let str = result
 
-    if (value.length) {
+    if (Array.isArray(value) && value.length) {
       value = value.join(',\n')
 
       if (index && str.length) {

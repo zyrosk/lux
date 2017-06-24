@@ -54,7 +54,7 @@ const setupWatchmen = (instance, target) => {
     )
 }
 
-export default async function initialize(
+export default (async function initialize(
   instance: Watcher,
   target: string,
   useWatchman: boolean,
@@ -76,4 +76,4 @@ export default async function initialize(
   freezeProps(instance, true, 'path', 'client')
 
   return instance
-}
+})

@@ -16,7 +16,7 @@ import type Database, { Database$opts } from './index'
 /**
  * @private
  */
-export default async function initialize<T: Database>(
+export default (async function initialize<T: Database>(
   instance: T,
   opts: Database$opts,
 ): Promise<T> {
@@ -133,4 +133,4 @@ export default async function initialize<T: Database>(
   )
 
   return instance
-}
+})

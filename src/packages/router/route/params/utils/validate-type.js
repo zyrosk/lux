@@ -2,9 +2,7 @@
 
 import ParameterTypeError from '../errors/parameter-type-error'
 import ParameterNotNullableError from '../errors/parameter-not-nullable-error'
-import isNull from '@lux/utils/is-null'
-import isObject from '@lux/utils/is-object'
-import isBuffer from '@lux/utils/is-buffer'
+import { isNull, isObject } from '@lux/utils/is-type'
 import type { Parameter, ParameterGroup } from '../index'
 
 /**
@@ -32,7 +30,7 @@ export default function validateType(
       break
 
     case 'buffer':
-      isValid = isBuffer(value)
+      isValid = Buffer.isBuffer(value)
       break
 
     case 'object':

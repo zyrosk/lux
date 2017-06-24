@@ -8,37 +8,49 @@ describe('module "router/route/params"', () => {
     let subject: ParameterGroup
 
     beforeAll(() => {
-      subject = new ParameterGroup([
-        ['id', new Parameter({
-          type: 'number',
-          path: 'id',
+      subject = new ParameterGroup(
+        [
+          [
+            'id',
+            new Parameter({
+              type: 'number',
+              path: 'id',
+              required: true,
+            }),
+          ],
+          [
+            'meta',
+            new ParameterGroup(
+              [
+                [
+                  'date',
+                  new Parameter({
+                    type: 'string',
+                    path: 'meta.date',
+                    required: true,
+                  }),
+                ],
+                [
+                  'vowel',
+                  new Parameter({
+                    type: 'string',
+                    path: 'meta.vowel',
+                    values: ['a', 'e', 'i', 'o', 'u'],
+                  }),
+                ],
+              ],
+              {
+                path: 'meta',
+                sanitize: true,
+              },
+            ),
+          ],
+        ],
+        {
+          path: '',
           required: true,
-        })],
-        ['meta', new ParameterGroup([
-          ['date', new Parameter({
-            type: 'string',
-            path: 'meta.date',
-            required: true,
-          })],
-          ['vowel', new Parameter({
-            type: 'string',
-            path: 'meta.vowel',
-            values: [
-              'a',
-              'e',
-              'i',
-              'o',
-              'u',
-            ],
-          })],
-        ], {
-          path: 'meta',
-          sanitize: true,
-        })],
-      ], {
-        path: '',
-        required: true,
-      })
+        },
+      )
     })
 
     describe('#validate()', () => {

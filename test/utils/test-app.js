@@ -14,9 +14,9 @@ export function getTestApp(): Promise<Application> {
     database,
     Application: TestApp,
     }: {
-    config: Object;
-    database: Object;
-    Application: Class<Application>;
+    config: Object,
+    database: Object,
+    Application: Class<Application>,
     // $FlowFixMe
   } = require('../test-app/dist/bundle')
 

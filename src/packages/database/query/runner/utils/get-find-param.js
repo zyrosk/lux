@@ -1,6 +1,6 @@
 /* @flow */
 
-import isObject from '@lux/utils/is-object'
+import { isObject } from '@lux/utils/is-type'
 import type Query from '../../index'
 
 export default function getFindParam({

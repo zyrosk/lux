@@ -1,8 +1,7 @@
 /* @flow */
 
-import type Database, { Model, Query } from '@lux/packages/database'
+import type { Model, Query } from '@lux/packages/database'
 import type Serializer from '@lux/packages/serializer'
-import type Controller from './index'
 import type Request from '@lux/packages/request'
 import type Response from '@lux/packages/response'
 

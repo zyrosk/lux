@@ -4,15 +4,6 @@ import type Route from './route'
 import type Controller from '@lux/packages/controller'
 import type { FreezeableSet } from '@lux/packages/freezeable'
 
-export type Router$opts = {
-  controller: Controller,
-  controllers: Map<string, Controller>,
-
-  routes(): void,
-}
-
-type Router$NS$content = Route | Router$Namespace
-
 export interface Router$Namespace extends FreezeableSet<Router$NS$content> {
   name: string,
   path: string,
@@ -21,3 +12,11 @@ export interface Router$Namespace extends FreezeableSet<Router$NS$content> {
   controller: Controller,
   controllers: Map<string, Controller>,
 }
+
+export type Router$opts = {
+  controller: Controller,
+  controllers: Map<string, Controller>,
+  routes(): void,
+}
+
+type Router$NS$content = Route | Router$Namespace

@@ -1,4 +1,5 @@
 [ignore]
+<PROJECT_ROOT>/__snapshots__/*
 <PROJECT_ROOT>/bin/*
 <PROJECT_ROOT>/dist/*
 <PROJECT_ROOT>/examples/*
@@ -6,8 +7,8 @@
 <PROJECT_ROOT>/lib/*
 <PROJECT_ROOT>/node_modules/*
 <PROJECT_ROOT>/scripts/*
+<PROJECT_ROOT>/src/packages/cli/*
 <PROJECT_ROOT>/test/test-app/*
-<PROJECT_ROOT>/__snapshots__/*
 
 [include]
 

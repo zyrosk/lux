@@ -37,7 +37,7 @@ describe('module "database"', () => {
 
       const { path, models, logger } = app
 
-      createDatabase = (config = DEFAULT_CONFIG) => (
+      createDatabase = (config = DEFAULT_CONFIG) =>
         Promise.resolve(
           new Database({
             path,
@@ -47,7 +47,6 @@ describe('module "database"', () => {
             checkMigrations: false,
           }),
         )
-      )
     })
 
     afterAll(async () => {

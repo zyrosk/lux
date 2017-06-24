@@ -9,7 +9,7 @@ import template from '@lux/packages/template'
 /**
  * @private
  */
-export default async function createBootScript(
+export default (async function createBootScript(
   dir: string,
   {
     useStrict,
@@ -80,4 +80,4 @@ export default async function createBootScript(
   }
 
   await fs.writeFile(path.join(dir, 'dist', 'boot.js'), Buffer.from(data))
-}
+})

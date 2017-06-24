@@ -1,14 +1,11 @@
 /* @flow */
 
-import isNull from './is-null'
-import isUndefined from './is-undefined'
+import { isNil } from '@lux/utils/is-type'
 
 type Compact = <T: any>(
   source: Array<T>,
 ) => Array<T> | (<T: any>(source: T) => T)
-
 const negate = fn => input => !fn(input)
-const isNil = value => isNull(value) || isUndefined(value)
 const notNil = negate(isNil)
 
 const compactArray = <T>(source: Array<T>): Array<T> => source.filter(notNil)

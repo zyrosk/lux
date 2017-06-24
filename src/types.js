@@ -1,5 +1,3 @@
 /* @flow */
 
-export type Environment = 'development'
-                        | 'production'
-                        | 'test'
+export type Environment = 'development' | 'production' | 'test'

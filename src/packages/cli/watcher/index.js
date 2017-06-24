@@ -7,17 +7,15 @@ import { Client as Watchman } from 'fb-watchman'
 
 import initialize from './initialize'
 
-export type Client =
-  | FSWatcher
-  | Watchman
+export type Client = FSWatcher | Watchman
 
 /**
  * @private
  */
 class Watcher extends EventEmitter {
-  path: string;
+  path: string
 
-  client: Client;
+  client: Client
 
   constructor(path: string, useWatchman: boolean = true): Promise<Watcher> {
     super()

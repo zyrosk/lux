@@ -11,24 +11,24 @@ describe('module "database/query"', () => {
     let app
 
     class TestModel extends Model {
-      id: number;
-      body: string;
-      user: Class<Model>;
-      tags: Array<Class<Model>>;
-      title: string;
-      comments: Array<Class<Model>>;
-      isPublic: boolean;
-      reactions: Array<Class<Model>>;
-      createdAt: Date;
-      updatedAt: Date;
+      id: number
+      body: string
+      user: Class<Model>
+      tags: Array<Class<Model>>
+      title: string
+      comments: Array<Class<Model>>
+      isPublic: boolean
+      reactions: Array<Class<Model>>
+      createdAt: Date
+      updatedAt: Date
 
-      static tableName = 'posts';
+      static tableName = 'posts'
 
       static belongsTo = {
         user: {
           inverse: 'posts',
         },
-      };
+      }
 
       static hasMany = {
         comments: {
@@ -43,7 +43,7 @@ describe('module "database/query"', () => {
           inverse: 'posts',
           through: 'categorization',
         },
-      };
+      }
 
       static scopes = {
         isPublic() {
@@ -51,7 +51,7 @@ describe('module "database/query"', () => {
             isPublic: true,
           })
         },
-      };
+      }
     }
 
     const assertItem = item => {
@@ -65,9 +65,8 @@ describe('module "database/query"', () => {
 
       Test = store.modelFor('test')
 
-      await TestModel.initialize(
-        store,
-        () => store.connection(TestModel.tableName),
+      await TestModel.initialize(store, () =>
+        store.connection(TestModel.tableName),
       )
 
       await Test.store.connection.batchInsert(
@@ -88,12 +87,7 @@ describe('module "database/query"', () => {
         source = new Query(TestModel)
           .limit(10)
           .order('title', 'DESC')
-          .include(
-            'user',
-            'tags',
-            'comments',
-            'reactions',
-          )
+          .include('user', 'tags', 'comments', 'reactions')
           .where({
             isPublic: true,
           })
@@ -234,9 +228,7 @@ describe('module "database/query"', () => {
 
         const result = subject.find(1)
 
-        expect(result.snapshots).toEqual([
-          ['where', { 'posts.id': 1 }],
-        ])
+        expect(result.snapshots).toEqual([['where', { 'posts.id': 1 }]])
       })
 
       test('resolves with the correct `Model` instance', async () => {
@@ -267,10 +259,7 @@ describe('module "database/query"', () => {
       test('properly modifies #snapshots', () => {
         const result = subject.page(2)
 
-        expect(result.snapshots).toEqual([
-          ['limit', 25],
-          ['offset', 25],
-        ])
+        expect(result.snapshots).toEqual([['limit', 25], ['offset', 25]])
       })
 
       test('does not modify #snapshots if #shouldCount', () => {
@@ -306,9 +295,7 @@ describe('module "database/query"', () => {
       test('properly modifies #snapshots', () => {
         const result = subject.limit(5)
 
-        expect(result.snapshots).toEqual([
-          ['limit', 5],
-        ])
+        expect(result.snapshots).toEqual([['limit', 5]])
       })
 
       test('does not modify #snapshots if #shouldCount', () => {
@@ -459,28 +446,19 @@ describe('module "database/query"', () => {
       })
 
       test('returns `this`', () => {
-        const result = subject.whereRaw(
-          '"title" LIKE ?',
-          ['%Test%'],
-        )
+        const result = subject.whereRaw('"title" LIKE ?', ['%Test%'])
 
         expect(result).toBe(subject)
       })
 
       test('properly modifies #snapshots', () => {
-        const result = subject.whereRaw(
-          '"title" LIKE ?',
-          ['%Test%'],
-        )
+        const result = subject.whereRaw('"title" LIKE ?', ['%Test%'])
 
         expect(result.snapshots).toMatchSnapshot()
       })
 
       test('resolves with the correct array of `Model` instances', async () => {
-        const result = await subject.whereRaw(
-          '"title" LIKE ?',
-          ['%Test%'],
-        )
+        const result = await subject.whereRaw('"title" LIKE ?', ['%Test%'])
 
         expect(result).toEqual(expect.any(Array))
 
@@ -570,9 +548,7 @@ describe('module "database/query"', () => {
       })
 
       test('respects order if one already exists', () => {
-        const result = subject
-          .order('createdAt', 'DESC')
-          .last()
+        const result = subject.order('createdAt', 'DESC').last()
 
         expect(result.snapshots).toMatchSnapshot()
       })
@@ -728,30 +704,16 @@ describe('module "database/query"', () => {
       test('it works when using an array of strings', () => {
         const result = subject.include('user', 'comments')
 
-        expect([
-          result.snapshots,
-          result.relationships,
-        ]).toMatchSnapshot()
+        expect([result.snapshots, result.relationships]).toMatchSnapshot()
       })
 
       test('properly modifies #snapshots when using an object', () => {
         const result = subject.include({
-          user: [
-            'id',
-            'name',
-          ],
-          comments: [
-            'id',
-            'name',
-            'edited',
-            'updatedAt',
-          ],
+          user: ['id', 'name'],
+          comments: ['id', 'name', 'edited', 'updatedAt'],
         })
 
-        expect([
-          result.snapshots,
-          result.relationships,
-        ]).toMatchSnapshot()
+        expect([result.snapshots, result.relationships]).toMatchSnapshot()
       })
 
       test('resolves with the correct array of `Model` instances', async () => {
@@ -780,20 +742,13 @@ describe('module "database/query"', () => {
       })
 
       test('can be chained to other query methods', () => {
-        const result = subject
-          .isPublic()
-          .select('id', 'title')
-          .limit(10)
+        const result = subject.isPublic().select('id', 'title').limit(10)
 
         expect(result.snapshots).toMatchSnapshot()
       })
 
       test('can be chained from other query methods', () => {
-        const result = subject
-          .all()
-          .select('id', 'title')
-          .limit(10)
-          .isPublic()
+        const result = subject.all().select('id', 'title').limit(10).isPublic()
 
         expect(result.snapshots).toMatchSnapshot()
       })

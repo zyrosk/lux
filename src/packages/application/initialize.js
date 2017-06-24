@@ -14,7 +14,7 @@ import createSerializer from './utils/create-serializer'
 /**
  * @private
  */
-export default async function initialize<T: Application>(
+export default (async function initialize<T: Application>(
   app: T,
   { path, adapter, logging, database }: Options,
 ): Promise<T> {
@@ -99,4 +99,4 @@ export default async function initialize<T: Application>(
   freezeProps(app, false, 'adapter')
 
   return app
-}
+})

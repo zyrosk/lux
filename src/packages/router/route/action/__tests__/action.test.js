@@ -183,11 +183,9 @@ describe('module "router/route/action"', () => {
 
     test('works with complex parameter sets', () => {
       const iters = [1, 2, 3, 4]
-      const base = (
+      const base =
         `${DOMAIN}/${RESOURCE}?sort=-created-at&include=user` +
         '&fields%5Bposts%5D=title&fields%5Busers%5D=name'
-      )
-
       iters.forEach(number => {
         const opts = getOptions({
           params: {

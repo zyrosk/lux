@@ -64,7 +64,7 @@ class Logger {
    *       params: ['password']
    *     }
    *   }
-   * };
+   * }
    * ```
    *
    * Now that we've added password to the array of parameters we want to filter
@@ -131,7 +131,7 @@ class Logger {
    * Log a message at the DEBUG level.
    *
    * ```javascript
-   * logger.debug('Hello World!');
+   * logger.debug('Hello World!')
    * // => [6/4/16 5:46:53 PM] Hello World!
    * ```
    *
@@ -146,7 +146,7 @@ class Logger {
    * Log a message at the INFO level.
    *
    * ```javascript
-   * logger.info('Hello World!');
+   * logger.info('Hello World!')
    * // => [6/4/16 5:46:53 PM] Hello World!
    * ```
    *
@@ -161,7 +161,7 @@ class Logger {
    * Log a message at the WARN level.
    *
    * ```javascript
-   * logger.warn('Good Bye World!');
+   * logger.warn('Good Bye World!')
    * // => [6/4/16 5:46:53 PM] Good Bye World!
    * ```
    *
@@ -176,7 +176,7 @@ class Logger {
    * Log a message at the ERROR level.
    *
    * ```javascript
-   * logger.warn('HELP!');
+   * logger.warn('HELP!')
    * // => [6/4/16 5:46:53 PM] HELP!
    * ```
    *

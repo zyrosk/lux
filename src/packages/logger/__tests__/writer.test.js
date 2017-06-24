@@ -3,14 +3,7 @@
 import { WARN, ERROR, LEVELS, FORMATS } from '../constants'
 import * as writer from '../writer'
 
-const {
-  stdout: {
-    write: writeOut,
-  },
-  stderr: {
-    write: writeErr,
-  },
-} = process
+const { stdout: { write: writeOut }, stderr: { write: writeErr } } = process
 
 describe('module "logger/writer"', () => {
   describe('#createWriter()', () => {

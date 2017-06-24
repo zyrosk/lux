@@ -1,23 +1,15 @@
 /* @flow */
 
-// $FlowFixMe
-type Merge<T, U> = { ...T, ...U }
+import { isObject } from '@lux/utils/is-type'
 
-const merge = <T, U>(dest: T, source: U): Merge<T, U> =>
+const merge = <T: Object, U: Object>(dest: T, source: U): { ...T, ...U } =>
   Object.entries(dest)
     .concat(Object.entries(source))
     .reduce((prev, [key, value]) => {
       const currentValue = prev[key]
       const next = prev
 
-      if (
-        currentValue &&
-        typeof currentValue === 'object' &&
-        !Array.isArray(currentValue) &&
-        value &&
-        typeof value === 'object' &&
-        !Array.isArray(value)
-      ) {
+      if (isObject(currentValue) && isObject(value)) {
         next[key] = merge(currentValue, value)
       } else {
         next[key] = value

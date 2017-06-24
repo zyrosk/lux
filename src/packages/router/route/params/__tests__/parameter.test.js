@@ -28,7 +28,7 @@ describe('module "router/route/params"', () => {
       ]
 
       describe('- type "array"', () => {
-        [true, false].forEach(required => {
+        ;[true, false].forEach(required => {
           describe(`- ${required ? 'required' : 'optional'}`, () => {
             beforeEach(() => {
               subject = new Parameter({
@@ -58,17 +58,14 @@ describe('module "router/route/params"', () => {
             })
 
             test('returns the value when the type and value match', () => {
-              expect(subject.validate(['test', false])).toEqual([
-                'test',
-                false,
-              ])
+              expect(subject.validate(['test', false])).toEqual(['test', false])
             })
           })
         })
       })
 
       describe('- type "buffer"', () => {
-        [true, false].forEach(required => {
+        ;[true, false].forEach(required => {
           describe(`- ${required ? 'required' : 'optional'}`, () => {
             let value
 
@@ -103,7 +100,7 @@ describe('module "router/route/params"', () => {
       })
 
       describe('- type "object"', () => {
-        [true, false].forEach(required => {
+        ;[true, false].forEach(required => {
           describe(`- ${required ? 'required' : 'optional'}`, () => {
             let value
 
@@ -138,7 +135,7 @@ describe('module "router/route/params"', () => {
       })
 
       describe('- type "date"', () => {
-        [true, false].forEach(required => {
+        ;[true, false].forEach(required => {
           describe(`- ${required ? 'required' : 'optional'}`, () => {
             let value
 
@@ -174,7 +171,7 @@ describe('module "router/route/params"', () => {
 
       primitives.forEach(({ type, valid, falsy, invalid }) => {
         describe(`- type "${type}"`, () => {
-          [true, false].forEach(required => {
+          ;[true, false].forEach(required => {
             describe(`- ${required ? 'required' : 'optional'}`, () => {
               beforeEach(() => {
                 subject = new Parameter({

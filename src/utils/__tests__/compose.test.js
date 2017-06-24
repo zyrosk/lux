@@ -28,10 +28,7 @@ describe('util compose', () => {
 
   describe('.compose()', () => {
     test('returns a composed function', () => {
-      const shout = compose(
-        str => `${str}!`,
-        str => str.toUpperCase(),
-      )
+      const shout = compose(str => `${str}!`, str => str.toUpperCase())
 
       expect(shout).toHaveLength(1)
       expect(typeof shout).toBe('function')

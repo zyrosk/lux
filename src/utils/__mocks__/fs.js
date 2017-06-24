@@ -43,4 +43,3 @@ export const exists = jest.fn().mockImplementation((...args) => {
 export const writeFile = jest.fn().mockImplementation((...args) => {
   fs.writeFile(...args)
 })
-

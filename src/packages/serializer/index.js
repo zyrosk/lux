@@ -41,7 +41,7 @@ type Options<T> = {
  *     'username',
  *     'createdAt',
  *     'updatedAt'
- *   ];
+ *   ]
  * }
  * ```
  *
@@ -50,17 +50,17 @@ type Options<T> = {
  * what the Serializer needs to build the response.
  *
  * ```javascript
- * import { Serializer } from 'lux-framework';
+ * import { Serializer } from 'lux-framework'
  *
  * class PostsSerializer extends Serializer {
  *   attributes = [
  *     'body',
  *     'title',
  *     'createdAt'
- *   ];
+ *   ]
  * }
  *
- * export default PostsSerializer;
+ * export default PostsSerializer
  * ```
  *
  * The Serializer above would result in resources returned from the `/posts`
@@ -69,7 +69,7 @@ type Options<T> = {
  * to add `'isPublic'` to the `attributes` property.
  *
  * ```javascript
- * import { Serializer } from 'lux-framework';
+ * import { Serializer } from 'lux-framework'
  *
  * class PostsSerializer extends Serializer {
  *   attributes = [
@@ -77,10 +77,10 @@ type Options<T> = {
  *     'title',
  *     'isPublic',
  *     'createdAt'
- *   ];
+ *   ]
  * }
  *
- * export default PostsSerializer;
+ * export default PostsSerializer
  * ```
  *
  * #### Associations
@@ -93,14 +93,14 @@ type Options<T> = {
  * `hasOne` array property.
  *
  * ```javascript
- * import { Model } from 'lux-framework';
+ * import { Model } from 'lux-framework'
  *
  * class Post extends Model {
  *  static hasOne = {
  *    image: {
  *      inverse: 'post'
  *    }
- *  };
+ *  }
  *
  *  static hasMany = {
  *    tags: {
@@ -111,16 +111,16 @@ type Options<T> = {
  *    comments: {
  *      inverse: 'post'
  *    }
- *  };
+ *  }
  *
  *  static belongsTo = {
  *    user: {
  *      inverse: 'posts'
  *    }
- *  };
+ *  }
  * }
  *
- * export default Post;
+ * export default Post
  * ```
  *
  * To include the `user` and `image` associations in the response returned from
@@ -128,37 +128,37 @@ type Options<T> = {
  * property array of the Serializer.
  *
  * ```javascript
- * import { Serializer } from 'lux-framework';
+ * import { Serializer } from 'lux-framework'
  *
  * class PostsSerializer extends Serializer {
  *  hasOne = [
  *    'user',
  *    'image'
- *  ];
+ *  ]
  * }
  *
- * export default PostsSerializer;
+ * export default PostsSerializer
  * ```
  *
  * If we wanted to also include the `tags` and `comments` in the response, we
  * have to add a `hasMany` array property containing `'tags'` and `'comments'`.
  *
  * ```javascript
- * import { Serializer } from 'lux-framework';
+ * import { Serializer } from 'lux-framework'
  *
  * class PostsSerializer extends Serializer {
  *  hasOne = [
  *    'user',
  *    'image'
- *  ];
+ *  ]
  *
  *  hasMany = [
  *    'tags',
  *    'comments'
- *  ];
+ *  ]
  * }
  *
- * export default PostsSerializer;
+ * export default PostsSerializer
  * ```
  *
  * You no longer need to specify that `tags` is a many to many relationship
@@ -196,27 +196,27 @@ type Options<T> = {
  * `app/serializers/posts.js`, you are not required to extend `PostsSerializer`.
  *
  * ```javascript
- * import { Serializer } from 'lux-framework';
+ * import { Serializer } from 'lux-framework'
  *
  * class PostsSerializer extends Serializer {
  *   attributes = [
  *     'body',
  *     'title',
  *     'createdAt'
- *   ];
+ *   ]
  *
  *   hasOne = [
  *     'user',
  *     'image'
- *   ];
+ *   ]
  *
  *   hasMany = [
  *     'tags',
  *     'comments'
- *   ];
+ *   ]
  * }
  *
- * export default PostsSerializer;
+ * export default PostsSerializer
  * ```
  *
  * To add the `isPublic` attribute to the response payload of requests to a
@@ -224,7 +224,7 @@ type Options<T> = {
  *
  * ```javascript
  * // app/serializers/admin/posts.js
- * import PostsSerializer from 'app/serializers/posts';
+ * import PostsSerializer from 'app/serializers/posts'
  *
  * class AdminPostsSerializer extends PostsSerializer {
  *   attributes = [
@@ -232,17 +232,17 @@ type Options<T> = {
  *     'title',
  *     'isPublic',
  *     'createdAt'
- *   ];
+ *   ]
  * }
  *
- * export default AdminPostsSerializer;
+ * export default AdminPostsSerializer
  * ```
  *
  * OR
  *
  * ```javascript
  * // app/serializers/admin/posts.js
- * import { Serializer } from 'lux-framework';
+ * import { Serializer } from 'lux-framework'
  *
  * class AdminPostsSerializer extends Serializer {
  *   attributes = [
@@ -250,87 +250,87 @@ type Options<T> = {
  *     'title',
  *     'isPublic',
  *     'createdAt'
- *   ];
+ *   ]
  *
  *   hasOne = [
  *     'user',
  *     'image'
- *   ];
+ *   ]
  *
  *   hasMany = [
  *     'tags',
  *     'comments'
- *   ];
+ *   ]
  * }
  *
- * export default AdminPostsSerializer;
+ * export default AdminPostsSerializer
  * ```
  *
  * Even with inheritance, the examples above are a tad repetitive. We can
  * improve this code by exporting constants from `app/serializers/posts.js`.
  *
  * ```javascript
- * import { Serializer } from 'lux-framework';
+ * import { Serializer } from 'lux-framework'
  *
  * export const HAS_ONE = [
  *   'user',
  *   'image'
- * ];
+ * ]
  *
  * export const HAS_MANY = [
  *   'tags',
  *   'comments'
- * ];
+ * ]
  *
  * export const ATTRIBUTES = [
  *   'body',
  *   'title',
  *   'createdAt'
- * ];
+ * ]
  *
  * class PostsSerializer extends Serializer {
- *   hasOne = HAS_ONE;
- *   hasMany = HAS_MANY;
- *   attributes = ATTRIBUTES;
+ *   hasOne = HAS_ONE
+ *   hasMany = HAS_MANY
+ *   attributes = ATTRIBUTES
  * }
  *
- * export default PostsSerializer;
+ * export default PostsSerializer
  * ```
  *
  * If we choose to use inheritance, our code can look like this:
  *
  * ```javascript
  * // app/serializers/admin/posts.js
- * import PostsSerializer, { ATTRIBUTES } from 'app/serializers/posts';
+ * import PostsSerializer, { ATTRIBUTES } from 'app/serializers/posts'
  *
  * class AdminPostsSerializer extends PostsSerializer {
  *   attributes = [
  *     ...ATTRIBUTES,
  *     'isPublic'
- *   ];
+ *   ]
  * }
  *
- * export default AdminPostsSerializer;
+ * export default AdminPostsSerializer
  * ```
  *
  * If we choose not use inheritance, our code can look like this:
  *
  * ```javascript
  * // app/serializers/admin/posts.js
- * import { Serializer } from 'lux-framework';
- * import { HAS_ONE, HAS_MANY, ATTRIBUTES } from 'app/serializers/posts';
+ * import { Serializer } from 'lux-framework'
+ * import { HAS_ONE, HAS_MANY, ATTRIBUTES } from 'app/serializers/posts'
  *
  * class AdminPostsSerializer extends PostsSerializer {
- *   hasOne = HAS_ONE;
- *   hasMany = HAS_MANY;
+ *   hasOne = HAS_ONE
+ *   hasMany = HAS_MANY
  *
  *   attributes = [
  *     ...ATTRIBUTES,
  *     'isPublic'
- *   ];
+ *   ]
  * }
  *
- * export default AdminPostsSerializer;
+ * export default AdminPostsSerializer
  * ```
  *
  * @class Serializer
@@ -346,7 +346,7 @@ class Serializer<T: Model> {
    * class PostsSerializer extends Serializer {
    *   hasOne = [
    *     'user'
-   *   ];
+   *   ]
    * }
    * ```
    *
@@ -365,7 +365,7 @@ class Serializer<T: Model> {
    * class PostsSerializer extends Serializer {
    *   hasMany = [
    *     'comments'
-   *   ];
+   *   ]
    * }
    * ```
    *
@@ -385,7 +385,7 @@ class Serializer<T: Model> {
    *   attributes = [
    *     'body',
    *     'title'
-   *   ];
+   *   ]
    * }
    * ```
    *

@@ -1,8 +1,7 @@
 /* @flow */
 
 import type { Attribute$meta } from '../index'
-import isNull from '@lux/utils/is-null'
-import isUndefined from '@lux/utils/is-undefined'
+import { isNil } from '@lux/utils/is-type'
 
 export default function createGetter({
   key,
@@ -11,7 +10,7 @@ export default function createGetter({
   return function getter() {
     let value = this.currentChangeSet.get(key)
 
-    if (isNull(value) || isUndefined(value)) {
+    if (isNil(value)) {
       value = defaultValue
     }
 

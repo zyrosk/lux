@@ -70,7 +70,7 @@ const createWriter = (file, exporter) => ({
   }),
 })
 
-export default async function createManifest(
+export default (async function createManifest(
   dir: string,
   assets: Map<string, Array<string> | string>,
   { useStrict }: { useStrict: boolean },
@@ -96,4 +96,4 @@ export default async function createManifest(
   })
 
   await Promise.all(promises)
-}
+})

@@ -22,7 +22,7 @@ test('isTest()', () => {
 })
 
 test('name()', () => {
-  ['development', 'production', 'test'].forEach(name => {
+  ;['development', 'production', 'test'].forEach(name => {
     setEnv(name)
     expect(env.name()).toBe(name)
   })

@@ -4,10 +4,7 @@ import { camelize, dasherize, pluralize, singularize } from 'inflection'
 
 import { line } from '@lux/packages/logger'
 import { createAttribute } from '../attribute'
-import {
-  get as getRelationship,
-  set as setRelationship,
-} from '../relationship'
+import { get as getRelationship, set as setRelationship } from '../relationship'
 import underscore from '@lux/utils/underscore'
 import type Database, { Model } from '../index' // eslint-disable-line no-unused-vars, max-len
 
@@ -29,25 +26,31 @@ const VALID_HOOKS = new Set([
  */
 function initializeProps(prototype, attributes, relationships) {
   Object.defineProperties(prototype, {
-    ...Object.entries(attributes).reduce((obj, [key, value]) => ({
-      ...obj,
-      [key]: createAttribute({
-        key,
-        ...value,
+    ...Object.entries(attributes).reduce(
+      (obj, [key, value]) => ({
+        ...obj,
+        [key]: createAttribute({
+          key,
+          ...value,
+        }),
       }),
-    }), {}),
+      {},
+    ),
 
-    ...Object.keys(relationships).reduce((obj, key) => ({
-      ...obj,
-      [key]: {
-        get() {
-          return getRelationship(this, key)
+    ...Object.keys(relationships).reduce(
+      (obj, key) => ({
+        ...obj,
+        [key]: {
+          get() {
+            return getRelationship(this, key)
+          },
+          set(val) {
+            setRelationship(this, key, val)
+          },
         },
-        set(val) {
-          setRelationship(this, key, val)
-        },
-      },
-    }), {}),
+      }),
+      {},
+    ),
   })
 }
 
@@ -107,10 +110,13 @@ function initializeValidations(opts) {
 
       return isValid
     })
-    .reduce((obj, [key, value]) => ({
-      ...obj,
-      [key]: value,
-    }), {})
+    .reduce(
+      (obj, [key, value]) => ({
+        ...obj,
+        [key]: value,
+      }),
+      {},
+    )
 
   return Object.freeze(validates)
 }
@@ -118,176 +124,177 @@ function initializeValidations(opts) {
 /**
  * @private
  */
-export default async function initializeClass<T: Class<Model>>({
+export default (async function initializeClass<T: Class<Model>>({
   store,
   table,
   model,
-  }: {
+}: {
   store: Database,
   table: $PropertyType<T, 'table'>,
-  model: T
+  model: T,
 }): Promise<T> {
   let { hooks, scopes, validates } = model
   const { logger } = store
   const modelName = dasherize(underscore(model.name))
   const resourceName = pluralize(modelName)
 
-  const attributes = Object
-    .entries(await table().columnInfo())
-    .reduce((obj, [columnName, value]) => ({
+  const attributes = Object.entries(await table().columnInfo()).reduce(
+    (obj, [columnName, value]) => ({
       ...obj,
       [camelize(columnName, true)]: {
         ...value,
         columnName,
         docName: dasherize(columnName),
       },
-    }), {})
+    }),
+    {},
+  )
 
-  const belongsTo = Object
-    .entries(model.belongsTo || {})
-    .reduce((obj, [relatedName, { inverse, model: relatedModel }]) => {
-      const relationship = {}
+  const belongsTo = Object.entries(
+    model.belongsTo || {},
+  ).reduce((obj, [relatedName, { inverse, model: relatedModel }]) => {
+    const relationship = {}
 
-      Object.defineProperties(relationship, {
-        model: {
-          value: store.modelFor(relatedModel || relatedName),
-          writable: false,
-          enumerable: true,
-          configurable: false,
-        },
+    Object.defineProperties(relationship, {
+      model: {
+        value: store.modelFor(relatedModel || relatedName),
+        writable: false,
+        enumerable: true,
+        configurable: false,
+      },
 
-        inverse: {
-          value: inverse,
-          writable: false,
-          enumerable: true,
-          configurable: false,
-        },
+      inverse: {
+        value: inverse,
+        writable: false,
+        enumerable: true,
+        configurable: false,
+      },
 
-        type: {
-          value: 'belongsTo',
-          writable: false,
-          enumerable: false,
-          configurable: false,
-        },
+      type: {
+        value: 'belongsTo',
+        writable: false,
+        enumerable: false,
+        configurable: false,
+      },
 
-        foreignKey: {
-          value: `${underscore(relatedName)}_id`,
-          writable: false,
-          enumerable: false,
-          configurable: false,
-        },
-      })
+      foreignKey: {
+        value: `${underscore(relatedName)}_id`,
+        writable: false,
+        enumerable: false,
+        configurable: false,
+      },
+    })
 
-      return {
-        ...obj,
-        [relatedName]: relationship,
-      }
-    }, {})
+    return {
+      ...obj,
+      [relatedName]: relationship,
+    }
+  }, {})
 
-  const hasOne = Object
-    .entries(model.hasOne || {})
-    .reduce((obj, [relatedName, { inverse, model: relatedModel }]) => {
-      const relationship = {}
+  const hasOne = Object.entries(
+    model.hasOne || {},
+  ).reduce((obj, [relatedName, { inverse, model: relatedModel }]) => {
+    const relationship = {}
 
-      Object.defineProperties(relationship, {
-        model: {
-          value: store.modelFor(relatedModel || relatedName),
-          writable: false,
-          enumerable: true,
-          configurable: false,
-        },
+    Object.defineProperties(relationship, {
+      model: {
+        value: store.modelFor(relatedModel || relatedName),
+        writable: false,
+        enumerable: true,
+        configurable: false,
+      },
 
-        inverse: {
-          value: inverse,
-          writable: false,
-          enumerable: true,
-          configurable: false,
-        },
+      inverse: {
+        value: inverse,
+        writable: false,
+        enumerable: true,
+        configurable: false,
+      },
 
-        type: {
-          value: 'hasOne',
-          writable: false,
-          enumerable: false,
-          configurable: false,
-        },
+      type: {
+        value: 'hasOne',
+        writable: false,
+        enumerable: false,
+        configurable: false,
+      },
 
-        foreignKey: {
-          value: `${underscore(inverse)}_id`,
-          writable: false,
-          enumerable: false,
-          configurable: false,
-        },
-      })
+      foreignKey: {
+        value: `${underscore(inverse)}_id`,
+        writable: false,
+        enumerable: false,
+        configurable: false,
+      },
+    })
 
-      return {
-        ...obj,
-        [relatedName]: relationship,
-      }
-    }, {})
+    return {
+      ...obj,
+      [relatedName]: relationship,
+    }
+  }, {})
 
-  const hasMany = Object
-    .entries(model.hasMany || {})
-    .reduce((hash, [relatedName, opts]) => {
-      const { inverse } = opts
-      const relationship = {}
-      let { through, model: relatedModel } = opts
-      let foreignKey
+  const hasMany = Object.entries(
+    model.hasMany || {},
+  ).reduce((hash, [relatedName, opts]) => {
+    const { inverse } = opts
+    const relationship = {}
+    let { through, model: relatedModel } = opts
+    let foreignKey
 
-      if (typeof relatedModel === 'string') {
-        relatedModel = store.modelFor(relatedModel)
-      } else {
-        relatedModel = store.modelFor(relatedName)
-      }
+    if (typeof relatedModel === 'string') {
+      relatedModel = store.modelFor(relatedModel)
+    } else {
+      relatedModel = store.modelFor(relatedName)
+    }
 
-      if (typeof through === 'string') {
-        through = store.modelFor(through)
-        foreignKey = `${singularize(underscore(inverse))}_id`
-      } else {
-        foreignKey = `${underscore(inverse)}_id`
-      }
+    if (typeof through === 'string') {
+      through = store.modelFor(through)
+      foreignKey = `${singularize(underscore(inverse))}_id`
+    } else {
+      foreignKey = `${underscore(inverse)}_id`
+    }
 
-      Object.defineProperties(relationship, {
-        model: {
-          value: relatedModel,
-          writable: false,
-          enumerable: true,
-          configurable: false,
-        },
+    Object.defineProperties(relationship, {
+      model: {
+        value: relatedModel,
+        writable: false,
+        enumerable: true,
+        configurable: false,
+      },
 
-        inverse: {
-          value: inverse,
-          writable: false,
-          enumerable: true,
-          configurable: false,
-        },
+      inverse: {
+        value: inverse,
+        writable: false,
+        enumerable: true,
+        configurable: false,
+      },
 
-        through: {
-          value: through,
-          writable: false,
-          enumerable: Boolean(through),
-          configurable: false,
-        },
+      through: {
+        value: through,
+        writable: false,
+        enumerable: Boolean(through),
+        configurable: false,
+      },
 
-        type: {
-          value: 'hasMany',
-          writable: false,
-          enumerable: false,
-          configurable: false,
-        },
+      type: {
+        value: 'hasMany',
+        writable: false,
+        enumerable: false,
+        configurable: false,
+      },
 
-        foreignKey: {
-          value: foreignKey,
-          writable: false,
-          enumerable: false,
-          configurable: false,
-        },
-      })
+      foreignKey: {
+        value: foreignKey,
+        writable: false,
+        enumerable: false,
+        configurable: false,
+      },
+    })
 
-      return {
-        ...hash,
-        [relatedName]: relationship,
-      }
-    }, {})
+    return {
+      ...hash,
+      [relatedName]: relationship,
+    }
+  }, {})
 
   Object.freeze(hasOne)
   Object.freeze(hasMany)
@@ -434,9 +441,8 @@ export default async function initializeClass<T: Class<Model>>({
     },
 
     ...Object.freeze(
-      Object
-        .entries(scopes)
-        .reduce((obj, [name, scope]) => ({
+      Object.entries(scopes).reduce(
+        (obj, [name, scope]) => ({
           ...obj,
           [name]: {
             value: scope,
@@ -444,7 +450,9 @@ export default async function initializeClass<T: Class<Model>>({
             enumerable: false,
             configurable: false,
           },
-        }), {}),
+        }),
+        {},
+      ),
     ),
   })
 
@@ -476,4 +484,4 @@ export default async function initializeClass<T: Class<Model>>({
   })
 
   return model
-}
+})

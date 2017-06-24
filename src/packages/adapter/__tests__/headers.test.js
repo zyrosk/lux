@@ -23,7 +23,6 @@ describe('module "adapters/headers"', () => {
         expect(subject).toMatchSnapshot()
       })
     })
-
     ;['get', 'has'].forEach(method => {
       describe(`#${method}()`, () => {
         const key = 'Accept'

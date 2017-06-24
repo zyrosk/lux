@@ -2,7 +2,7 @@
 
 import { FreezeableMap } from '@lux/packages/freezeable'
 import { InvalidParameterError } from '../errors'
-import isNull from '@lux/utils/is-null'
+import { isNull } from '@lux/utils/is-type'
 import validateType from '../utils/validate-type'
 import type { ParameterLike, ParameterLike$opts } from '../index'
 

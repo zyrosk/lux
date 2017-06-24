@@ -2,7 +2,7 @@
 
 import Parameter from '../parameter'
 import ParameterGroup from '../parameter-group'
-import isNull from '@lux/utils/is-null'
+import { isNull } from '@lux/utils/is-type'
 import { typeForColumn } from '@lux/packages/database'
 import type Controller from '@lux/packages/controller'
 import type { ParameterLike } from '../interfaces'

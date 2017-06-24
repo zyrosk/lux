@@ -10,10 +10,7 @@ describe('module "logger"', () => {
       password: 'test',
     }
 
-    const filter = [
-      'username',
-      'password',
-    ]
+    const filter = ['username', 'password']
 
     test('replaces the value of filtered params', () => {
       expect(filterParams(params, ...filter)).toMatchSnapshot()

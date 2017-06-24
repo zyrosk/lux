@@ -23,8 +23,5 @@ export default function closestAncestor<T>(
     return ancestor
   }
 
-  return closestAncestor(
-    source,
-    posix.join(posix.dirname(namespace), name),
-  )
+  return closestAncestor(source, posix.join(posix.dirname(namespace), name))
 }

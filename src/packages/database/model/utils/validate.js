@@ -7,8 +7,7 @@ import type { Model } from '../../index'
  * @private
  */
 export default function validate(instance: Model): true {
-  return Array
-    .from(instance.dirtyAttributes)
+  return Array.from(instance.dirtyAttributes)
     .map(([key, value]) => ({
       key,
       value,

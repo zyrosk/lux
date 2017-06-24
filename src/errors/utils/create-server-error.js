@@ -1,7 +1,7 @@
 /* @flow */
 
 type ServerError<T: Error> = T & {
-  statusCode: number;
+  statusCode: number,
 }
 
 /**
@@ -12,7 +12,7 @@ export default function createServerError<T: Error>(
   statusCode: number,
 ): Class<ServerError<T>> {
   const Target = class extends Source {
-    statusCode: number;
+    statusCode: number
   }
 
   Object.defineProperty(Target, 'name', {

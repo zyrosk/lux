@@ -12,12 +12,7 @@ import findOne from './utils/find-one'
 import findMany from './utils/find-many'
 import resolveRelationships from './utils/resolve-relationships'
 
-export type BuiltInAction =
-  | 'show'
-  | 'index'
-  | 'create'
-  | 'update'
-  | 'destroy'
+export type BuiltInAction = 'show' | 'index' | 'create' | 'update' | 'destroy'
 
 export type BeforeAction = (
   request: Request,
@@ -104,17 +99,17 @@ export { BUILT_IN_ACTIONS } from './constants'
  *
  * ```javascript
  * // app/controllers/posts.js
- * import { Controller } from 'lux-framework';
+ * import { Controller } from 'lux-framework'
  *
  * class PostsController extends Controller {
  *    index(request, response) {
  *      return super.index(request, response).where({
  *        isPublic: true
- *      });
+ *      })
  *    }
  *  }
  *
- *  export default PostsController;
+ *  export default PostsController
  * ```
  *
  * **Custom Actions**
@@ -127,15 +122,15 @@ export { BUILT_IN_ACTIONS } from './constants'
  *
  * ```javascript
  * // app/controllers/health.js
- * import { Controller } from 'lux-framework';
+ * import { Controller } from 'lux-framework'
  *
  * class HealthController extends Controller {
  *   async check() {
- *     return 204;
+ *     return 204
  *   }
  * }
  *
- * export default HealthController;
+ * export default HealthController
  * ```
  *
  * The example above is nice but we can make the code a bit more concise with an
@@ -143,13 +138,13 @@ export { BUILT_IN_ACTIONS } from './constants'
  *
  * ```javascript
  * // app/controllers/health.js
- * import { Controller } from 'lux-framework';
+ * import { Controller } from 'lux-framework'
  *
  * class HealthController extends Controller {
- *   check = async () => 204;
+ *   check = async () => 204
  * }
  *
- * export default HealthController;
+ * export default HealthController
  * ```
  *
  * Using an Arrow Function instead of a traditional method Controller can be
@@ -164,18 +159,18 @@ export { BUILT_IN_ACTIONS } from './constants'
  *
  * ```javascript
  * // app/controllers/posts.js
- * import { Controller } from 'lux-framework';
- * import Post from 'app/models/posts';
+ * import { Controller } from 'lux-framework'
+ * import Post from 'app/models/posts'
  *
  * class PostsController extends Controller {
  *   drafts() {
  *     return Post.where({
  *       isPublic: false
- *     });
+ *     })
  *   }
  * }
  *
- * export default PostsController;
+ * export default PostsController
  * ```
  *
  * While the example above works, we would have to implement all the custom
@@ -185,17 +180,17 @@ export { BUILT_IN_ACTIONS } from './constants'
  *
  * ```javascript
  * // app/controllers/posts.js
- * import { Controller } from 'lux-framework';
+ * import { Controller } from 'lux-framework'
  *
  * class PostsController extends Controller {
  *   drafts(request, response) {
  *     return this.index(request, response).where({
  *       isPublic: false
- *     });
+ *     })
  *   }
  * }
  *
- * export default PostsController;
+ * export default PostsController
  * ```
  *
  * Now we can sort, filter, and paginate our custom `drafts` route!
@@ -233,20 +228,20 @@ export { BUILT_IN_ACTIONS } from './constants'
  *
  * ```javascript
  * // app/controllers/application.js
- * import { Controller } from 'lux-framework';
+ * import { Controller } from 'lux-framework'
  *
  * class ApplicationController extends Controller {
  *   beforeAction = [
  *     async function authenticate(request) {
  *       if (!request.currentUser) {
  *         // 401 Unauthorized
- *         return false;
+ *         return false
  *       }
  *     }
- *   ];
+ *   ]
  * }
  *
- * export default ApplicationController;
+ * export default ApplicationController
  * ```
  *
  * **Execuation Order**
@@ -273,7 +268,7 @@ export { BUILT_IN_ACTIONS } from './constants'
  * export default async function authenticate(request) {
  *   if (!request.currentUser) {
  *     // 401 Unauthorized
- *     return false;
+ *     return false
  *   }
  * }
  * ```
@@ -282,16 +277,16 @@ export { BUILT_IN_ACTIONS } from './constants'
  *
  * ```javascript
  * // app/controllers/application.js
- * import { Controller } from 'lux-framework';
- * import authenticate from 'app/middleware/authenticate';
+ * import { Controller } from 'lux-framework'
+ * import authenticate from 'app/middleware/authenticate'
  *
  * class ApplicationController extends Controller {
  *   beforeAction = [
  *     authenticate
- *   ];
+ *   ]
  * }
  *
- * export default ApplicationController;
+ * export default ApplicationController
  * ```
  *
  * @class Controller
@@ -312,7 +307,7 @@ export default class Controller {
    *   // Controller's actions.
    *   query = [
    *     'cache'
-   *   ];
+   *   ]
    * }
    * ```
    *
@@ -321,7 +316,7 @@ export default class Controller {
    * @default []
    * @public
    */
-  query: Array<string> = [];
+  query: Array<string> = []
 
   /**
    * An array of sort query parameter values that are allowed to reach a
@@ -336,7 +331,7 @@ export default class Controller {
    * @default []
    * @public
    */
-  sort: Array<string> = [];
+  sort: Array<string> = []
 
   /**
    * An array of filter query parameter keys that are allowed to reach a
@@ -351,7 +346,7 @@ export default class Controller {
    * @default []
    * @public
    */
-  filter: Array<string> = [];
+  filter: Array<string> = []
 
   /**
    * An array of parameter keys that are allowed to reach a Controller instance
@@ -366,7 +361,7 @@ export default class Controller {
    * @default []
    * @public
    */
-  params: Array<string> = [];
+  params: Array<string> = []
 
   /**
    * Functions to execute on each request handled by a `Controller` before the
@@ -385,34 +380,34 @@ export default class Controller {
    * **Example:**
    *
    * ```javascript
-   * import { Controller } from 'lux-framework';
+   * import { Controller } from 'lux-framework'
    *
-   * const UNSAFE_METHODS = /(?:POST|PATCH|DELETE)/i;
+   * const UNSAFE_METHODS = /(?:POST|PATCH|DELETE)/i
    *
    * function isAdmin(user) {
    *   if (user) {
-   *     return user.isAdmin;
+   *     return user.isAdmin
    *   }
    *
-   *   return false;
+   *   return false
    * }
    *
    * async function authentication(request) {
-   *   const { method, currentUser } = request;
-   *   const isUnsafe = UNSAFE_METHODS.test(method);
+   *   const { method, currentUser } = request
+   *   const isUnsafe = UNSAFE_METHODS.test(method)
    *
    *   if (isUnsafe && !isAdmin(currentUser)) {
-   *     return false; // 401 Unauthorized if the current user is not an admin.
+   *     return false // 401 Unauthorized if the current user is not an admin.
    *   }
    * }
    *
    * class PostsController extends Controller {
    *   beforeAction = [
    *     authentication
-   *   ];
+   *   ]
    * }
    *
-   * export default PostsController;
+   * export default PostsController
    * ```
    *
    * @property beforeAction
@@ -420,7 +415,7 @@ export default class Controller {
    * @default []
    * @public
    */
-  beforeAction: Array<BeforeAction> = [];
+  beforeAction: Array<BeforeAction> = []
 
   /**
    * Functions to execute on each request handled by a `Controller` after the
@@ -441,10 +436,10 @@ export default class Controller {
    * **Example:**
    *
    * ```javascript
-   * import { Controller } from 'lux-framework';
+   * import { Controller } from 'lux-framework'
    *
    * async function addCopyright(request, response, payload) {
-   *   const { action } = request;
+   *   const { action } = request
    *
    *   if (payload && action !== preflight) {
    *     return {
@@ -452,19 +447,19 @@ export default class Controller {
    *       meta: {
    *         copyright: '2016 (c) Postlight'
    *       }
-   *     };
+   *     }
    *   }
    *
-   *   return payload;
+   *   return payload
    * }
    *
    * class ApplicationController extends Controller {
    *   afterAction = [
    *     addCopyright
-   *   ];
+   *   ]
    * }
    *
-   * export default ApplicationController;
+   * export default ApplicationController
    * ```
    *
    * @property afterAction
@@ -472,7 +467,7 @@ export default class Controller {
    * @default []
    * @public
    */
-  afterAction: Array<AfterAction<*>> = [];
+  afterAction: Array<AfterAction<*>> = []
 
   /**
    * The default amount of items to include per each response of the index
@@ -483,7 +478,7 @@ export default class Controller {
    * @default 25
    * @public
    */
-  defaultPerPage: number = 25;
+  defaultPerPage: number = 25
 
   /**
    * The resolved Model for a Controller instance.
@@ -492,7 +487,7 @@ export default class Controller {
    * @type {Model}
    * @private
    */
-  model: Class<Model>;
+  model: Class<Model>
 
   /**
    * A reference to the root Controller for the namespace that a Controller
@@ -502,7 +497,7 @@ export default class Controller {
    * @type {?Controller}
    * @private
    */
-  parent: ?Controller;
+  parent: ?Controller
 
   /**
    * The namespace that a Controller instance is a member of.
@@ -511,7 +506,7 @@ export default class Controller {
    * @type {String}
    * @private
    */
-  namespace: string;
+  namespace: string
 
   /**
    * The resolved Serializer for a Controller instance.
@@ -520,7 +515,7 @@ export default class Controller {
    * @type {Serializer}
    * @private
    */
-  serializer: Serializer<*>;
+  serializer: Serializer<*>
 
   /**
    * A Map instance containing a reference to all the Controller within an
@@ -530,7 +525,7 @@ export default class Controller {
    * @type {Map}
    * @private
    */
-  controllers: Map<string, Controller>;
+  controllers: Map<string, Controller>
 
   /**
    * A boolean value representing whether or not a Controller instance has a
@@ -540,7 +535,7 @@ export default class Controller {
    * @type {Boolean}
    * @private
    */
-  hasModel: boolean;
+  hasModel: boolean
 
   /**
    * A boolean value representing whether or not a Controller instance is within
@@ -550,7 +545,7 @@ export default class Controller {
    * @type {Boolean}
    * @private
    */
-  hasNamespace: boolean;
+  hasNamespace: boolean
 
   /**
    * A boolean value representing whether or not a Controller instance has a
@@ -560,7 +555,7 @@ export default class Controller {
    * @type {Boolean}
    * @private
    */
-  hasSerializer: boolean;
+  hasSerializer: boolean
 
   constructor(options: Options<*> = {}) {
     const { model, serializer } = options
@@ -579,17 +574,9 @@ export default class Controller {
       hasSerializer: Boolean(serializer),
     })
 
-    freezeProps(this, true,
-      'model',
-      'namespace',
-      'serializer',
-    )
+    freezeProps(this, true, 'model', 'namespace', 'serializer')
 
-    freezeProps(this, false,
-      'hasModel',
-      'hasNamespace',
-      'hasSerializer',
-    )
+    freezeProps(this, false, 'hasModel', 'hasNamespace', 'hasSerializer')
   }
 
   /**
@@ -639,15 +626,8 @@ export default class Controller {
     const { model } = this
 
     const {
-      url: {
-        pathname,
-      },
-      params: {
-        data: {
-          attributes,
-          relationships,
-        },
-      },
+      url: { pathname },
+      params: { data: { attributes, relationships } },
     } = req
 
     const record = await model.create({
@@ -681,14 +661,7 @@ export default class Controller {
     const { model } = this
     const record = await findOne(this.model, request)
 
-    const {
-      params: {
-        data: {
-          attributes,
-          relationships,
-        },
-      },
-    } = request
+    const { params: { data: { attributes, relationships } } } = request
 
     Object.assign(
       record,

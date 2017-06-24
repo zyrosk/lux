@@ -10,12 +10,12 @@ import { setHasOneInverse, setHasManyInverse } from './inverse-setters'
 /**
  * @private
  */
-export function setHasMany(owner: Model, key: string, value: Array<Model>, {
-  type,
-  model,
-  inverse,
-  foreignKey,
-  }: Relationship$opts) {
+export function setHasMany(
+  owner: Model,
+  key: string,
+  value: Array<Model>,
+  { type, model, inverse, foreignKey }: Relationship$opts,
+) {
   let { currentChangeSet: changeSet } = owner
 
   if (validateType(model, value)) {
@@ -26,9 +26,12 @@ export function setHasMany(owner: Model, key: string, value: Array<Model>, {
 
       if (Array.isArray(prevValue)) {
         prevValue
-          .filter(prev => (
-            !value.find(next => prev.getPrimaryKey() === next.getPrimaryKey())
-          ))
+          .filter(
+            prev =>
+              !value.find(
+                next => prev.getPrimaryKey() === next.getPrimaryKey(),
+              ),
+          )
           .forEach(record => owner.prevAssociations.add(record))
       }
     }
@@ -52,12 +55,12 @@ export function setHasMany(owner: Model, key: string, value: Array<Model>, {
 /**
  * @private
  */
-export function setHasOne(owner: Model, key: string, value?: ?Model, {
-  type,
-  model,
-  inverse,
-  foreignKey,
-  }: Relationship$opts) {
+export function setHasOne(
+  owner: Model,
+  key: string,
+  value?: ?Model,
+  { type, model, inverse, foreignKey }: Relationship$opts,
+) {
   let valueToSet = value
 
   if (value && typeof value === 'object' && !model.isInstance(value)) {
@@ -94,12 +97,12 @@ export function setHasOne(owner: Model, key: string, value?: ?Model, {
 /**
  * @private
  */
-export function setBelongsTo(owner: Model, key: string, value?: ?Model, {
-  type,
-  model,
-  inverse,
-  foreignKey,
-  }: Relationship$opts) {
+export function setBelongsTo(
+  owner: Model,
+  key: string,
+  value?: ?Model,
+  { type, model, inverse, foreignKey }: Relationship$opts,
+) {
   setHasOne(owner, key, value, {
     type,
     model,

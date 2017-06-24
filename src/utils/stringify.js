@@ -1,6 +1,6 @@
 /* @flow */
 
-import isObject from './is-object'
+import { isObject } from '@lux/utils/is-type'
 
 /**
  * @private

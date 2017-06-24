@@ -11,7 +11,9 @@ const repoDir = process.cwd()
 // Shortcut for console.log
 
 // eslint-disable-next-line no-console
-function log(...msg) { console.log(...msg) }
+function log(...msg) {
+  console.log(...msg)
+}
 
 // @async runCommand
 // Run a terminal command
@@ -81,7 +83,7 @@ function runInspector() {
     })
 
     run.stdout.on('data', data => log(data.toString()))
-    run.on('exit', (code) => log(`Child exited with code ${code}`))
+    run.on('exit', code => log(`Child exited with code ${code}`))
   })
     .then(msg => log(msg))
     .catch(err => log(err.toString))
@@ -92,12 +94,11 @@ function runInspector() {
 
 process.on('exit', () => {
   process.chdir(repoDir)
-});
+})
 
 // @async
 // Run commands
-
-(async function main() {
+;(async function main() {
   const cleanArgs = [
     'rm',
     '-rf',
@@ -108,22 +109,21 @@ process.on('exit', () => {
     'test-results.xml',
   ]
 
-  await runCommand('shx', cleanArgs, [
-    'Cleaning Lux repo...',
-    'Repo cleaned.',
-  ])
+  await runCommand('shx', cleanArgs, ['Cleaning Lux repo...', 'Repo cleaned.'])
 
-  await runCommand('rollup', ['-c'], [
-    'Building Lux source...',
-    'Lux source built.',
-  ])
+  await runCommand(
+    'rollup',
+    ['-c'],
+    ['Building Lux source...', 'Lux source built.'],
+  )
 
   process.chdir('./test/test-app')
 
-  await runCommand('lux', ['build'], [
-    'Building Lux test-app...',
-    'Lux test-app built.',
-  ])
+  await runCommand(
+    'lux',
+    ['build'],
+    ['Building Lux test-app...', 'Lux test-app built.'],
+  )
 
   await runInspector()
 }())

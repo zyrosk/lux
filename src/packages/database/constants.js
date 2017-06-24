@@ -1,6 +1,6 @@
 /* @flow */
 
-export const UNIQUE_CONSTRAINT = /UNIQUE\sCONSTRAINT/ig
+export const UNIQUE_CONSTRAINT = /UNIQUE\sCONSTRAINT/gi
 
 export const VALID_DRIVERS = [
   'pg',

@@ -8,11 +8,7 @@ describe('module "freezeable"', () => {
       let subject
 
       beforeAll(() => {
-        subject = new FreezeableMap([
-          ['a', 1],
-          ['b', 2],
-          ['c', 3],
-        ])
+        subject = new FreezeableMap([['a', 1], ['b', 2], ['c', 3]])
       })
 
       test('returns a mutable `Map` interface', () => {
@@ -42,12 +38,7 @@ describe('module "freezeable"', () => {
           c: 3,
         }
 
-        subject = new FreezeableMap([
-          ['a', 1],
-          ['b', 2],
-          ['c', 3],
-          ['d', d],
-        ])
+        subject = new FreezeableMap([['a', 1], ['b', 2], ['c', 3], ['d', d]])
       })
 
       test('returns `this`', () => {

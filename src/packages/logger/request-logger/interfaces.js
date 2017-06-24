@@ -1,7 +1,5 @@
 /* @flow */
 
-import type { Route } from '@lux/packages/router'
-
 export type RequestLogger$templateData = {
   path: string,
   stats: Array<any>,

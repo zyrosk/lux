@@ -2,7 +2,7 @@
 
 import { FREEZER } from '../constants'
 import insert from '@lux/utils/insert'
-import isObject from '@lux/utils/is-object'
+import { isObject } from '@lux/utils/is-type'
 
 /**
  * @private

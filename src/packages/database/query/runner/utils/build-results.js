@@ -9,7 +9,7 @@ import promiseHash from '@lux/utils/promise-hash'
 /**
  * @private
  */
-export default async function buildResults<T: Model>({
+export default (async function buildResults<T: Model>({
   model,
   records,
   relationships,
@@ -137,4 +137,4 @@ export default async function buildResults<T: Model>({
 
     return instance
   })
-}
+})

@@ -6,13 +6,17 @@ import type { Relationship$opts } from '../index'
 /**
  * @private
  */
-export function setHasManyInverse(owner: Model, value: Array<Model>, {
-  inverse,
-  foreignKey,
-  inverseModel,
+export function setHasManyInverse(
+  owner: Model,
+  value: Array<Model>,
+  {
+    inverse,
+    foreignKey,
+    inverseModel,
   }: Relationship$opts & {
-  inverseModel: Class<Model>;
-}) {
+    inverseModel: Class<Model>,
+  },
+) {
   const primaryKey = Reflect.get(owner, owner.constructor.primaryKey)
   const { type: inverseType } = inverseModel.relationshipFor(inverse)
 
@@ -36,13 +40,17 @@ export function setHasManyInverse(owner: Model, value: Array<Model>, {
 /**
  * @private
  */
-export function setHasOneInverse(owner: Model, value?: ?Model, {
-  inverse,
-  foreignKey,
-  inverseModel,
+export function setHasOneInverse(
+  owner: Model,
+  value?: ?Model,
+  {
+    inverse,
+    foreignKey,
+    inverseModel,
   }: Relationship$opts & {
-  inverseModel: Class<Model>;
-}) {
+    inverseModel: Class<Model>,
+  },
+) {
   if (value) {
     const { type: inverseType } = inverseModel.relationshipFor(inverse)
     let inverseValue = value.currentChangeSet.get(inverse)

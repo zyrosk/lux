@@ -1,6 +1,6 @@
 /* @flow */
 
-import isNull from '@lux/utils/is-null'
+import { isNull } from '@lux/utils/is-type'
 import { ParameterValueError, ResourceMismatchError } from '../../errors'
 import type Parameter from '../index'
 

@@ -285,7 +285,6 @@ describe('module "router/route"', () => {
         // $FlowFixMe
         controller = app.controllers.get('posts')
       })
-
       ;['GET', 'OPTIONS'].forEach(method => {
         describe(`- method "${method}"`, () => {
           let subject
