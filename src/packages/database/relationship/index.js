@@ -87,4 +87,4 @@ async function get(owner: Model, key: string): Promise<Array<Model> | ?Model> {
 
 export { get, set }
 export { default as updateRelationship } from './utils/update-relationship'
-export type { Relationship$opts } from './interfaces'
+export type { Relationship } from './interfaces'

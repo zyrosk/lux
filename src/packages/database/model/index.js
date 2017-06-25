@@ -15,13 +15,14 @@ import underscore from '@lux/utils/underscore'
 import { compose } from '@lux/utils/compose'
 import { map as diffMap } from '@lux/utils/diff'
 import mapToObject from '@lux/utils/map-to-object'
+import { isObject } from '@lux/utils/is-type'
 import type Logger from '@lux/packages/logger'
 import type Database from '@lux/packages/database'
 import type Serializer from '@lux/packages/serializer'
-/* eslint-disable no-duplicate-imports */
-import type { Relationship$opts } from '../relationship'
+import type { ObjectMap } from '@lux/types'
+
+import type { Relationship } from '../relationship'
 import type { Transaction$ResultProxy } from '../transaction'
-/* eslint-enable no-duplicate-imports */
 
 import { create, update, destroy, createRunner } from './utils/persistence'
 import initializeClass from './initialize-class'
@@ -33,7 +34,7 @@ import type { Model$Hooks } from './interfaces'
  * @class Model
  * @public
  */
-class Model {
+export default class Model {
   /**
    * The name of the corresponding database table for a `Model` instance's
    * constructor.
@@ -633,6 +634,8 @@ class Model {
   static attributes: Object
 
   /**
+   * $FlowFixMe
+   *
    * @property attributeNames
    * @type {Array}
    * @static
@@ -646,7 +649,7 @@ class Model {
    * @static
    * @private
    */
-  static relationships: Object
+  static relationships: ObjectMap<Relationship>
 
   /**
    * @property relationshipNames
@@ -656,7 +659,7 @@ class Model {
    */
   static relationshipNames: Array<string>
 
-  constructor(attrs: Object = {}, initialize: boolean = true): this {
+  constructor(attrs: Object = {}, initialize: boolean = true) {
     Object.defineProperties(this, {
       changeSets: {
         value: [new ChangeSet()],
@@ -684,15 +687,13 @@ class Model {
     Object.assign(this, props)
 
     if (initialize) {
-      Reflect.defineProperty(this, 'initialized', {
+      Object.defineProperty(this, 'initialized', {
         value: true,
         writable: false,
         enumerable: false,
         configurable: false,
       })
     }
-
-    return this
   }
 
   /**
@@ -1152,29 +1153,33 @@ class Model {
     return Reflect.get(this, this.constructor.primaryKey)
   }
 
-  toObject(callee?: Model, prev?: Object): Object {
+  toObject(callee?: Model, accumulator?: Object): Object {
     const { currentChangeSet, constructor: { relationships } } = this
+    const attributes = this.getAttributes()
 
-    return Object.entries(relationships).reduce((obj, [key, { type }]) => {
-      const value = currentChangeSet.get(key)
+    return Object.entries(relationships).reduce((prev, [key, data]) => {
+      const next = prev
 
-      /* eslint-disable no-param-reassign */
+      if (isObject(data)) {
+        const { type } = data
+        const value = currentChangeSet.get(key)
 
-      if (type === 'hasMany' && Array.isArray(value)) {
-        obj[key] = value.map(item => {
-          if (item === callee) {
-            return prev
-          }
-          return item.toObject(this, obj)
-        })
-      } else if (value && typeof value.toObject === 'function') {
-        obj[key] = value === callee ? prev : value.toObject(this, obj)
+        if (type === 'hasMany' && Array.isArray(value)) {
+          next[key] = value.map(item => {
+            if (item === callee) {
+              return accumulator
+            }
+            return item.toObject(this, next, accumulator)
+          })
+        } else if (value && typeof value.toObject === 'function') {
+          next[key] = value === callee
+            ? accumulator
+            : value.toObject(this, next, accumulator)
+        }
       }
 
-      /* eslint-enable no-param-reassign */
-
-      return obj
-    }, this.getAttributes())
+      return next
+    }, attributes)
   }
 
   /**
@@ -1432,7 +1437,20 @@ class Model {
    * @static
    * @public
    */
-  static isInstance(value: any): boolean {
+  static isInstance(value: mixed): boolean /* %checks */ {
+    return this.isModel(value)
+  }
+
+  /**
+   * Check if a value is an instance of a model.
+   *
+   * @method isModel
+   * @param {any} value - The value in question.
+   * @return {Boolean}
+   * @static
+   * @public
+   */
+  static isModel(value: mixed): boolean {
     return value instanceof this
   }
 
@@ -1458,18 +1476,13 @@ class Model {
       const getTableName = compose(pluralize, underscore)
       const tableName = getTableName(this.name)
 
-      Reflect.defineProperty(this, 'tableName', {
+      Object.defineProperty(this, 'tableName', {
         value: tableName,
-        writable: false,
         enumerable: true,
-        configurable: false,
       })
 
-      Reflect.defineProperty(this.prototype, 'tableName', {
+      Object.defineProperty(this.prototype, 'tableName', {
         value: tableName,
-        writable: false,
-        enumerable: false,
-        configurable: false,
       })
     }
 
@@ -1514,11 +1527,10 @@ class Model {
    * @static
    * @private
    */
-  static relationshipFor(key: string): void | Relationship$opts {
+  static relationshipFor(key: string): void | Relationship {
     return Reflect.get(this.relationships, key)
   }
 }
 
-export default Model
 export { default as tableFor } from './utils/table-for'
 export type { Model$Hook, Model$Hooks } from './interfaces'

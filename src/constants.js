@@ -4,6 +4,7 @@ import * as os from 'os'
 import { worker, isWorker } from 'cluster'
 
 import normalizePort from '@lux/utils/normalize-port'
+import type { Method } from '@lux/packages/request'
 
 const { env: ENV } = process
 
@@ -28,7 +29,7 @@ export const CIRCLECI: boolean = Boolean(ENV.CIRCLECI)
 export const APPVEYOR: boolean = Boolean(ENV.APPVEYOR)
 export const HAS_BODY: RegExp = /^(?:POST|PATCH)$/
 
-export const METHODS: Set<string> = new Set([
+export const METHODS: Set<Method> = new Set([
   'GET',
   'HEAD',
   'POST',

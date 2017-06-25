@@ -1,6 +1,6 @@
 /* @flow */
 
-const pick = <T: Object>(source: T, ...keys: Array<$Keys<T>>): T => {
+const pick = <T: Object>(source: T, ...keys: Array<string>): T => {
   // $FlowFixMe
   const dest: T = {}
 

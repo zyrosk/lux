@@ -1,21 +1,19 @@
 /* @flow */
 
 import type { Model } from '../../index'
-import type { Relationship$opts } from '../index'
+import type { Relationship } from '../index'
 
 import unassociate from './unassociate'
 import validateType from './validate-type'
 import { setHasOneInverse, setHasManyInverse } from './inverse-setters'
 
-/**
- * @private
- */
-export function setHasMany(
+export const setHasMany = (
   owner: Model,
   key: string,
   value: Array<Model>,
-  { type, model, inverse, foreignKey }: Relationship$opts,
-) {
+  relationship: Relationship,
+): void => {
+  const { type, model, inverse, foreignKey } = relationship
   let { currentChangeSet: changeSet } = owner
 
   if (validateType(model, value)) {
@@ -52,15 +50,13 @@ export function setHasMany(
   }
 }
 
-/**
- * @private
- */
-export function setHasOne(
+export const setHasOne = (
   owner: Model,
   key: string,
   value?: ?Model,
-  { type, model, inverse, foreignKey }: Relationship$opts,
-) {
+  relationship: Relationship,
+): void => {
+  const { type, model, inverse, foreignKey } = relationship
   let valueToSet = value
 
   if (value && typeof value === 'object' && !model.isInstance(value)) {
@@ -94,15 +90,13 @@ export function setHasOne(
   })
 }
 
-/**
- * @private
- */
-export function setBelongsTo(
+export const setBelongsTo = (
   owner: Model,
   key: string,
   value?: ?Model,
-  { type, model, inverse, foreignKey }: Relationship$opts,
-) {
+  relationship: Relationship,
+): void => {
+  const { type, model, inverse, foreignKey } = relationship
   setHasOne(owner, key, value, {
     type,
     model,

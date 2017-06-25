@@ -2,12 +2,12 @@
 
 import { tableFor } from '../../index'
 import type { Model } from '../../index'
-import type { Relationship$opts } from '../interfaces'
+import type { Relationship } from '../interfaces'
 
 type Params = {
   record: Model,
   value: ?Model | Array<Model>,
-  opts: Relationship$opts,
+  opts: Relationship,
   trx: Object,
 }
 

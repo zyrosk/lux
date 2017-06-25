@@ -77,3 +77,4 @@ export { default as createMigrations } from './utils/create-migrations'
 export { default as pendingMigrations } from './utils/pending-migrations'
 
 export type { Database$opts, Config } from './interfaces'
+export type { Relationship } from './relationship'

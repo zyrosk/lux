@@ -33,7 +33,7 @@ export default function createQueryString(src: Object, prop?: string): string {
     } else if (!value && typeof value !== 'number') {
       result += 'null'
     } else {
-      result += encodeURIComponent(value)
+      result += encodeURIComponent(String(value))
     }
 
     return result

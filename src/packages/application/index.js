@@ -13,17 +13,9 @@ import type Serializer from '@lux/packages/serializer'
 import type { Config } from '@lux/packages/config'
 import type { Adapter } from '@lux/packages/adapter'
 import type { FreezeableMap } from '@lux/packages/freezeable'
-import type Database, {
-  Model,
-  Config as DatabaseConfig,
-} from '@lux/packages/database'
+import type Database, { Model } from '@lux/packages/database'
 
 import initialize from './initialize'
-
-export type Options = Config & {
-  path: string,
-  database: DatabaseConfig,
-}
 
 /**
  * @class Application
@@ -106,9 +98,9 @@ class Application extends EventEmitter {
    * @return {Promise}
    * @public
    */
-  constructor(options: Options): Promise<Application> {
+  constructor(config: Config): Promise<Application> {
     super()
-    return initialize(this, merge(createDefaultConfig(), options))
+    return initialize(this, merge(createDefaultConfig(), config))
   }
 
   /**

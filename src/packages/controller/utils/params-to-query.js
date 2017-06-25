@@ -1,22 +1,20 @@
 /* @flow */
 
 import omit from '@lux/utils/omit'
-import type { Model } from '@lux/packages/database'
-import type Request from '@lux/packages/request'
+import { isUndefined } from '@lux/utils/is-type'
+import type { Model, Relationship } from '@lux/packages/database'
 
-/**
- * @private
- */
-export default function paramsToQuery(
-  model: Class<Model>,
-  { id, page, sort, filter, fields, include }: $PropertyType<Request, 'params'>,
-): Object {
-  const relationships = Object.entries(model.relationships)
-  let includedFields = omit(fields, model.resourceName)
+const paramsToQuery = (model: Class<Model>, params: Object): Object => {
+  const { id, page, sort, filter, fields, include } = params
+  // $FlowFixMe
+  const relationships: Array<[string, Relationship]> = Object.entries(
+    model.relationships,
+  )
 
   let query = {
     id,
     filter,
+    include: {},
     select: [model.primaryKey, ...Reflect.get(fields, model.resourceName)],
   }
 
@@ -42,7 +40,10 @@ export default function paramsToQuery(
     }
   }
 
-  includedFields = Object.entries(includedFields).reduce((result, field) => {
+  query.include = Object.entries(
+    omit(fields, model.resourceName),
+  ).reduce((prev, field) => {
+    const next = prev
     const [key] = field
     let [, value] = field
 
@@ -51,8 +52,12 @@ export default function paramsToQuery(
         ([, { model: related }]) => key === related.resourceName,
       ) || []
 
-    if (!name || !relationship) {
-      return result
+    if (
+      isUndefined(name) ||
+      isUndefined(relationship) ||
+      !Array.isArray(value)
+    ) {
+      return next
     }
 
     if (!value.includes(relationship.model.primaryKey)) {
@@ -65,14 +70,11 @@ export default function paramsToQuery(
       value = value.slice(0, 1)
     }
 
-    return {
-      ...result,
-      [name]: value,
-    }
+    next[name] = value
+    return next
   }, {})
 
-  return {
-    ...query,
-    include: includedFields,
-  }
+  return query
 }
+
+export default paramsToQuery

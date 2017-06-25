@@ -1,7 +1,7 @@
 /* @flow */
 
 import type { Model } from '../../index'
-import type { Relationship$opts } from '../index'
+import type { Relationship } from '../index'
 
 /**
  * @private
@@ -13,7 +13,7 @@ export function setHasManyInverse(
     inverse,
     foreignKey,
     inverseModel,
-  }: Relationship$opts & {
+  }: Relationship & {
     inverseModel: Class<Model>,
   },
 ) {
@@ -47,7 +47,7 @@ export function setHasOneInverse(
     inverse,
     foreignKey,
     inverseModel,
-  }: Relationship$opts & {
+  }: Relationship & {
     inverseModel: Class<Model>,
   },
 ) {

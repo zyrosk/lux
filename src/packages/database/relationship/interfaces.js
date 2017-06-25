@@ -2,14 +2,13 @@
 
 import type { Model } from '../index'
 
-type RelationshipType = 'belongsTo' | 'hasMany' | 'hasOne'
+type Type = 'belongsTo' | 'hasMany' | 'hasOne'
+type Reference = Model | Array<Model>
 
-type Relationship$ref = Model | Array<Model>
+export type References = WeakMap<Model, Map<string, Reference>>
 
-export type Relationship$refs = WeakMap<Model, Map<string, Relationship$ref>>
-
-export type Relationship$opts = {
-  type: RelationshipType,
+export type Relationship = {
+  type: Type,
   model: Class<Model>,
   inverse: string,
   through?: Class<Model>,

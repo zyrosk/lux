@@ -122,15 +122,4 @@ describe('util transformKeys()', () => {
   test('does not mutate the source object', () => {
     expect(subject).toMatchSnapshot()
   })
-
-  test('throws when something other than an object is passed in', () => {
-    // $FlowFixMe
-    expect(() => transformKeys('', key => key, true)).toThrow()
-  })
-
-  test('does not fail when an array is used as a source object', () => {
-    const source = [1, 2, 3]
-
-    expect(transformKeys(source, key => key, true)).toEqual(source)
-  })
 })

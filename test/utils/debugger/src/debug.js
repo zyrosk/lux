@@ -11,9 +11,7 @@ const repoDir = process.cwd()
 // Shortcut for console.log
 
 // eslint-disable-next-line no-console
-function log(...msg) {
-  console.log(...msg)
-}
+const log = (...msg) => console.log(...msg)
 
 // @async runCommand
 // Run a terminal command
@@ -70,7 +68,7 @@ function runInspector() {
       return `chrome-devtools${parts[1]}`.replace(/\s+/g, '')
     }
 
-    run.stderr.on('data', (buff) => {
+    run.stderr.on('data', buff => {
       if (url) {
         return
       }
@@ -126,4 +124,4 @@ process.on('exit', () => {
   )
 
   await runInspector()
-}())
+})()

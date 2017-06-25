@@ -2,7 +2,8 @@
 
 import { isObject } from '@lux/utils/is-type'
 
-const merge = <T: Object, U: Object>(dest: T, source: U): { ...T, ...U } =>
+// $FlowFixMe
+const merge = <T, U>(dest: T, source: U): { ...T, ...U } =>
   Object.entries(dest)
     .concat(Object.entries(source))
     .reduce((prev, [key, value]) => {

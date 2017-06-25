@@ -1,68 +1,37 @@
 /* @flow */
 
-import { camelize, dasherize } from 'inflection'
+import { camelize, dasherize, underscore } from '@lux/packages/inflector'
+import { isInstance, isObject } from '@lux/utils/is-type'
 
-import underscore from './underscore'
+type Transform = (key: string) => string
 
-/**
- * @private
- */
-export function transformKeys<T: Object | Array<mixed>>(
-  source: T,
-  transformer: (key: string) => string,
-  deep: boolean = false,
-): T {
-  const sourceType = typeof source
-
-  if (Array.isArray(source)) {
-    return source.slice(0)
-  } else if (source && sourceType === 'object') {
-    return Object.entries(source).reduce((prev, [key, value]) => {
-      const next = prev
-      const recurse =
-        deep &&
-        value &&
-        typeof value === 'object' &&
-        !Array.isArray(value) &&
-        !(value instanceof Date)
-
-      next[transformer(key)] = recurse
-        ? transformKeys(value, transformer, true)
-        : value
-
-      return next
-    }, {})
-  }
-
-  throw new TypeError(`Expected array or object. Received ${sourceType}.`)
-}
-
-/**
- * @private
- */
-export function camelizeKeys<T: Object | Array<mixed>>(
-  source: T,
+export const transformKeys = <T: Object>(
+  src: T,
+  fn: Transform,
   deep?: boolean,
-): T {
-  return transformKeys(source, key => camelize(underscore(key), true), deep)
+): T => {
+  // $FlowFixMe
+  const dest: T = {}
+
+  return Object.entries(src).reduce((prev, entry) => {
+    const next = prev
+    const [key] = entry
+    let [, value] = entry
+
+    if (deep && isObject(value) && !isInstance(value, Date)) {
+      value = transformKeys(value, fn, true)
+    }
+
+    next[fn(key)] = value
+    return next
+  }, dest)
 }
 
-/**
- * @private
- */
-export function dasherizeKeys<T: Object | Array<mixed>>(
-  source: T,
-  deep?: boolean,
-): T {
-  return transformKeys(source, key => dasherize(underscore(key), true), deep)
-}
+export const camelizeKeys = <T: Object>(source: T, deep?: boolean) =>
+  transformKeys(source, camelize, deep)
 
-/**
- * @private
- */
-export function underscoreKeys<T: Object | Array<mixed>>(
-  source: T,
-  deep?: boolean,
-): T {
-  return transformKeys(source, key => underscore(key), deep)
-}
+export const dasherizeKeys = <T: Object>(source: T, deep?: boolean) =>
+  transformKeys(source, dasherize, deep)
+
+export const underscoreKeys = <T: Object>(source: T, deep?: boolean) =>
+  transformKeys(source, underscore, deep)

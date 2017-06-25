@@ -338,7 +338,7 @@ class Query<+T: any> extends Promise {
           const opts = this.model.relationshipFor(name)
           let [, attrs] = relationship
 
-          if (opts) {
+          if (opts && Array.isArray(attrs)) {
             if (!attrs.length) {
               attrs = opts.model.attributeNames
             }
@@ -405,10 +405,14 @@ class Query<+T: any> extends Promise {
 
           return true
         })
-        .reduce((arr, { name, attrs, relationship }) => {
+        .reduce((arr, { attrs, name, relationship }) => {
           arr.push([
             'includeSelect',
-            formatSelect(relationship.model, attrs, `${name}.`),
+            formatSelect(
+              relationship.model,
+              Array.isArray(attrs) ? attrs.map(String) : [],
+              `${name}.`,
+            ),
           ])
 
           if (relationship.type === 'belongsTo') {

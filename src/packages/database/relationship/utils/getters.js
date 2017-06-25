@@ -3,14 +3,14 @@
 import { camelize } from 'inflection'
 
 import type { Model } from '../../index'
-import type { Relationship$opts } from '../index'
+import type { Relationship } from '../index'
 
 /**
  * @private
  */
 async function getHasManyThrough(
   owner: Model,
-  { model, inverse, through, foreignKey: baseKey }: Relationship$opts,
+  { model, inverse, through, foreignKey: baseKey }: Relationship,
 ): Promise<Array<Model>> {
   const inverseOpts = model.relationshipFor(inverse)
   let value = []
@@ -36,10 +36,7 @@ async function getHasManyThrough(
 /**
  * @private
  */
-export function getHasOne(
-  owner: Model,
-  { model, foreignKey }: Relationship$opts,
-) {
+export function getHasOne(owner: Model, { model, foreignKey }: Relationship) {
   return model.first().where({
     [foreignKey]: owner.getPrimaryKey(),
   })
@@ -48,7 +45,7 @@ export function getHasOne(
 /**
  * @private
  */
-export function getHasMany(owner: Model, opts: Relationship$opts) {
+export function getHasMany(owner: Model, opts: Relationship) {
   const { model, through, foreignKey } = opts
 
   return through
@@ -63,7 +60,7 @@ export function getHasMany(owner: Model, opts: Relationship$opts) {
  */
 export function getBelongsTo(
   owner: Model,
-  { model, foreignKey }: Relationship$opts,
+  { model, foreignKey }: Relationship,
 ) {
   const foreignValue = Reflect.get(owner, foreignKey)
 

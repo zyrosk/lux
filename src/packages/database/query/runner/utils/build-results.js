@@ -1,23 +1,20 @@
 /* @flow */
 
-import { camelize, singularize } from 'inflection'
+import { singularize } from 'inflection'
 
-import Model from '../../../model'
-import underscore from '@lux/utils/underscore'
+import { Model } from '@lux/packages/database'
+import { camelize, underscore } from '@lux/packages/inflector'
+import { isObject, isString } from '@lux/utils/is-type'
 import promiseHash from '@lux/utils/promise-hash'
 
-/**
- * @private
- */
-export default (async function buildResults<T: Model>({
-  model,
-  records,
-  relationships,
-}: {
+type Options<T: Model> = {
   model: Class<T>,
   records: Promise<Array<Object>>,
   relationships: Object,
-}): Promise<Array<T>> {
+}
+
+async function buildResults<T: Model>(options: Options<T>): Promise<Array<T>> {
+  const { model, records, relationships } = options
   const results = await records
   const pkPattern = new RegExp(`^.+\\.${model.primaryKey}$`)
   let related
@@ -27,53 +24,57 @@ export default (async function buildResults<T: Model>({
   }
 
   if (Object.keys(relationships).length) {
-    related = Object.entries(relationships).reduce((obj, entry) => {
-      const [name, relationship] = entry
-      let foreignKey = camelize(relationship.foreignKey, true)
+    related = Object.entries(relationships).reduce((prev, [key, value]) => {
+      const next = prev
 
-      if (relationship.through) {
-        const query = relationship.model.select(...relationship.attrs)
+      if (isObject(value) && isString(value.foreignKey)) {
+        // $FlowFixMe
+        const relatedModel: Class<Model> = value.model
+        const foreignKeyString = value.foreignKey
+        let foreignKey = camelize(foreignKeyString)
 
-        const baseKey =
-          `${relationship.through.tableName}.` +
-          `${singularize(underscore(name))}_id`
+        if (value.through) {
+          // $FlowFixMe
+          const throughModel: Class<Model> = value.through
+          const query = relatedModel.select(...value.attrs)
 
-        foreignKey = `${relationship.through
-          .tableName}.${relationship.foreignKey}`
+          const baseKey = `${throughModel.tableName}.${singularize(
+            underscore(key),
+          )}_id`
 
-        query.snapshots.push(
-          [
-            'select',
+          foreignKey = `${throughModel.tableName}.${foreignKeyString}`
+
+          query.snapshots.push(
             [
-              `${baseKey} as ${camelize(baseKey.split('.').pop(), true)}`,
-              `${foreignKey} as ${camelize(foreignKey.split('.').pop(), true)}`,
+              'select',
+              [
+                `${baseKey} as ${camelize(baseKey.split('.').pop())}`,
+                `${foreignKey} as ${camelize(foreignKey.split('.').pop())}`,
+              ],
             ],
-          ],
-          [
-            'innerJoin',
             [
-              relationship.through.tableName,
-              `${relationship.model.tableName}.` +
-                `${relationship.model.primaryKey}`,
-              '=',
-              baseKey,
+              'innerJoin',
+              [
+                throughModel.tableName,
+                `${relatedModel.tableName}.${relatedModel.primaryKey}`,
+                '=',
+                baseKey,
+              ],
             ],
-          ],
-          ['whereIn', [foreignKey, results.map(({ id }) => id)]],
-        )
+            ['whereIn', [foreignKey, results.map(({ id }) => id)]],
+          )
 
-        return {
-          ...obj,
-          [name]: query,
+          next[key] = query
+          return next
         }
+
+        // $FlowFixMe
+        next[key] = relatedModel.select(...value.attrs).where({
+          [foreignKey]: results.map(({ id }) => id),
+        })
       }
 
-      return {
-        ...obj,
-        [name]: relationship.model.select(...relationship.attrs).where({
-          [foreignKey]: results.map(({ id }) => id),
-        }),
-      }
+      return next
     }, {})
 
     related = await promiseHash(related)
@@ -81,25 +82,22 @@ export default (async function buildResults<T: Model>({
 
   return results.map(record => {
     if (related) {
-      Object.entries(
-        related,
-      ).forEach(([name, relatedResults]: [string, Array<Model>]) => {
-        const relationship = model.relationshipFor(name)
+      Object.entries(related).forEach(([key, value]) => {
+        const relationship = model.relationshipFor(key)
 
-        if (relationship) {
-          let { foreignKey } = relationship
-
-          foreignKey = camelize(foreignKey, true)
+        if (relationship && Array.isArray(value)) {
+          const foreignKey = camelize(relationship.foreignKey)
 
           Reflect.set(
             record,
-            name,
-            relatedResults.filter(({ rawColumnData }) => {
-              const fk = Reflect.get(rawColumnData, foreignKey)
-              const pk = Reflect.get(record, model.primaryKey)
-
-              return fk === pk
-            }),
+            key,
+            value.filter(
+              item =>
+                isObject(item) &&
+                isObject(item.rawColumnData) &&
+                Reflect.get(item.rawColumnData, foreignKey) ===
+                  Reflect.get(record, model.primaryKey),
+            ),
           )
         }
       })
@@ -137,4 +135,6 @@ export default (async function buildResults<T: Model>({
 
     return instance
   })
-})
+}
+
+export default buildResults

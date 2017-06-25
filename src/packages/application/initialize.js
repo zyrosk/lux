@@ -6,7 +6,8 @@ import Router from '@lux/packages/router'
 import { build, createLoader, closestChild } from '@lux/packages/loader'
 import { freezeProps, deepFreezeProps } from '@lux/packages/freezeable'
 import ControllerMissingError from '@lux/errors/controller-missing-error'
-import type Application, { Options } from '@lux/packages/application'
+import type Application from '@lux/packages/application'
+import type { Config } from '@lux/packages/config'
 
 import createController from './utils/create-controller'
 import createSerializer from './utils/create-serializer'
@@ -16,7 +17,7 @@ import createSerializer from './utils/create-serializer'
  */
 export default (async function initialize<T: Application>(
   app: T,
-  { path, adapter, logging, database }: Options,
+  { path, adapter, logging, database }: Config,
 ): Promise<T> {
   const load = createLoader(path)
   const routes = load('routes')

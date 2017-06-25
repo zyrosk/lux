@@ -8,6 +8,7 @@ export const capitalize = (value: string): string => {
 
   return first.toUpperCase() + chars.join('')
 }
+
 export const classify = (value: string): string =>
   tokenize(value).map(capitalize).join('')
 
