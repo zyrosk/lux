@@ -24,7 +24,9 @@
     "debugger": "node test/utils/debugger/dist/debug.js",
     "flow": "flow check",
     "lint": "remark . && eslint --cache .",
+    "lint:fix": "remark . && eslint --cache --fix .",
     "precommit": "lint-staged",
+    "prettier": "prettier --write --single-quote --trailing-comma all --no-semi --parser flow src/**/*.js",
     "test": "jest",
     "types": "shx rm -rf flow-typed && flow-typed install"
   },
@@ -105,9 +107,8 @@
   },
   "lint-staged": {
     "src/**/*.js": [
-      "prettier --write --single-quote --trailing-comma all --no-semi --parser flow",
-      "eslint --fix --cache .",
-      "remark .",
+      "yarn prettier",
+      "yarn lint:fix",
       "git add"
     ]
   }
