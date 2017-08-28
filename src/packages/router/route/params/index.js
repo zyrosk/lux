@@ -34,8 +34,8 @@ export function paramsFor({
     if (method === 'POST' || method === 'PATCH') {
       params = [
         ...params,
-        getDataParams(controller, true)
-      ]
+        getDataParams(controller, method, true)
+      ];
     }
   } else if (type === 'collection') {
     params = [
@@ -46,8 +46,8 @@ export function paramsFor({
     if (method === 'POST' || method === 'PATCH') {
       params = [
         ...params,
-        getDataParams(controller, false)
-      ]
+        getDataParams(controller, method, false)
+      ];
     }
   } else if (type === 'custom') {
     params = [

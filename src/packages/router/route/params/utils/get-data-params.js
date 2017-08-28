@@ -42,17 +42,18 @@ function getTypeParam({
 /**
  * @private
  */
-function getAttributesParam({
-  model,
-  params
-}: Controller): [string, ParameterLike] {
+function getAttributesParam(
+  { model, params }: Controller,
+  method: 'PATCH' | 'POST',
+): [string, ParameterLike] {
   return ['attributes', new ParameterGroup(params.reduce((group, param) => {
     const col = model.columnFor(param)
 
     if (col) {
-      const type = typeForColumn(col)
-      const path = `data.attributes.${param}`
-      const required = !col.nullable && isNull(col.defaultValue)
+      const type = typeForColumn(col);
+      const path = `data.attributes.${param}`;
+      const required =
+        method !== 'PATCH' && !col.nullable && isNull(col.defaultValue);
 
       return [
         ...group,
@@ -141,13 +142,14 @@ function getRelationshipsParam({
  */
 export default function getDataParams(
   controller: Controller,
+  method: 'PATCH' | 'POST',
   includeID: boolean
 ): [string, ParameterLike] {
   let params = [getTypeParam(controller)]
 
   if (controller.hasModel) {
     params = [
-      getAttributesParam(controller),
+      getAttributesParam(controller, method),
       getRelationshipsParam(controller),
       ...params
     ]
