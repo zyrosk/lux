@@ -142,6 +142,10 @@ export default async function initializeClass<T: Class<Model>>({
         docName: dasherize(columnName)
       }
     }), {})
+      
+  if (model.store) {
+    return;
+  }
 
   const belongsTo = entries(model.belongsTo || {})
     .reduce((obj, [relatedName, { inverse, model: relatedModel }]) => {
