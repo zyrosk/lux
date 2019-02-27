@@ -43,7 +43,7 @@ export default function connect(path: string, config: Object = {}): Knex {
   if (usingSQLite) {
     if (memory) {
       pool = undefined
-      filename = ':memory:'
+      filename = `file:sqlitedb${Math.random().toString(36).substring(2)}?mode=memory&cache=shared`
     } else {
       filename = joinPath(
         path,
