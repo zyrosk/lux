@@ -21,8 +21,8 @@ export default async function initialize<T: Database>(
   instance: T,
   opts: Database$opts
 ): Promise<T> {
-  const { path, models, logger, checkMigrations } = opts
-  let { config } = opts
+  const { path, logger, checkMigrations } = opts
+  let { config, models } = opts
 
   config = Reflect.get(config, NODE_ENV)
 
@@ -35,6 +35,20 @@ export default async function initialize<T: Database>(
   }: {
     debug: boolean
   } = config
+
+  // Modifies incoming models as extended versions of the base class.
+  // This allow redefines to work if more than one application is created in an instance
+  models = new Map(models);
+  models.forEach((modelClass, name) => {
+    if (modelClass) {
+      const anonymousClass = class extends modelClass {
+        static get name() {
+	  return modelClass.name
+        }
+      };
+      models.set(name, anonymousClass)
+    }
+  });
 
   Object.defineProperties(instance, {
     path: {

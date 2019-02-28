@@ -599,7 +599,7 @@ class Model {
    * @static
    * @private
    */
-  static table: () => Object;
+  table: () => Object;
 
   /**
    * @property store
@@ -607,7 +607,7 @@ class Model {
    * @static
    * @private
    */
-  static store: Database;
+  store: Database;
 
   /**
    * @property initialized
