@@ -22,6 +22,7 @@ export default function connect(path: string, config: Object = {}): Knex {
     password,
     port,
     ssl,
+    _instanceKey,
     url
   } = config
 
@@ -43,12 +44,13 @@ export default function connect(path: string, config: Object = {}): Knex {
   if (usingSQLite) {
     if (memory) {
       pool = undefined
-      filename = `file:sqlitedb${Math.random().toString(36).substring(2)}?mode=memory&cache=shared`
+      const memId = _instanceKey || Math.random().toString(36).substring(2)
+      filename = `file:db-${memId}?mode=memory&cache=shared`
     } else {
       filename = joinPath(
         path,
         'db',
-        `${database || 'default'}_${NODE_ENV}.sqlite`
+        `${_instanceKey || database || 'default'}_${NODE_ENV}.sqlite`
       )
     }
   }

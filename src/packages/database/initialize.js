@@ -21,13 +21,18 @@ export default async function initialize<T: Database>(
   instance: T,
   opts: Database$opts
 ): Promise<T> {
-  const { path, logger, checkMigrations } = opts
+  const { path, logger, checkMigrations, _instanceKey } = opts
   let { config, models } = opts
 
   config = Reflect.get(config, NODE_ENV)
 
   if (!config) {
     throw new ConfigMissingError(NODE_ENV)
+  }
+
+  if (_instanceKey) {
+    instance._instanceKey = _instanceKey
+    config._instanceKey = _instanceKey
   }
 
   const {

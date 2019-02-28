@@ -33,6 +33,7 @@ class Database {
     models,
     config,
     logger,
+    _instanceKey,
     checkMigrations
   }: Database$opts): Promise<Database> {
     return initialize(this, {
@@ -40,6 +41,7 @@ class Database {
       models,
       config,
       logger,
+      _instanceKey,
       checkMigrations
     })
   }

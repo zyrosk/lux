@@ -27,10 +27,13 @@ export default async function initialize<T: Application>(app: T, {
   const models = load('models')
   const logger = new Logger(logging)
 
+  const _instanceKey = `application-${Math.random().toString(36).substring(2)}`
+
   const store = await new Database({
     path,
     models,
     logger,
+    _instanceKey,
     config: database,
     checkMigrations: true
   })
@@ -87,6 +90,7 @@ export default async function initialize<T: Application>(app: T, {
   Object.assign(app, {
     logger,
     models,
+    _instanceKey,
     controllers,
     serializers,
   })
