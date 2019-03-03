@@ -44,10 +44,15 @@ export function create(req: IncomingMessage, logger: Logger): Promise<Request> {
           req.removeAllListeners('end')
           req.removeAllListeners('data')
           req.removeAllListeners('error')
-
-          request.params.data = JSON.parse(body.toString())
-
-          resolve(request)
+	  try {
+            request.params.data = JSON.parse(body.toString())
+	    if (request.params.data && request.params.data.data) {
+	      request.params.data = request.params.data.data
+	    }
+            resolve(request)
+	  } catch(err) {
+	    reject(err)
+	  }
         })
         .once('error', (err: Error) => {
           req.removeAllListeners('end')
