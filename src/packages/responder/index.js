@@ -15,7 +15,7 @@ export function create(request: Request, response: Response): Responder {
     const { headers } = response
     const { data, mimeType, statusCode } = normalize(content)
 
-    if (statusCode) {
+    if (statusCode && !response.statusCode) {
       response.status(statusCode)
     }
 
