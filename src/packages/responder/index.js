@@ -15,8 +15,10 @@ export function create(request: Request, response: Response): Responder {
     const { headers } = response
     const { data, mimeType, statusCode } = normalize(content)
 
-    if (statusCode && !response.statusCode) {
-      response.status(statusCode)
+    if (response.statusCode == 201) {
+      response.status(201);
+    } else if (statusCode) {
+      response.status(statusCode);
     }
 
     if (statusCode !== 204 && !headers.has('content-type')) {
