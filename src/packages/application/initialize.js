@@ -20,6 +20,7 @@ export default async function initialize<T: Application>(app: T, {
   path,
   adapter,
   logging,
+  _instanceKey,
   database,
 }: Options): Promise<T> {
   const load = createLoader(path)
@@ -27,7 +28,7 @@ export default async function initialize<T: Application>(app: T, {
   const models = load('models')
   const logger = new Logger(logging)
 
-  const _instanceKey = `application-${Math.random().toString(36).substring(2)}`
+  _instanceKey = _instanceKey || `${Math.random().toString(36).substring(2)}`
 
   const store = await new Database({
     path,
