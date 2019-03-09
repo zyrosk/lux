@@ -100,7 +100,7 @@ export default async function initialize<T: Database>(
     }
   })
 
-  if (config.memory && config.driver === 'sqlite3') {
+  if (config.forceMigrations || (config.memory && config.driver === 'sqlite3')) {
     const load = createLoader(path)
     const seed = load('seed')
     const migrations = load('migrations')
