@@ -133,9 +133,9 @@ class Route extends FreezeableSet<Action<any>> {
 
       if (key) {
         const parsedKeyValue = Number.parseInt(value, 10);
-
+        const isUUID = value.length == 36 && value.includes('-');
         return Object.assign({}, result, {
-          [key]: Number.isNaN(parsedKeyValue) ? value : parsedKeyValue
+          [key]: isUUID ? value : parsedKeyValue
         });
       }
 
