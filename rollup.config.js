@@ -22,7 +22,9 @@ export default {
   },
   plugins: [
     json(),
-    babel(),
+    babel({
+      externalHelpers: true
+    }),
     resolve()
   ],
   external: id => !(
@@ -33,6 +35,7 @@ export default {
     || id.startsWith(path.join(__dirname, 'src'))
     || id === 'babelHelpers'
     || id === '\u0000babelHelpers'
+    || id.startsWith('rollupPluginBabelHelpers')
   ),
   sourceMap: true
 }

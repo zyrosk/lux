@@ -2,24 +2,56 @@
   "env": {
     "development": {
       "presets": [
-        "lux"
+        [
+          "@babel/preset-env",
+          {
+            "targets": {
+              "node": "current"
+            }
+          }
+        ]
+      ],
+      "plugins": [
+        "babel-plugin-transform-class-properties",
+        "@babel/plugin-transform-flow-strip-types",
+        ["@babel/plugin-proposal-object-rest-spread", { "useBuiltIns": true }],
+        "@babel/plugin-transform-exponentiation-operator"
       ]
     },
     "test": {
+      "presets": [
+        [
+          "@babel/preset-env",
+          {
+            "targets": {
+              "node": "current"
+            }
+          }
+        ]
+      ],
       "plugins": [
         "babel-plugin-transform-class-properties",
-        "babel-plugin-transform-flow-strip-types",
-        "babel-plugin-transform-es2015-modules-commonjs",
-        "babel-plugin-transform-exponentiation-operator",
-        "babel-plugin-transform-async-to-generator",
-        ["transform-object-rest-spread", {
-          "useBuiltIns": true
-        }]
+        "@babel/plugin-transform-flow-strip-types",
+        ["@babel/plugin-proposal-object-rest-spread", { "useBuiltIns": true }],
+        "@babel/plugin-transform-exponentiation-operator"
       ]
     },
     "production": {
       "presets": [
-        "lux"
+        [
+          "@babel/preset-env",
+          {
+            "targets": {
+              "node": "current"
+            }
+          }
+        ]
+      ],
+      "plugins": [
+        "babel-plugin-transform-class-properties",
+        "@babel/plugin-transform-flow-strip-types",
+        ["@babel/plugin-proposal-object-rest-spread", { "useBuiltIns": true }],
+        "@babel/plugin-transform-exponentiation-operator"
       ],
       "minified": true,
       "comments": false
