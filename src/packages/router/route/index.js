@@ -132,10 +132,11 @@ class Route extends FreezeableSet<Action<any>> {
       const key = this.dynamicSegments[idx]
 
       if (key) {
-        return {
-          ...result,
-          [key]: Number.parseInt(value, 10)
-        }
+        const parsedKeyValue = Number.parseInt(value, 10);
+
+        return Object.assign({}, result, {
+          [key]: Number.isNaN(parsedKeyValue) ? value : parsedKeyValue
+        });
       }
 
       return result

@@ -32,5 +32,5 @@ export default function createReplacer(
     .filter((str, idx, arr) => idx === arr.lastIndexOf(str))
     .join('|')
 
-  return new RegExp(`(${names})/(\\d+)`, 'ig')
+  return new RegExp(`(${names})/([0-9a-f\-]+)`, 'ig')
 }
