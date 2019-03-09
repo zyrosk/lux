@@ -5,14 +5,18 @@ import babel from 'rollup-plugin-babel'
 import resolve from 'rollup-plugin-node-resolve'
 
 export default {
-  dest: 'dist/index.js',
-  entry: 'src/packages/cli/commands/index.js',
-  format: 'cjs',
-  banner: (
-    'require(\'source-map-support\').install({\n'
-    + '  environment: \'node\'\n'
-    + '});\n'
-  ),
+  input: 'src/packages/cli/commands/index.js', 
+  output: {
+    file: 'dist/index.js',
+    banner: (
+      'require(\'source-map-support\').install({\n'
+      + '  environment: \'node\'\n'
+      + '});\n'
+    ), 
+    format: 'cjs',
+    sourceMap: true
+  },
+
   onwarn: ({ code, message }) => {
     if (code === 'UNUSED_EXTERNAL_IMPORT') {
       return
@@ -36,6 +40,5 @@ export default {
     || id === 'babelHelpers'
     || id === '\u0000babelHelpers'
     || id.startsWith('rollupPluginBabelHelpers')
-  ),
-  sourceMap: true
+  )
 }

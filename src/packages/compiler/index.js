@@ -9,7 +9,7 @@ import alias from 'rollup-plugin-alias'
 import babel from 'rollup-plugin-babel'
 import eslint from 'rollup-plugin-eslint'
 import resolve from 'rollup-plugin-node-resolve'
-import { rollup } from 'rollup'
+import rollup from 'rollup'
 
 import { rmrf, readdir, readdirRec, isProjectFile } from '../fs'
 import template from '../template'
@@ -41,7 +41,7 @@ export async function compile(
 ): Promise<void> {
   const { useStrict = false } = opts
   const local = opts.local || path.join(__dirname, '..', 'src', 'index.js')
-  const entry = path.join(dir, 'dist', 'index.js')
+  const input = path.join(dir, 'dist', 'index.js')
   const external = isExternal(dir)
   let banner
 
@@ -99,9 +99,28 @@ export async function compile(
       LUX_LOCAL: aliases.LUX_LOCAL.replace(prefix, '')
     })
   }
+  
+  banner = template`
+    const srcmap = require('source-map-support').install({
+      environment: 'node'
+    });
+  `
 
-  const bundle = await rollup({
-    entry,
+  if (useStrict) {
+    banner = `'use strict';\n\n${banner}`
+  } 
+  
+  const outputOptions = {
+    banner,
+    file: path.join(dir, 'dist', 'bundle.js'),
+    format: 'cjs',
+    sourceMap: true,
+    useStrict: false
+  };
+  
+  const bundle = await rollup.rollup({
+    input,
+    output: outputOptions,
     onwarn,
     external,
     cache,
@@ -136,25 +155,11 @@ export async function compile(
     cache = bundle
   }
 
-  await rmrf(entry)
+  await rmrf(input)
 
-  banner = template`
-    const srcmap = require('source-map-support').install({
-      environment: 'node'
-    });
-  `
+  const { output } = await bundle.generate(outputOptions);
 
-  if (useStrict) {
-    banner = `'use strict';\n\n${banner}`
-  }
-
-  return bundle.write({
-    banner,
-    dest: path.join(dir, 'dist', 'bundle.js'),
-    format: 'cjs',
-    sourceMap: true,
-    useStrict: false
-  })
+  return await bundle.write(outputOptions);
 }
 
 export { default as onwarn } from './utils/handle-warning'
