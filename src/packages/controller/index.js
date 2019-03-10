@@ -660,8 +660,12 @@ class Controller {
     )
 
     Reflect.set(res, 'statusCode', 201)
+    
+    if (record.unwrap) {
+      return record.unwrap()
+    }
 
-    return record.unwrap()
+    return record
   }
 
   /**
